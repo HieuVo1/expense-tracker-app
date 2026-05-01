@@ -18,8 +18,16 @@ import { TransactionListItem } from '../components/transaction-list-item';
 import { TransactionFilterBar } from '../components/transaction-filter-bar';
 import { listTransactions, listCategoriesForForm } from '../actions/transaction-actions';
 
+type Tx = Awaited<ReturnType<typeof listTransactions>>[number];
+
+// Net flow for a day's transactions: income +, expense −. Used in the section
+// header beside the date so user reads the day's bottom-line at a glance.
+function dayNet(rows: Tx[]) {
+  return rows.reduce((s, t) => s + (t.type === 'income' ? t.amount : -t.amount), 0);
+}
+
 type Props = {
-  searchParams: { type?: string; categoryId?: string };
+  searchParams: { type?: string; categoryId?: string; q?: string };
 };
 
 // Group "Hôm nay / Hôm qua / 25 thg 3 2026" — Vietnamese conventions.
@@ -41,7 +49,7 @@ export async function TransactionListView({ searchParams }: Props) {
       : undefined;
 
   const [transactions, categories] = await Promise.all([
-    listTransactions({ type, categoryId: searchParams.categoryId }),
+    listTransactions({ type, categoryId: searchParams.categoryId, q: searchParams.q }),
     listCategoriesForForm(),
   ]);
 
@@ -52,11 +60,7 @@ export async function TransactionListView({ searchParams }: Props) {
   }, {});
   const groupKeys = Object.keys(grouped);
 
-  // Compute current-month totals for the header summary card.
-  const monthStart = dayjs().startOf('month');
-  const inMonth = transactions.filter((t) => dayjs(t.date).isAfter(monthStart.subtract(1, 'day')));
-  const totalExpense = inMonth.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const totalIncome = inMonth.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const hasActiveFilter = !!(searchParams.type || searchParams.categoryId || searchParams.q);
 
   return (
     <DashboardContent>
@@ -74,56 +78,61 @@ export async function TransactionListView({ searchParams }: Props) {
             variant="contained"
             href={paths.dashboard.addTransaction}
             startIcon={<Iconify icon="solar:add-circle-bold" />}
+            sx={{ display: { xs: 'none', lg: 'inline-flex' } }}
           >
             Thêm giao dịch
           </Button>
         </Box>
-
-        <Card sx={{ p: 2.5, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Chi tháng này
-            </Typography>
-            <Typography variant="h5" className="tabular" sx={{ color: 'text.primary' }}>
-              {fCurrency(totalExpense)}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Thu tháng này
-            </Typography>
-            <Typography variant="h5" className="tabular" sx={{ color: 'success.dark' }}>
-              {fCurrency(totalIncome)}
-            </Typography>
-          </Box>
-        </Card>
 
         <TransactionFilterBar categories={categories} />
 
         {groupKeys.length === 0 ? (
           <Card sx={{ p: 5, textAlign: 'center' }}>
             <Typography color="text.secondary">
-              Chưa có giao dịch nào. Bấm <strong>Thêm giao dịch</strong> để bắt đầu.
+              {hasActiveFilter
+                ? 'Không có giao dịch khớp bộ lọc.'
+                : 'Chưa có giao dịch nào. Bấm "+" để bắt đầu.'}
             </Typography>
           </Card>
         ) : (
           <Stack spacing={2.5}>
-            {groupKeys.map((dateKey) => (
-              <Box key={dateKey}>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ ml: 0.5, mb: 1, display: 'block', textTransform: 'uppercase' }}
-                >
-                  {formatGroupLabel(dateKey)}
-                </Typography>
-                <Card>
-                  {grouped[dateKey].map((t) => (
-                    <TransactionListItem key={t.id} transaction={t} />
-                  ))}
-                </Card>
-              </Box>
-            ))}
+            {groupKeys.map((dateKey) => {
+              const net = dayNet(grouped[dateKey]);
+              const netPositive = net >= 0;
+              return (
+                <Box key={dateKey}>
+                  {/* Date label + net total inline — matches the design where
+                      the user reads "Hôm nay, 24 Tháng 4 ............. −420.000đ". */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      justifyContent: 'space-between',
+                      gap: 2,
+                      mb: 1,
+                      px: 0.5,
+                    }}
+                  >
+                    <Typography variant="subtitle2" color="text.primary">
+                      {formatGroupLabel(dateKey)}
+                    </Typography>
+                    <Typography
+                      className="tabular"
+                      variant="caption"
+                      sx={{ color: netPositive ? 'success.dark' : 'text.secondary' }}
+                    >
+                      {netPositive ? '+' : '−'}
+                      {fCurrency(Math.abs(net))}
+                    </Typography>
+                  </Box>
+                  <Card>
+                    {grouped[dateKey].map((t) => (
+                      <TransactionListItem key={t.id} transaction={t} />
+                    ))}
+                  </Card>
+                </Box>
+              );
+            })}
           </Stack>
         )}
       </Stack>

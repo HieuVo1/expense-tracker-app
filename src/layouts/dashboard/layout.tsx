@@ -12,6 +12,7 @@ import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
 
 import { BottomNav } from './bottom-nav';
+import { AddTransactionFab } from './add-transaction-fab';
 import { VerticalDivider } from './content';
 import { NavVertical } from './nav-vertical';
 import { NavHorizontal } from './nav-horizontal';
@@ -149,6 +150,7 @@ export function DashboardLayout({
       ]}
     >
       {renderMain()}
+      <AddTransactionFab hideAtBreakpoint={layoutQuery} />
     </LayoutSection>
   );
 }

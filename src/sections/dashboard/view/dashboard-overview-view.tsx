@@ -50,6 +50,7 @@ export async function DashboardOverviewView({ searchParams }: Props) {
               variant="contained"
               href={paths.dashboard.addTransaction}
               startIcon={<Iconify icon="solar:add-circle-bold" />}
+              sx={{ display: { xs: 'none', lg: 'inline-flex' } }}
             >
               Thêm giao dịch
             </Button>

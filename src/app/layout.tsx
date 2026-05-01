@@ -29,7 +29,11 @@ export const metadata: Metadata = {
   applicationName: 'Chi tiêu',
   manifest: '/manifest.webmanifest',
   icons: [
-    { rel: 'icon', url: '/favicon.ico' },
+    // PNG favicons override the old .ico — browsers pick the highest-res
+    // matching one. Keep .ico as legacy fallback for tools that don't read PNG.
+    { rel: 'icon', url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+    { rel: 'icon', url: '/favicon-64.png', sizes: '64x64', type: 'image/png' },
+    { rel: 'shortcut icon', url: '/favicon.ico' },
     { rel: 'apple-touch-icon', url: '/apple-touch-icon.png', sizes: '180x180' },
   ],
   // iOS-specific: enables "Add to Home Screen" → standalone launch + native

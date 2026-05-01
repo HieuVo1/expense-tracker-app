@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- "$" centred vertically + horizontally in the icon, with 3 ascending
+       bars docked at the bottom as a smaller chart accent. The $ is the
+       primary symbol, the bars supply the "expense tracker" context.
+       Single colour, all paths — no font dependency. -->
+  <g fill="#00A76F">
+    <!-- Bars: bottom-aligned, shorter so they don't crowd the $ glyph.
+         Heights ascend left → right (84 / 132 / 188). -->
+    <rect x="64"  y="380" width="96" height="84"  rx="14"/>
+    <rect x="208" y="332" width="96" height="132" rx="14"/>
+    <rect x="352" y="276" width="96" height="188" rx="14"/>
+
+    <!-- "$" centred at (256, 168). scale 0.5 → 156×192 glyph; tx/ty derived
+         so the original (252, 256) visual centre lands at (256, 168). -->
+    <g transform="translate(130, 40) scale(0.5)">
+      <rect x="232" y="64" width="48" height="384" rx="8"/>
+      <path d="
+        M 360 168
+        C 360 116, 312 88, 256 88
+        C 192 88, 144 124, 144 176
+        C 144 224, 184 248, 240 256
+        L 272 264
+        C 312 272, 336 288, 336 320
+        C 336 356, 296 384, 256 384
+        C 200 384, 152 356, 152 304
+        L 152 304
+        L 96 312
+        C 96 384, 168 432, 256 432
+        C 344 432, 392 380, 392 320
+        C 392 264, 352 232, 280 216
+        L 248 208
+        C 216 200, 200 184, 200 168
+        C 200 144, 224 128, 256 128
+        C 296 128, 320 152, 320 176
+        L 320 176
+        Z
+      "/>
+    </g>
+  </g>
+</svg>

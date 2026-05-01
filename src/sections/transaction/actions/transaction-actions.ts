@@ -146,6 +146,8 @@ export async function lookupMerchantCategory(merchant: string) {
 export type TransactionListFilter = {
   type?: TransactionType;
   categoryId?: string;
+  /** Free-text query — matches against description (Postgres ILIKE, accent-insensitive). */
+  q?: string;
 };
 
 // Returns the user's transactions, optionally filtered, joined with their
@@ -156,6 +158,13 @@ export async function listTransactions(filter: TransactionListFilter = {}, take 
   const where: Prisma.TransactionWhereInput = { userId: user.id };
   if (filter.type) where.type = filter.type;
   if (filter.categoryId) where.categoryId = filter.categoryId;
+  if (filter.q && filter.q.trim()) {
+    // Case-insensitive substring search on the description column. Merchant
+    // isn't stored on Transaction (only in MerchantMemory), so the user's
+    // mental "search by who I sent money to" works only when they typed it
+    // into the description field at create time. Good enough for v1.
+    where.description = { contains: filter.q.trim(), mode: 'insensitive' };
+  }
 
   const rows = await prisma.transaction.findMany({
     where,
