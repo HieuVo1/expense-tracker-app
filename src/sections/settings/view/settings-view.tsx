@@ -98,6 +98,23 @@ export async function SettingsView() {
         </Card>
 
         <Card>
+          {/* Categories + Budgets used to live in the sidebar nav. With the
+              mobile bottom-nav showing only 4 main tabs, they're surfaced here
+              instead so the user can always reach them in 2 taps. */}
+          <SettingsRow
+            icon="solar:add-folder-bold"
+            title="Danh mục"
+            description="Sửa tên, icon, màu cho từng nhóm"
+            actionHref={paths.dashboard.categories}
+            actionLabel="Mở"
+          />
+          <SettingsRow
+            icon="solar:bill-list-bold-duotone"
+            title="Ngân sách"
+            description="Đặt hạn mức chi tiêu theo tháng"
+            actionHref={paths.dashboard.budgets}
+            actionLabel="Mở"
+          />
           <SettingsRow
             icon="solar:lock-password-bold-duotone"
             title="Đổi mật khẩu"

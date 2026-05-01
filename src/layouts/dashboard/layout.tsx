@@ -5,21 +5,16 @@ import type { NavSectionProps } from 'src/components/nav-section';
 import type { MainSectionProps, HeaderSectionProps, LayoutSectionProps } from '../core';
 
 import { merge } from 'es-toolkit';
-import { useBoolean } from 'minimal-shared/hooks';
 
-import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
 
 import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
 
-import { NavMobile } from './nav-mobile';
+import { BottomNav } from './bottom-nav';
 import { VerticalDivider } from './content';
 import { NavVertical } from './nav-vertical';
 import { NavHorizontal } from './nav-horizontal';
-import { MenuButton } from '../components/menu-button';
-import { AccountDrawer } from '../components/account-drawer';
-import { SettingsButton } from '../components/settings-button';
 import { navData as dashboardNavData } from '../nav-config-dashboard';
 import { dashboardLayoutVars, dashboardNavColorVars } from './css-vars';
 import { MainSection, layoutClasses, HeaderSection, LayoutSection } from '../core';
@@ -48,8 +43,6 @@ export function DashboardLayout({
 
   const navVars = dashboardNavColorVars(theme, settings.state.navColor, settings.state.navLayout);
 
-  const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
-
   const navData = slotProps?.nav?.data ?? dashboardNavData;
 
   const isNavMini = settings.state.navLayout === 'mini';
@@ -70,12 +63,8 @@ export function DashboardLayout({
       ) : null,
       leftArea: (
         <>
-          <MenuButton
-            onClick={onOpen}
-            sx={{ mr: 1, ml: -1, [theme.breakpoints.up(layoutQuery)]: { display: 'none' } }}
-          />
-          <NavMobile data={navData} open={open} onClose={onClose} cssVars={navVars.section} />
-
+          {/* Mobile uses BottomNav instead of a hamburger drawer — keeps thumb
+              reach on the main tabs and matches PWA "feels native" goal. */}
           {isNavHorizontal && (
             <Logo
               sx={{
@@ -91,10 +80,7 @@ export function DashboardLayout({
         </>
       ),
       rightArea: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
-          {/* <SettingsButton /> */}
-          <AccountDrawer />
-        </Box>
+        <></>
       ),
     };
 
@@ -125,13 +111,27 @@ export function DashboardLayout({
     />
   );
 
-  const renderMain = () => <MainSection {...slotProps?.main}>{children}</MainSection>;
+  const renderMain = () => (
+    <MainSection
+      {...slotProps?.main}
+      sx={[
+        // Lift content above the fixed bottom nav on mobile so the last list
+        // row isn't hidden under it. Includes safe-area for iPhone home bar.
+        {
+          pb: { xs: 'calc(64px + env(safe-area-inset-bottom))', [layoutQuery]: 0 },
+        },
+        ...(Array.isArray(slotProps?.main?.sx) ? slotProps.main.sx : [slotProps?.main?.sx]),
+      ]}
+    >
+      {children}
+    </MainSection>
+  );
 
   return (
     <LayoutSection
       headerSection={renderHeader()}
       sidebarSection={isNavHorizontal ? null : renderSidebar()}
-      footerSection={null}
+      footerSection={<BottomNav hideAtBreakpoint={layoutQuery} />}
       cssVars={{ ...dashboardLayoutVars(theme), ...navVars.layout, ...cssVars }}
       sx={[
         {
