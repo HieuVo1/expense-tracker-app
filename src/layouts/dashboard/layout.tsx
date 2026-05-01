@@ -65,15 +65,18 @@ export function DashboardLayout({
       leftArea: (
         <>
           {/* Mobile uses BottomNav instead of a hamburger drawer — keeps thumb
-              reach on the main tabs and matches PWA "feels native" goal. */}
-          {isNavHorizontal && (
-            <Logo
-              sx={{
-                display: 'none',
-                [theme.breakpoints.up(layoutQuery)]: { display: 'inline-flex' },
-              }}
-            />
-          )}
+              reach on the main tabs and matches PWA "feels native" goal.
+              Mobile shows the logo here for brand identity (sidebar absent);
+              desktop only shows it for horizontal nav (vertical has it in
+              the sidebar). */}
+          <Logo
+            sx={{
+              display: 'inline-flex',
+              [theme.breakpoints.up(layoutQuery)]: {
+                display: isNavHorizontal ? 'inline-flex' : 'none',
+              },
+            }}
+          />
 
           {isNavHorizontal && (
             <VerticalDivider sx={{ [theme.breakpoints.up(layoutQuery)]: { display: 'flex' } }} />

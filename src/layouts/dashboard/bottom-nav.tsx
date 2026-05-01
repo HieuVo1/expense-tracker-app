@@ -14,11 +14,11 @@ import { RouterLink } from 'src/routes/components';
 import { Iconify } from 'src/components/iconify';
 
 // Tabs shown in the mobile bottom bar. Order is the user's mental hierarchy:
-// Home → Reports → History → Settings. Categories + Budgets stay accessible
-// via Settings or contextual links (overcrowding the bar hurts thumb-reach).
+// Home → History → Settings. Reports were merged into Home so they share the
+// same month-picker context. Categories + Budgets stay accessible via Settings
+// or contextual links (overcrowding the bar hurts thumb-reach).
 const TABS = [
   { value: paths.dashboard.root, label: 'Trang chủ', icon: 'solar:home-angle-bold-duotone' },
-  { value: paths.dashboard.reports, label: 'Báo cáo', icon: 'solar:chart-square-outline' },
   { value: paths.dashboard.transactions, label: 'Lịch sử', icon: 'solar:clock-circle-bold' },
   { value: paths.dashboard.settings, label: 'Cài đặt', icon: 'solar:settings-bold-duotone' },
 ] as const;

@@ -1,5 +1,4 @@
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -9,7 +8,10 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
-import { TransactionListItem } from 'src/sections/transaction/components/transaction-list-item';
+import { getReportData } from 'src/sections/report/actions/report-actions';
+import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
+import { TopMerchantsCard } from 'src/sections/report/components/top-merchants-card';
+import { TopTransactionsCard } from 'src/sections/report/components/top-transactions-card';
 
 import { MonthPicker } from '../components/month-picker';
 import { SummaryCard } from '../components/summary-card';
@@ -21,8 +23,14 @@ type Props = {
   searchParams?: { month?: string };
 };
 
+// Single landing view that combines the at-a-glance summary (this month) with
+// the 6-month trend and rankings — fewer hops for the user, and the month
+// picker drives both halves consistently.
 export async function DashboardOverviewView({ searchParams }: Props) {
-  const data = await getDashboardData(searchParams?.month);
+  const [data, reportData] = await Promise.all([
+    getDashboardData(searchParams?.month),
+    getReportData(searchParams?.month),
+  ]);
 
   return (
     <DashboardContent>
@@ -41,11 +49,19 @@ export async function DashboardOverviewView({ searchParams }: Props) {
               Tổng quan
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Tóm tắt chi tiêu tháng {data.monthLabel}
+              Tóm tắt và phân tích chi tiêu tháng {data.monthLabel}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <MonthPicker />
+            <Button
+              component="a"
+              href="/api/reports/export"
+              variant="outlined"
+              startIcon={<Iconify icon="solar:download-bold" />}
+            >
+              Xuất CSV
+            </Button>
             <Button
               variant="contained"
               href={paths.dashboard.addTransaction}
@@ -64,27 +80,15 @@ export async function DashboardOverviewView({ searchParams }: Props) {
           monthLabel={data.monthLabel}
         />
 
+        <MonthlyTrendChart data={reportData.monthlyTrend} />
+
         <CategoryDonut expenseData={data.byCategory} incomeData={data.incomeByCategory} />
 
         <BudgetProgress rows={data.byCategory} />
 
-        <Box>
-          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
-            Giao dịch gần nhất
-          </Typography>
-          {data.recent.length === 0 ? (
-            <Card sx={{ p: 5, textAlign: 'center' }}>
-              <Typography color="text.secondary">
-                Chưa có giao dịch nào. Bắt đầu với <strong>Thêm giao dịch</strong>.
-              </Typography>
-            </Card>
-          ) : (
-            <Card>
-              {data.recent.map((t) => (
-                <TransactionListItem key={t.id} transaction={t} />
-              ))}
-            </Card>
-          )}
+        <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+          <TopTransactionsCard rows={reportData.topTransactions} />
+          <TopMerchantsCard rows={reportData.topMerchants} />
         </Box>
       </Stack>
     </DashboardContent>

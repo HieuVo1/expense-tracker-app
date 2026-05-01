@@ -33,7 +33,6 @@ const NAV_LINKS: Array<{ icon: string; label: string; href: string }> = [
   { icon: 'solar:home-angle-bold-duotone', label: 'Tổng quan', href: paths.dashboard.root },
   { icon: 'solar:transfer-horizontal-bold-duotone', label: 'Giao dịch', href: paths.dashboard.transactions },
   { icon: 'solar:add-circle-bold-duotone', label: 'Thêm giao dịch', href: paths.dashboard.addTransaction },
-  { icon: 'solar:chart-square-outline', label: 'Báo cáo', href: paths.dashboard.reports },
   { icon: 'solar:bill-list-bold-duotone', label: 'Ngân sách', href: paths.dashboard.budgets },
   { icon: 'solar:add-folder-bold', label: 'Danh mục', href: paths.dashboard.categories },
   { icon: 'solar:settings-bold-duotone', label: 'Cài đặt', href: paths.dashboard.settings },
