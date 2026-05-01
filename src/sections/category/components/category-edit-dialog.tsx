@@ -15,8 +15,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
-import type { IconifyName } from 'src/components/iconify';
-
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
@@ -24,32 +22,7 @@ import { Form, Field } from 'src/components/hook-form';
 import { TypeToggle } from 'src/sections/transaction/components/type-toggle';
 
 import { createCategory, updateCategory } from '../actions/category-actions';
-
-// Curated icon set drawn from the registry in src/components/iconify/icon-sets.ts.
-// Kept short so the picker doesn't overwhelm; expand only when there's real
-// demand — the iconify type union enforces that names are registered.
-const ICONS: IconifyName[] = [
-  'solar:tea-cup-bold',
-  'solar:cart-plus-bold',
-  'solar:electric-refueling-bold',
-  'solar:gamepad-bold',
-  'solar:bill-list-bold-duotone',
-  'solar:menu-dots-bold-duotone',
-  'solar:wad-of-money-bold',
-  'solar:cup-star-bold',
-  'solar:download-bold',
-  'solar:tag-horizontal-bold-duotone',
-  'solar:home-angle-bold-duotone',
-  'solar:medical-kit-bold',
-  'solar:notebook-bold-duotone',
-  'solar:suitcase-tag-bold',
-  'solar:dumbbell-large-minimalistic-bold',
-  'solar:smartphone-2-bold',
-  'solar:heart-bold',
-  'solar:gallery-wide-bold',
-  'solar:headphones-round-bold',
-  'solar:tv-bold',
-];
+import { ICON_GROUPS, DEFAULT_CATEGORY_ICON } from './category-icon-groups';
 
 // Palette aligned with the warm-minimalist tokens — paired warm/earthy/muted
 // hues so user-created categories don't clash with the seeded six.
@@ -95,7 +68,7 @@ export function CategoryEditDialog({ open, onClose, category }: Props) {
     // user opens the dialog for a different category.
     defaultValues: {
       name: category?.name ?? '',
-      icon: category?.icon ?? ICONS[0],
+      icon: category?.icon ?? DEFAULT_CATEGORY_ICON,
       color: category?.color ?? COLORS[0],
       type: category?.type ?? 'expense',
     },
@@ -159,38 +132,57 @@ export function CategoryEditDialog({ open, onClose, category }: Props) {
                 name="icon"
                 control={methods.control}
                 render={({ field }) => (
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 1 }}>
-                    {ICONS.map((icon) => {
-                      const selected = field.value === icon;
-                      return (
+                  <Stack spacing={1.5}>
+                    {ICON_GROUPS.map((group) => (
+                      <Box key={group.label}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: 'block', mb: 0.75, opacity: 0.8 }}
+                        >
+                          {group.label}
+                        </Typography>
                         <Box
-                          key={icon}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => field.onChange(icon)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              field.onChange(icon);
-                            }
-                          }}
                           sx={{
-                            width: 36,
-                            height: 36,
                             display: 'grid',
-                            placeItems: 'center',
-                            borderRadius: 1,
-                            cursor: 'pointer',
-                            border: '0.5px solid',
-                            borderColor: selected ? 'text.primary' : 'divider',
-                            bgcolor: selected ? 'action.selected' : 'transparent',
+                            gridTemplateColumns: 'repeat(8, 1fr)',
+                            gap: 1,
                           }}
                         >
-                          <Iconify icon={icon} width={20} />
+                          {group.icons.map((icon) => {
+                            const selected = field.value === icon;
+                            return (
+                              <Box
+                                key={icon}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => field.onChange(icon)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    field.onChange(icon);
+                                  }
+                                }}
+                                sx={{
+                                  width: 36,
+                                  height: 36,
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  borderRadius: 1,
+                                  cursor: 'pointer',
+                                  border: '0.5px solid',
+                                  borderColor: selected ? 'text.primary' : 'divider',
+                                  bgcolor: selected ? 'action.selected' : 'transparent',
+                                }}
+                              >
+                                <Iconify icon={icon} width={20} />
+                              </Box>
+                            );
+                          })}
                         </Box>
-                      );
-                    })}
-                  </Box>
+                      </Box>
+                    ))}
+                  </Stack>
                 )}
               />
             </Box>
