@@ -58,13 +58,13 @@ export function BudgetProgress({ rows }: Props) {
           </Typography>
         </Box>
       ) : (
-        <Stack spacing={2.5}>
+        <Stack spacing={4}>
           {tracked.map((r) => {
             const pct = Math.min(100, (r.spent / r.limit) * 100);
             const isOver = r.spent > r.limit;
             return (
               <Box key={r.categoryId}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Box sx={{ color: r.color, display: 'flex' }}>
                     <Iconify icon={r.icon as IconifyName} width={16} />
                   </Box>
@@ -83,12 +83,12 @@ export function BudgetProgress({ rows }: Props) {
                   variant="determinate"
                   value={pct}
                   sx={{
-                    height: 6,
-                    borderRadius: 3,
+                    height: 10,
+                    borderRadius: 5,
                     bgcolor: 'action.hover',
                     '& .MuiLinearProgress-bar': {
                       bgcolor: isOver ? 'error.main' : r.color,
-                      borderRadius: 3,
+                      borderRadius: 5,
                     },
                   }}
                 />
