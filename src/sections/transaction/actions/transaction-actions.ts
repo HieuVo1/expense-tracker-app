@@ -151,9 +151,15 @@ export type TransactionListFilter = {
 };
 
 // Returns the user's transactions, optionally filtered, joined with their
-// category for inline display. Caller pagination is via offset/take args.
-export async function listTransactions(filter: TransactionListFilter = {}, take = 50) {
+// category for inline display. Pagination via skip/take; fetches one extra
+// row to detect whether more pages are available without a separate count(*).
+export async function listTransactions(
+  filter: TransactionListFilter = {},
+  options: { take?: number; skip?: number } = {}
+) {
   const user = await requireUser();
+  const take = options.take ?? 50;
+  const skip = options.skip ?? 0;
 
   const where: Prisma.TransactionWhereInput = { userId: user.id };
   if (filter.type) where.type = filter.type;
@@ -169,23 +175,30 @@ export async function listTransactions(filter: TransactionListFilter = {}, take 
   const rows = await prisma.transaction.findMany({
     where,
     orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-    take,
+    skip,
+    take: take + 1,
     include: {
       category: { select: { id: true, name: true, icon: true, color: true } },
     },
   });
 
+  const hasMore = rows.length > take;
+  const trimmed = hasMore ? rows.slice(0, take) : rows;
+
   // Decimal → number for client serialisation; VND amounts comfortably fit in a
   // JS number (max safe integer is ≈ 9 * 10^15, well above any plausible amount).
-  return rows.map((r) => ({
-    id: r.id,
-    amount: Number(r.amount),
-    type: r.type,
-    date: r.date.toISOString().slice(0, 10),
-    description: r.description,
-    receiptUrl: r.receiptUrl,
-    category: r.category,
-  }));
+  return {
+    hasMore,
+    rows: trimmed.map((r) => ({
+      id: r.id,
+      amount: Number(r.amount),
+      type: r.type,
+      date: r.date.toISOString().slice(0, 10),
+      description: r.description,
+      receiptUrl: r.receiptUrl,
+      category: r.category,
+    })),
+  };
 }
 
 // Edit-only schema: restricted to fields the edit dialog exposes. Merchant

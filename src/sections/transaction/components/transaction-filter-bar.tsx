@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import TextField from '@mui/material/TextField';
+import LinearProgress from '@mui/material/LinearProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
@@ -28,6 +29,9 @@ export function TransactionFilterBar({ categories }: Props) {
   const currentQ = params.get('q') ?? '';
 
   const [q, setQ] = useState(currentQ);
+  // Wraps router.replace so isPending stays true until the new server render
+  // completes — gives the user a thin progress bar as feedback.
+  const [isPending, startTransition] = useTransition();
 
   // Debounced commit of the search query — avoids one network round-trip per
   // keystroke. 300ms feels responsive without thrashing the server.
@@ -38,7 +42,9 @@ export function TransactionFilterBar({ categories }: Props) {
       const next = new URLSearchParams(params.toString());
       if (trimmed) next.set('q', trimmed);
       else next.delete('q');
-      router.replace(`${pathname}?${next.toString()}`);
+      startTransition(() => {
+        router.replace(`${pathname}?${next.toString()}`);
+      });
     }, 300);
     return () => clearTimeout(t);
   }, [q, currentQ, params, pathname, router]);
@@ -47,7 +53,9 @@ export function TransactionFilterBar({ categories }: Props) {
     const next = new URLSearchParams(params.toString());
     if (categoryId) next.set('categoryId', categoryId);
     else next.delete('categoryId');
-    router.replace(`${pathname}?${next.toString()}`);
+    startTransition(() => {
+      router.replace(`${pathname}?${next.toString()}`);
+    });
   };
 
   return (
@@ -110,6 +118,13 @@ export function TransactionFilterBar({ categories }: Props) {
             />
           ))}
         </Box>
+      </Box>
+
+      {/* Thin bar under the filters that stays visible until the server
+          finishes re-rendering with the new searchParams. Reserves height
+          even when idle so the layout doesn't shift on click. */}
+      <Box sx={{ height: 2, mt: -1 }}>
+        {isPending && <LinearProgress sx={{ height: 2, borderRadius: 1 }} />}
       </Box>
     </Box>
   );
