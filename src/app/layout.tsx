@@ -18,13 +18,28 @@ import { AuthProvider } from 'src/auth/context/supabase';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // viewportFit: cover lets standalone PWA paint into the iOS notch / safe area.
+  viewportFit: 'cover',
   themeColor: primaryColor.main,
 };
 
 export const metadata: Metadata = {
   title: 'Expense Tracker',
   description: 'Theo dõi chi tiêu cá nhân',
-  icons: [{ rel: 'icon', url: '/favicon.ico' }],
+  applicationName: 'Chi tiêu',
+  manifest: '/manifest.webmanifest',
+  icons: [
+    { rel: 'icon', url: '/favicon.ico' },
+    { rel: 'apple-touch-icon', url: '/apple-touch-icon.png', sizes: '180x180' },
+  ],
+  // iOS-specific: enables "Add to Home Screen" → standalone launch + native
+  // splash / status bar styling. Without these, iOS opens the URL in Safari.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Chi tiêu',
+  },
+  formatDetection: { telephone: false },
 };
 
 type RootLayoutProps = {
