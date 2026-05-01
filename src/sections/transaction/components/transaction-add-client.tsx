@@ -32,17 +32,33 @@ type Props = {
   categories: Category[];
 };
 
-// Dedup key = date + type + amount only.
-// Description-based keys break when OCR reads the same transaction
-// differently between two screenshots (e.g., "Chuyển khoản cho..." vs
-// "Chuyển tới...", or different amounts of trailing text). Same goes for
-// merchant — diacritic variants ("Thuỳ" vs "Thùy") would split keys.
-//
-// Trade-off: two genuinely distinct transactions with identical date+type+
-// amount get merged (rare in practice — same amount twice/day same type).
-// User can spot and recreate manually in preview if needed.
-function dedupKey(t: { date: string; type: string; amount: number }) {
-  return `${t.date}|${t.type}|${t.amount}`;
+// Strip Vietnamese diacritics + lowercase + collapse whitespace so OCR
+// variants of the same merchant ("Thuỳ" vs "Thùy", "Thi" vs "Thị") collapse
+// into the same canonical form for dedup.
+function normalizeMerchant(s: string | null | undefined) {
+  if (!s) return '';
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+// Dedup key = date + type + amount + normalized merchant.
+// Including merchant prevents collapsing two distinct transactions on the same
+// day with identical amount but different recipients (e.g., 40k to Quách Thị
+// Hiền AND 40k to Nguyễn Thùy Linh). Diacritic-stripping handles OCR variants
+// of the same name. When merchant is missing on both rows, the key still
+// dedupes them via empty-string match.
+function dedupKey(t: {
+  date: string;
+  type: string;
+  amount: number;
+  merchant?: string | null;
+}) {
+  return `${t.date}|${t.type}|${t.amount}|${normalizeMerchant(t.merchant)}`;
 }
 
 // Orchestrates the Add Transaction page:
@@ -85,9 +101,10 @@ export function TransactionAddClient({ categories }: Props) {
     return sameType.find((c) => c.name === fallbackName)?.id ?? sameType[0]?.id ?? '';
   };
 
-  // Scan one or many images. Each image is sent to /api/ocr sequentially so we
-  // can show progress; parallel would race the model's free-tier rate limit.
-  // Results from all images are merged + deduplicated before showing preview.
+  // Scan one or many images in ONE OCR request — Gemini accepts multiple
+  // inline image parts per call, saving the network roundtrip for each image
+  // and letting the model dedupe overlapping screenshots itself. We still
+  // run a final client-side dedup pass as defence in depth.
   const handleScan = async (files: File[]) => {
     if (files.length === 0) return;
 
@@ -104,30 +121,23 @@ export function TransactionAddClient({ categories }: Props) {
       suggestedCategory: string;
     };
 
-    const aggregated: ScanItem[] = [];
-    const merchantHits: Record<string, string> = {};
-    let totalLatency = 0;
-
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fd = new FormData();
-        fd.append('file', file);
-        const res = await fetch('/api/ocr', { method: 'POST', body: fd });
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.error ?? `OCR failed (${res.status})`);
-        }
-        const data = (await res.json()) as {
-          transactions: ScanItem[];
-          merchantHits: Record<string, string>;
-          latencyMs: number;
-        };
-        aggregated.push(...data.transactions);
-        Object.assign(merchantHits, data.merchantHits);
-        totalLatency += data.latencyMs;
-        setScanProgress({ done: i + 1, total: files.length });
+      const fd = new FormData();
+      files.forEach((f) => fd.append('file', f));
+      const res = await fetch('/api/ocr', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error ?? `OCR failed (${res.status})`);
       }
+      const data = (await res.json()) as {
+        transactions: ScanItem[];
+        merchantHits: Record<string, string>;
+        latencyMs: number;
+      };
+      const aggregated: ScanItem[] = data.transactions;
+      const merchantHits: Record<string, string> = data.merchantHits;
+      const totalLatency = data.latencyMs;
+      setScanProgress({ done: files.length, total: files.length });
 
       if (aggregated.length === 0) {
         toast.info('Không phát hiện giao dịch nào trong ảnh');
@@ -215,39 +225,62 @@ export function TransactionAddClient({ categories }: Props) {
     <Stack spacing={3}>
       {!!scanError && <Alert severity="error">{scanError}</Alert>}
 
-      <Card sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2 }}>
+      {/* Mobile: vertical stack with full-width CTA. Desktop: horizontal row.
+          The card's vibe should read as "this is the main shortcut" — manual
+          form is the fallback below. */}
+      <Card
+        sx={{
+          p: { xs: 2.5, md: 3 },
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'stretch', md: 'center' },
+          gap: { xs: 2, md: 3 },
+        }}
+      >
         <Box
           sx={{
-            width: 44,
-            height: 44,
-            display: 'grid',
-            placeItems: 'center',
-            borderRadius: 1,
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            flex: 1,
+            minWidth: 0,
           }}
         >
-          <Iconify icon="solar:camera-add-bold" width={22} />
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              display: 'grid',
+              placeItems: 'center',
+              borderRadius: 1.5,
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              flexShrink: 0,
+            }}
+          >
+            <Iconify icon="solar:camera-add-bold" width={24} />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="subtitle1">Quét hoá đơn / lịch sử ngân hàng</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Chọn nhiều ảnh — AI đọc và tự bỏ giao dịch trùng.
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="subtitle2">Quét hoá đơn / lịch sử ngân hàng</Typography>
-          <Typography variant="caption" color="text.secondary">
-            Chọn nhiều ảnh cùng lúc — AI đọc và tự bỏ giao dịch trùng giữa các screenshot.
-          </Typography>
-          {scanProgress && scanProgress.total > 1 && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                Đang quét {scanProgress.done}/{scanProgress.total} ảnh...
-              </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={(scanProgress.done / scanProgress.total) * 100}
-                sx={{ mt: 0.5, height: 4, borderRadius: 2 }}
-              />
-            </Box>
-          )}
-        </Box>
+
+        {scanProgress && scanProgress.total > 1 && (
+          <Box sx={{ width: { xs: '100%', md: 200 } }}>
+            <Typography variant="caption" color="text.secondary">
+              Đang quét {scanProgress.done}/{scanProgress.total} ảnh…
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={(scanProgress.done / scanProgress.total) * 100}
+              sx={{ mt: 0.5, height: 4, borderRadius: 2 }}
+            />
+          </Box>
+        )}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -261,10 +294,19 @@ export function TransactionAddClient({ categories }: Props) {
         />
         <Button
           variant="contained"
+          size="large"
+          fullWidth
           onClick={() => fileInputRef.current?.click()}
           loading={isScanning}
+          startIcon={!isScanning ? <Iconify icon="solar:gallery-add-bold" /> : undefined}
+          sx={{
+            height: 48,
+            flexShrink: 0,
+            width: { xs: '100%', md: 'auto' },
+            minWidth: { md: 160 },
+          }}
         >
-          Chọn ảnh
+          {isScanning ? 'Đang quét…' : 'Chọn ảnh'}
         </Button>
       </Card>
 

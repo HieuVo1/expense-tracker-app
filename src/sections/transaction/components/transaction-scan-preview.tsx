@@ -55,9 +55,19 @@ type Props = {
 // positives, then bulk-save. Amount/date/description are read-only here — for
 // inline editing they'd need their own RHF form per row, which is overkill at
 // this scale; user can always edit individual rows in the history list later.
+// Date desc, then amount desc as tie-breaker, so larger transactions on the
+// same day surface first. Mirrors how the dashboard lists transactions —
+// keeps the user's mental ordering consistent across screens.
+function sortByDateDesc(items: PreviewItem[]) {
+  return [...items].sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return b.amount - a.amount;
+  });
+}
+
 export function TransactionScanPreview({ items: initialItems, categories, onCancel }: Props) {
   const router = useRouter();
-  const [items, setItems] = useState<PreviewItem[]>(initialItems);
+  const [items, setItems] = useState<PreviewItem[]>(() => sortByDateDesc(initialItems));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -167,81 +177,88 @@ export function TransactionScanPreview({ items: initialItems, categories, onCanc
                 key={item.uid}
                 sx={{
                   p: 2.5,
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: '40px 1fr 200px auto' },
-                  gap: 2,
-                  alignItems: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
                   borderTop: idx > 0 ? '0.5px solid' : 'none',
                   borderColor: 'divider',
                 }}
               >
-                {category && (
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      display: 'grid',
-                      placeItems: 'center',
-                      borderRadius: 1,
-                      bgcolor: `${category.color}1a`,
-                      color: category.color,
-                    }}
-                  >
-                    <Iconify icon={category.icon as IconifyName} width={20} />
-                  </Box>
-                )}
-
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" noWrap>
-                    {item.description}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1.5, mt: 0.25, flexWrap: 'wrap' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {dayjs(item.date).format('DD/MM/YYYY')}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      className="tabular"
+                {/* Top row — icon + meta. Layout matches transaction list item
+                    so the user reads "row of money" the same way everywhere. */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {category && (
+                    <Box
                       sx={{
-                        fontWeight: 500,
-                        color: item.type === 'income' ? 'success.dark' : 'text.primary',
+                        width: 40,
+                        height: 40,
+                        display: 'grid',
+                        placeItems: 'center',
+                        borderRadius: 1,
+                        bgcolor: `${category.color}1a`,
+                        color: category.color,
+                        flexShrink: 0,
                       }}
                     >
-                      {item.type === 'income' ? '+' : '−'}
-                      {fCurrency(item.amount)}
+                      <Iconify icon={category.icon as IconifyName} width={20} />
+                    </Box>
+                  )}
+
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" noWrap>
+                      {item.description}
                     </Typography>
-                    {item.merchant && (
+                    <Box sx={{ display: 'flex', gap: 1.5, mt: 0.25, flexWrap: 'wrap' }}>
                       <Typography variant="caption" color="text.secondary">
-                        · {item.merchant}
+                        {dayjs(item.date).format('DD/MM/YYYY')}
                       </Typography>
-                    )}
+                      <Typography
+                        variant="caption"
+                        className="tabular"
+                        sx={{
+                          fontWeight: 500,
+                          color: item.type === 'income' ? 'success.dark' : 'text.primary',
+                        }}
+                      >
+                        {item.type === 'income' ? '+' : '−'}
+                        {fCurrency(item.amount)}
+                      </Typography>
+                      {item.merchant && (
+                        <Typography variant="caption" color="text.secondary">
+                          · {item.merchant}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
                 </Box>
 
-                <Select
-                  size="small"
-                  value={item.categoryId}
-                  onChange={(e) => updateCategory(item.uid, e.target.value)}
-                  fullWidth
-                >
-                  {/* Only show categories that match this row's type so a
-                      Chi row can't accidentally be saved under "Lương". */}
-                  {categories
-                    .filter((c) => c.type === item.type)
-                    .map((c) => (
-                      <MenuItem key={c.id} value={c.id}>
-                        {c.name}
-                      </MenuItem>
-                    ))}
-                </Select>
+                {/* Bottom row — category select stretches, trash sits beside
+                    it. Same visual rhythm whether mobile or desktop. */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pl: { xs: 0, sm: 7 } }}>
+                  <Select
+                    size="small"
+                    value={item.categoryId}
+                    onChange={(e) => updateCategory(item.uid, e.target.value)}
+                    sx={{ flex: 1, minWidth: 0 }}
+                  >
+                    {/* Type-locked options keep a Chi row from saving as "Lương". */}
+                    {categories
+                      .filter((c) => c.type === item.type)
+                      .map((c) => (
+                        <MenuItem key={c.id} value={c.id}>
+                          {c.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
 
-                <IconButton
-                  size="small"
-                  onClick={() => removeItem(item.uid)}
-                  aria-label="Xoá khỏi danh sách"
-                >
-                  <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-                </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => removeItem(item.uid)}
+                    aria-label="Xoá khỏi danh sách"
+                  >
+                    <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                  </IconButton>
+                </Box>
               </Box>
             );
           })

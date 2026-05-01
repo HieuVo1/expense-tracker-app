@@ -58,9 +58,13 @@ export type OcrResult = {
 export interface OcrProvider {
   readonly name: OcrProviderName;
   /**
-   * Extract every transaction visible in a receipt or banking screenshot.
-   * @param image - PNG/JPEG/WebP buffer or Blob, ≤ provider's max image size.
+   * Extract every transaction visible across one OR many images in a single
+   * round-trip to the model. Multi-image is preferred when the user uploads
+   * several screenshots of the same activity list — same prompt, all images
+   * inline → one API call, deduping across images becomes the model's job.
+   *
+   * @param images - 1+ images as Buffer or Blob; each ≤ provider's image cap.
    * @throws if the model refuses, returns malformed JSON, or the network fails.
    */
-  extractTransactions(image: Buffer | Blob): Promise<OcrResult>;
+  extractTransactions(images: (Buffer | Blob)[]): Promise<OcrResult>;
 }

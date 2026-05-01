@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
@@ -8,16 +8,33 @@ import Typography from '@mui/material/Typography';
 
 import type { IconifyName } from 'src/components/iconify';
 
+import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 
-import { CategoryRenameDialog } from './category-rename-dialog';
+import { CategoryEditDialog } from './category-edit-dialog';
+import { deleteCategory } from '../actions/category-actions';
 
 type Props = {
-  category: { id: string; name: string; icon: string; color: string };
+  category: { id: string; name: string; icon: string; color: string; type: 'expense' | 'income' };
 };
 
 export function CategoryListItem({ category }: Props) {
-  const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      try {
+        await deleteCategory(category.id);
+        toast.success('Đã xoá danh mục');
+        setConfirmOpen(false);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Xoá thất bại');
+      }
+    });
+  };
 
   return (
     <>
@@ -51,12 +68,42 @@ export function CategoryListItem({ category }: Props) {
           {category.name}
         </Typography>
 
-        <IconButton onClick={() => setOpen(true)} aria-label="Đổi tên">
+        <IconButton onClick={() => setEditOpen(true)} aria-label="Sửa">
           <Iconify icon="solar:pen-bold" width={18} />
+        </IconButton>
+
+        <IconButton onClick={() => setConfirmOpen(true)} aria-label="Xoá">
+          <Iconify icon="solar:trash-bin-trash-bold" width={18} />
         </IconButton>
       </Box>
 
-      <CategoryRenameDialog open={open} onClose={() => setOpen(false)} category={category} />
+      <CategoryEditDialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        category={category}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title={`Xoá danh mục "${category.name}"?`}
+        content="Chỉ xoá được khi không còn giao dịch hoặc ngân sách nào dùng danh mục này."
+        action={
+          <IconButton
+            disabled={isPending}
+            onClick={handleDelete}
+            sx={{
+              px: 2,
+              borderRadius: 1,
+              color: 'error.contrastText',
+              bgcolor: 'error.main',
+              '&:hover': { bgcolor: 'error.dark' },
+            }}
+          >
+            <Typography variant="button">Xoá</Typography>
+          </IconButton>
+        }
+      />
     </>
   );
 }

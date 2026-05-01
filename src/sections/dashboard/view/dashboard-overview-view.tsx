@@ -56,22 +56,16 @@ export async function DashboardOverviewView({ searchParams }: Props) {
           </Box>
         </Box>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gap: 3,
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          }}
-        >
-          <SummaryCard
-            totalExpense={data.totalExpense}
-            expenseDeltaPct={data.expenseDeltaPct}
-            monthLabel={data.monthLabel}
-          />
-          <BudgetProgress rows={data.byCategory} />
-        </Box>
+        <SummaryCard
+          totalExpense={data.totalExpense}
+          totalIncome={data.totalIncome}
+          expenseDeltaPct={data.expenseDeltaPct}
+          monthLabel={data.monthLabel}
+        />
 
-        <CategoryDonut data={data.byCategory} />
+        <CategoryDonut expenseData={data.byCategory} incomeData={data.incomeByCategory} />
+
+        <BudgetProgress rows={data.byCategory} />
 
         <Box>
           <Typography variant="subtitle1" sx={{ mb: 1.5 }}>

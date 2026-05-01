@@ -4,9 +4,12 @@ import { prisma } from 'src/lib/prisma';
 import { getOcrProvider } from 'src/lib/ocr';
 import { createClient } from 'src/lib/supabase/server';
 
-// POST /api/ocr — extract every transaction from a receipt or banking screenshot.
-// Body: multipart/form-data with field "file".
+// POST /api/ocr — extract every transaction from one OR many images in a
+// single round-trip. Body: multipart/form-data with one or more "file" fields.
 // Returns: { transactions: TransactionExtract[], merchantHits: { [merchant]: categoryId | null }, ... }
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per image
+const MAX_FILES = 10; // Gemini Flash handles many images, but keep cost bounded
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -17,18 +20,30 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-  const file = formData.get('file');
-  if (!(file instanceof Blob)) {
+  // FormDataEntryValue = File | string. File extends Blob so the OCR provider
+  // (which accepts Buffer | Blob) is happy with these directly.
+  const files = formData.getAll('file').filter((f): f is File => f instanceof File);
+
+  if (files.length === 0) {
     return NextResponse.json({ error: 'Missing file' }, { status: 400 });
   }
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: 'File quá 5MB' }, { status: 413 });
+  if (files.length > MAX_FILES) {
+    return NextResponse.json(
+      { error: `Tối đa ${MAX_FILES} ảnh / lần quét` },
+      { status: 413 }
+    );
+  }
+  for (const f of files) {
+    if (f.size > MAX_FILE_BYTES) {
+      return NextResponse.json({ error: 'Có ảnh > 5MB' }, { status: 413 });
+    }
   }
 
   const provider = getOcrProvider();
+  const totalBytes = files.reduce((s, f) => s + f.size, 0);
 
   try {
-    const result = await provider.extractTransactions(file);
+    const result = await provider.extractTransactions(files);
 
     // Bulk merchant memory lookup — past user choices override AI suggestion.
     const merchants = Array.from(
@@ -48,7 +63,7 @@ export async function POST(request: Request) {
       merchantHits[m.merchant] = m.categoryId;
     }
 
-    // Audit log per scan, not per detected transaction.
+    // Audit log per scan (1 row per OCR call regardless of image count).
     await prisma.ocrLog.create({
       data: {
         userId: user.id,
@@ -56,14 +71,22 @@ export async function POST(request: Request) {
         latencyMs: result.latencyMs,
         inputTokens: result.inputTokens ?? null,
         outputTokens: result.outputTokens ?? null,
-        imageBytes: file.size,
+        imageBytes: totalBytes,
         success: true,
         errorMessage: null,
       },
     });
 
+    // Sort newest-first so the client renders the same chronological order as
+    // every other transaction list in the app. Tie-break by amount desc so
+    // bigger transactions on the same day surface above smaller ones.
+    const sortedTransactions = [...result.transactions].sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return b.amount - a.amount;
+    });
+
     return NextResponse.json({
-      transactions: result.transactions,
+      transactions: sortedTransactions,
       merchantHits,
       provider: result.provider,
       latencyMs: result.latencyMs,
@@ -75,7 +98,7 @@ export async function POST(request: Request) {
         userId: user.id,
         provider: 'gemini',
         latencyMs: 0,
-        imageBytes: file.size,
+        imageBytes: totalBytes,
         success: false,
         errorMessage: message.slice(0, 500),
       },

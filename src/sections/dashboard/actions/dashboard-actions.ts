@@ -26,6 +26,8 @@ export type DashboardData = {
   prevMonthExpense: number;
   // null when previous month has 0 → percentage is undefined.
   expenseDeltaPct: number | null;
+  // Expense-type categories with spend + budget limit. Drives the Chi donut
+  // and the budget progress card.
   byCategory: Array<{
     categoryId: string;
     name: string;
@@ -33,6 +35,14 @@ export type DashboardData = {
     color: string;
     spent: number;
     limit: number;
+  }>;
+  // Income-type categories with earnings. Drives the Thu tab in the donut.
+  incomeByCategory: Array<{
+    categoryId: string;
+    name: string;
+    icon: string;
+    color: string;
+    earned: number;
   }>;
   recent: Array<{
     id: string;
@@ -91,6 +101,7 @@ export async function getDashboardData(monthParam?: string): Promise<DashboardDa
   let totalExpense = 0;
   let totalIncome = 0;
   const spentByCategory = new Map<string, number>();
+  const earnedByCategory = new Map<string, number>();
   for (const t of thisMonthRows) {
     const amt = Number(t.amount);
     if (t.type === 'expense') {
@@ -98,6 +109,7 @@ export async function getDashboardData(monthParam?: string): Promise<DashboardDa
       spentByCategory.set(t.categoryId, (spentByCategory.get(t.categoryId) ?? 0) + amt);
     } else {
       totalIncome += amt;
+      earnedByCategory.set(t.categoryId, (earnedByCategory.get(t.categoryId) ?? 0) + amt);
     }
   }
 
@@ -109,14 +121,28 @@ export async function getDashboardData(monthParam?: string): Promise<DashboardDa
 
   const limitByCategory = new Map(currentBudgets.map((b) => [b.categoryId, Number(b.limit)]));
 
-  const byCategory = categories.map((c) => ({
-    categoryId: c.id,
-    name: c.name,
-    icon: c.icon,
-    color: c.color,
-    spent: spentByCategory.get(c.id) ?? 0,
-    limit: limitByCategory.get(c.id) ?? 0,
-  }));
+  // Split categories by type — Chi donut + budget rows use expense list,
+  // Thu donut uses income list.
+  const byCategory = categories
+    .filter((c) => c.type === 'expense')
+    .map((c) => ({
+      categoryId: c.id,
+      name: c.name,
+      icon: c.icon,
+      color: c.color,
+      spent: spentByCategory.get(c.id) ?? 0,
+      limit: limitByCategory.get(c.id) ?? 0,
+    }));
+
+  const incomeByCategory = categories
+    .filter((c) => c.type === 'income')
+    .map((c) => ({
+      categoryId: c.id,
+      name: c.name,
+      icon: c.icon,
+      color: c.color,
+      earned: earnedByCategory.get(c.id) ?? 0,
+    }));
 
   return {
     monthLabel: now.format('MM/YYYY'),
@@ -125,6 +151,7 @@ export async function getDashboardData(monthParam?: string): Promise<DashboardDa
     prevMonthExpense,
     expenseDeltaPct,
     byCategory,
+    incomeByCategory,
     recent: recent.map((r) => ({
       id: r.id,
       amount: Number(r.amount),

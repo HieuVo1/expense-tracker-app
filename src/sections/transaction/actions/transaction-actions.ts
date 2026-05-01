@@ -179,6 +179,51 @@ export async function listTransactions(filter: TransactionListFilter = {}, take 
   }));
 }
 
+// Edit-only schema: restricted to fields the edit dialog exposes. Merchant
+// memory is intentionally NOT touched on edit — that mapping is built up from
+// initial classification and shouldn't churn when the user retroactively
+// recategorises a row.
+const updateSchema = z.object({
+  id: z.string().min(1),
+  amount: z.number().int().min(1, 'Số tiền phải > 0'),
+  type: z.enum(['expense', 'income']),
+  categoryId: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ'),
+  description: z.string().max(200).nullish(),
+});
+
+export type UpdateTransactionInput = z.infer<typeof updateSchema>;
+
+export async function updateTransaction(input: UpdateTransactionInput) {
+  const user = await requireUser();
+  const data = updateSchema.parse(input);
+
+  // Verify category belongs to user — guards against tampering.
+  const category = await prisma.category.findFirst({
+    where: { id: data.categoryId, userId: user.id },
+  });
+  if (!category) throw new Error('Danh mục không hợp lệ');
+
+  // Type and category must be consistent (no "Lương" expense).
+  if (category.type !== data.type) {
+    throw new Error('Loại giao dịch và danh mục không khớp');
+  }
+
+  await prisma.transaction.update({
+    where: { id: data.id, userId: user.id },
+    data: {
+      categoryId: data.categoryId,
+      amount: new Prisma.Decimal(data.amount),
+      type: data.type,
+      date: new Date(`${data.date}T00:00:00.000Z`),
+      description: data.description?.trim() || null,
+    },
+  });
+
+  revalidatePath(paths.dashboard.transactions);
+  revalidatePath(paths.dashboard.root);
+}
+
 export async function deleteTransaction(id: string) {
   const user = await requireUser();
   await prisma.transaction.delete({ where: { id, userId: user.id } });

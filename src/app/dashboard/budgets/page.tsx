@@ -6,6 +6,11 @@ import { BudgetListView } from 'src/sections/budget/view';
 
 export const metadata: Metadata = { title: `Ngân sách - ${CONFIG.appName}` };
 
-export default function Page() {
-  return <BudgetListView />;
+type Props = {
+  searchParams: Promise<{ month?: string }>;
+};
+
+export default async function Page({ searchParams }: Props) {
+  const params = await searchParams;
+  return <BudgetListView searchParams={params} />;
 }

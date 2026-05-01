@@ -14,6 +14,7 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
+import { TransactionEditDialog } from './transaction-edit-dialog';
 import { deleteTransaction } from '../actions/transaction-actions';
 
 type Props = {
@@ -21,13 +22,15 @@ type Props = {
     id: string;
     amount: number;
     type: 'expense' | 'income';
+    date: string;
     description: string | null;
-    category: { name: string; icon: string; color: string };
+    category: { id: string; name: string; icon: string; color: string };
   };
 };
 
 export function TransactionListItem({ transaction }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
@@ -94,13 +97,27 @@ export function TransactionListItem({ transaction }: Props) {
 
         <IconButton
           size="small"
+          onClick={() => setEditOpen(true)}
+          aria-label="Sửa"
+          sx={{ ml: 0.5 }}
+        >
+          <Iconify icon="solar:pen-bold" width={18} />
+        </IconButton>
+
+        <IconButton
+          size="small"
           onClick={() => setConfirmOpen(true)}
           aria-label="Xoá"
-          sx={{ ml: 0.5 }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" width={18} />
         </IconButton>
       </Box>
+
+      <TransactionEditDialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        transaction={transaction}
+      />
 
       <ConfirmDialog
         open={confirmOpen}

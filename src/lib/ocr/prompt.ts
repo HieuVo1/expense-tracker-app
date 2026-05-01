@@ -6,12 +6,27 @@ import { VN_CATEGORIES } from './types';
 // Detects both Chi (expense, dấu "-") and Thu (income, dấu "+") to match the
 // way Vietnamese banking apps display history (TPBank, Vietcombank, MB Bank,
 // Techcombank, MoMo, ZaloPay).
-export const EXTRACTION_PROMPT = `Bạn là một AI extractor cho ứng dụng theo dõi chi tiêu cá nhân tại Việt Nam.
+//
+// Built as a function so the caller can inject today's date — model has no
+// concept of "today" otherwise and was hallucinating dates from training data.
+export function buildExtractionPrompt(today: Date): string {
+  const todayIso = today.toISOString().slice(0, 10);
+  const yesterday = new Date(today);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const yesterdayIso = yesterday.toISOString().slice(0, 10);
 
-Nhiệm vụ: trích xuất TẤT CẢ giao dịch (cả CHI và THU) trong ảnh, trả về JSON array.
-Ảnh có thể là:
-  - Hoá đơn / bill đơn lẻ → array 1 phần tử (mặc định là CHI).
-  - Screenshot lịch sử app ngân hàng / ví điện tử → 2-20 giao dịch / 1 ảnh, gồm CẢ chi và thu.
+  return `Bạn là một AI extractor cho ứng dụng theo dõi chi tiêu cá nhân tại Việt Nam.
+
+NGÀY HIỆN TẠI: ${todayIso} (hôm nay). HÔM QUA: ${yesterdayIso}.
+
+Nhiệm vụ: trích xuất TẤT CẢ giao dịch (cả CHI và THU) trong CÁC ảnh được cung cấp, trả về JSON array.
+
+Có thể có 1 hoặc NHIỀU ảnh trong cùng 1 request:
+  - 1 ảnh: hoá đơn / bill đơn lẻ → array 1 phần tử (mặc định CHI).
+  - 1 ảnh: screenshot lịch sử app ngân hàng → 2-20 giao dịch trong ảnh đó.
+  - NHIỀU ảnh: user chụp nhiều screenshot lịch sử cùng ngày — các ảnh có thể CHỒNG LẤN nhau.
+    + Khi gặp giao dịch giống hệt nhau giữa các ảnh (cùng ngày + cùng số tiền + cùng người gửi/nhận), CHỈ trả về 1 lần.
+    + Không phải duplicate nếu chỉ giống tên: 2 giao dịch khác nhau cùng ngày cùng số tiền nhưng KHÁC người nhận → giữ cả 2.
   - SMS biến động số dư → 1 giao dịch (chi hoặc thu).
 
 Trả về object có shape:
@@ -30,9 +45,12 @@ Mỗi phần tử trong "transactions":
   + Hoá đơn / receipt đơn lẻ KHÔNG có sign rõ ràng → mặc định "expense".
 - date (string): "YYYY-MM-DD".
   + "25/03/2026" → "2026-03-25".
-  + "Hôm nay" / "Today" → ngày hôm nay.
-  + "Hôm qua" / "Yesterday" → ngày hôm qua.
-  + Không đọc được → ngày hôm nay.
+  + "Hôm nay" / "Today" → ${todayIso} (đã cho ở trên).
+  + "Hôm qua" / "Yesterday" → ${yesterdayIso} (đã cho ở trên).
+  + Header "Today" / "Hôm nay" trong app ngân hàng = TẤT CẢ giao dịch dưới header đó có date = ${todayIso}.
+  + Header "Yesterday" / "Hôm qua" = TẤT CẢ giao dịch dưới header đó có date = ${yesterdayIso}.
+  + Không đọc được → ${todayIso}.
+  + TUYỆT ĐỐI KHÔNG dùng ngày từ kiến thức training. Luôn dùng ngày được cung cấp ở đầu prompt.
 - description (string): 3-8 từ tiếng Việt mô tả giao dịch.
   + Ưu tiên nội dung chuyển khoản đã viết tắt → đọc được, có dấu.
   + KHÔNG copy mã giao dịch dài "MS00P00000000967897" / "FT26054911749526" / "KP048673167".
@@ -84,4 +102,16 @@ QUAN TRỌNG:
 - Trả về JSON THUẦN, KHÔNG bọc markdown code block, KHÔNG kèm giải thích.
 - Không phát hiện giao dịch nào → {"transactions":[]}.
 - Quét từ trên xuống dưới — không bỏ sót.
-- LUÔN có field "type" cho mỗi giao dịch.`;
+- LUÔN có field "type" cho mỗi giao dịch.
+
+BỎ QUA (KHÔNG đưa vào array) các giao dịch sau:
+- Giao dịch bị che một phần bởi tooltip / banner / popup nổi như:
+  * "Can't find your transactions?"
+  * "Không tìm thấy giao dịch?"
+  * Banner quảng cáo bất kỳ
+  * Notification overlay
+- Giao dịch chỉ thấy một phần (bị cắt ở mép trên/dưới ảnh, số tiền hoặc ngày KHÔNG đọc rõ).
+- Giao dịch có số tiền bị che/cut-off — thà bỏ còn hơn đoán sai.
+  Ví dụ: nếu thấy "+ 12" hoặc "- 4" mà phần còn lại bị tooltip che → BỎ.
+- Nếu phân vân thì BỎ — user có thể chụp lại ảnh khác để bù.`;
+}

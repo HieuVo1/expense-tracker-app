@@ -1,30 +1,56 @@
 'use client';
 
+import { useState } from 'react';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 
 import { fCurrency } from 'src/utils/format-number';
 
 import { Chart, useChart } from 'src/components/chart';
 
-type Slice = {
+type ExpenseSlice = {
   categoryId: string;
   name: string;
   color: string;
   spent: number;
 };
 
-type Props = {
-  data: Slice[];
+type IncomeSlice = {
+  categoryId: string;
+  name: string;
+  color: string;
+  earned: number;
 };
 
-// Donut breakdown by category. Slices with 0 spend are hidden so the chart
-// reads cleanly when only a few categories have activity. Center label shows
-// the total — it doubles as the "this month" headline.
-export function CategoryDonut({ data }: Props) {
-  const slices = data.filter((d) => d.spent > 0);
-  const total = slices.reduce((s, d) => s + d.spent, 0);
+type Props = {
+  expenseData: ExpenseSlice[];
+  incomeData: IncomeSlice[];
+};
+
+type TabValue = 'expense' | 'income';
+
+// Donut breakdown with Chi/Thu tab toggle. Internally we collapse both data
+// shapes to {name, color, amount} so the render path is identical regardless
+// of which tab is active.
+export function CategoryDonut({ expenseData, incomeData }: Props) {
+  const [tab, setTab] = useState<TabValue>('expense');
+
+  const slices =
+    tab === 'expense'
+      ? expenseData
+          .filter((d) => d.spent > 0)
+          .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.spent }))
+      : incomeData
+          .filter((d) => d.earned > 0)
+          .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.earned }));
+
+  const total = slices.reduce((s, d) => s + d.amount, 0);
+  const emptyMessage =
+    tab === 'expense' ? 'Chưa có chi tháng này.' : 'Chưa có thu tháng này.';
 
   const chartOptions = useChart({
     chart: { sparkline: { enabled: true } },
@@ -42,7 +68,11 @@ export function CategoryDonut({ data }: Props) {
           size: '72%',
           labels: {
             show: true,
-            value: { fontSize: '20px', fontWeight: 500, formatter: (val: string) => fCurrency(Number(val)) },
+            value: {
+              fontSize: '20px',
+              fontWeight: 500,
+              formatter: (val: string) => fCurrency(Number(val)),
+            },
             total: {
               show: true,
               label: 'Tổng',
@@ -58,29 +88,46 @@ export function CategoryDonut({ data }: Props) {
 
   return (
     <Card sx={{ p: 3 }}>
-      <Typography variant="subtitle1" sx={{ mb: 2 }}>
-        Phân bổ theo danh mục
-      </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
+          gap: 2,
+          flexWrap: 'wrap',
+        }}
+      >
+        <Typography variant="subtitle1">Phân bổ theo danh mục</Typography>
+        <Tabs
+          value={tab}
+          onChange={(_, v: TabValue) => setTab(v)}
+          sx={{ minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0.5, px: 2 } }}
+        >
+          <Tab value="expense" label="Chi" />
+          <Tab value="income" label="Thu" />
+        </Tabs>
+      </Box>
 
       {slices.length === 0 ? (
         <Box sx={{ py: 6, textAlign: 'center' }}>
-          <Typography color="text.secondary">Chưa có giao dịch tháng này.</Typography>
+          <Typography color="text.secondary">{emptyMessage}</Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center' }}>
           <Chart
             type="donut"
-            series={slices.map((s) => s.spent)}
+            series={slices.map((s) => s.amount)}
             options={chartOptions}
             sx={{ width: 220, height: 220 }}
           />
 
           <Box sx={{ flex: 1, minWidth: 200 }}>
             {slices.map((s) => {
-              const pct = total > 0 ? (s.spent / total) * 100 : 0;
+              const pct = total > 0 ? (s.amount / total) * 100 : 0;
               return (
                 <Box
-                  key={s.categoryId}
+                  key={s.id}
                   sx={{
                     py: 1,
                     display: 'flex',
@@ -116,7 +163,7 @@ export function CategoryDonut({ data }: Props) {
                     variant="body2"
                     sx={{ minWidth: 90, textAlign: 'right' }}
                   >
-                    {fCurrency(s.spent)}
+                    {fCurrency(s.amount)}
                   </Typography>
                 </Box>
               );

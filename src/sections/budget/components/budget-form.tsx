@@ -45,10 +45,12 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 type Props = {
+  /** YYYY-MM key for the month being edited; round-trips to the server action. */
+  month: string;
   initial: BudgetRow[];
 };
 
-export function BudgetForm({ initial }: Props) {
+export function BudgetForm({ month, initial }: Props) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +69,7 @@ export function BudgetForm({ initial }: Props) {
     startTransition(async () => {
       try {
         await upsertBudgets({
+          month,
           budgets: data.budgets.map((b) => ({
             categoryId: b.categoryId,
             limit: b.limit === '' ? 0 : Number(b.limit),

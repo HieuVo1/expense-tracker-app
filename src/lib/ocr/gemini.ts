@@ -3,7 +3,7 @@ import type { OcrProvider, OcrResult, TransactionExtract } from './types';
 import { GoogleGenAI, Type } from '@google/genai';
 
 import { VN_CATEGORIES } from './types';
-import { EXTRACTION_PROMPT } from './prompt';
+import { buildExtractionPrompt } from './prompt';
 
 const MODEL = 'gemini-2.5-flash';
 
@@ -56,22 +56,29 @@ async function toBase64(image: Buffer | Blob): Promise<{ data: string; mimeType:
 export const geminiProvider: OcrProvider = {
   name: 'gemini',
 
-  async extractTransactions(image) {
+  async extractTransactions(images) {
+    if (images.length === 0) {
+      throw new Error('No images provided to OCR');
+    }
     const client = getClient();
-    const { data, mimeType } = await toBase64(image);
+
+    // Encode all images in parallel — base64 conversion is CPU-bound but each
+    // image is small enough that this finishes well under the network RTT.
+    const encoded = await Promise.all(images.map(toBase64));
+
+    // Single request with all images inline + one prompt. Gemini will see them
+    // as a sequence and extract transactions across the whole batch.
+    const parts = [
+      ...encoded.map(({ data, mimeType }) => ({
+        inlineData: { mimeType, data },
+      })),
+      { text: buildExtractionPrompt(new Date()) },
+    ];
 
     const start = Date.now();
     const response = await client.models.generateContent({
       model: MODEL,
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { inlineData: { mimeType, data } },
-            { text: EXTRACTION_PROMPT },
-          ],
-        },
-      ],
+      contents: [{ role: 'user', parts }],
       config: {
         responseMimeType: 'application/json',
         responseSchema,

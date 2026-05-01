@@ -1,5 +1,6 @@
 'use server';
 
+import dayjs from 'dayjs';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
@@ -9,11 +10,23 @@ import { paths } from 'src/routes/paths';
 import { requireUser } from 'src/lib/auth-helpers';
 
 // First day of given month (UTC), used as the canonical key for Budget rows.
-function firstOfMonth(d: Date) {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+function firstOfMonth(d: dayjs.Dayjs) {
+  return new Date(Date.UTC(d.year(), d.month(), 1));
+}
+
+// Validates the YYYY-MM searchParam from the URL. Falls back to the current
+// month for any malformed input — navigational param, not a security boundary.
+function parseMonthParam(month: string | undefined): dayjs.Dayjs {
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const parsed = dayjs(`${month}-01`);
+    if (parsed.isValid()) return parsed;
+  }
+  return dayjs();
 }
 
 const upsertSchema = z.object({
+  // YYYY-MM string from the form. Re-parsed server-side; client value is not trusted.
+  month: z.string().regex(/^\d{4}-\d{2}$/, 'Tháng không hợp lệ'),
   budgets: z
     .array(
       z.object({
@@ -25,13 +38,16 @@ const upsertSchema = z.object({
     .max(50),
 });
 
-export async function getBudgetsForCurrentMonth() {
+// Loads expense-only categories (budgets don't apply to income) plus their
+// limits for the requested month. Income categories are filtered out so the
+// form doesn't show a row for them.
+export async function getBudgetsForMonth(monthParam?: string) {
   const user = await requireUser();
-  const month = firstOfMonth(new Date());
+  const month = firstOfMonth(parseMonthParam(monthParam));
 
   const [categories, budgets] = await Promise.all([
     prisma.category.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, type: 'expense' },
       orderBy: { order: 'asc' },
     }),
     prisma.budget.findMany({
@@ -50,10 +66,13 @@ export async function getBudgetsForCurrentMonth() {
   }));
 }
 
-export async function upsertBudgets(input: { budgets: { categoryId: string; limit: number }[] }) {
+export async function upsertBudgets(input: {
+  month: string;
+  budgets: { categoryId: string; limit: number }[];
+}) {
   const user = await requireUser();
   const parsed = upsertSchema.parse(input);
-  const month = firstOfMonth(new Date());
+  const month = firstOfMonth(parseMonthParam(parsed.month));
 
   // Run all upserts in one transaction so the month either updates fully or not at all.
   await prisma.$transaction(
