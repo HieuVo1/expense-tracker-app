@@ -1,0 +1,115 @@
+// Expense Tracker — DB schema
+// VND amounts: Decimal(15, 0) — no decimal places (₫ has no fractional unit).
+// User.id mirrors Supabase auth.users.id (uuid).
+// RLS enforced on Postgres side; Prisma queries always scope by userId.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  transactions Transaction[]
+  categories   Category[]
+  budgets      Budget[]
+  merchants    MerchantMemory[]
+
+  @@map("users")
+}
+
+enum TransactionType {
+  expense
+  income
+}
+
+model Category {
+  id     String          @id @default(cuid())
+  userId String          @map("user_id") @db.Uuid
+  name   String
+  icon   String
+  color  String
+  order  Int             @default(0)
+  // Categories are typed: expense vs income shown in different pickers so the
+  // user doesn't see "Lương" while logging a coffee receipt.
+  type   TransactionType @default(expense)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([userId, name])
+  @@index([userId, type, order])
+  @@map("categories")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id") @db.Uuid
+  categoryId  String          @map("category_id")
+  amount      Decimal         @db.Decimal(15, 0)
+  type        TransactionType
+  date        DateTime        @db.Date
+  description String?
+  receiptUrl  String?         @map("receipt_url")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, categoryId, date])
+  @@map("transactions")
+}
+
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id") @db.Uuid
+  categoryId String   @map("category_id")
+  month      DateTime @db.Date
+  limit      Decimal  @db.Decimal(15, 0)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, month])
+  @@map("budgets")
+}
+
+model MerchantMemory {
+  id         String @id @default(cuid())
+  userId     String @map("user_id") @db.Uuid
+  merchant   String
+  categoryId String @map("category_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, merchant])
+  @@index([userId])
+  @@map("merchant_memory")
+}
+
+model OcrLog {
+  id            String   @id @default(cuid())
+  userId        String?  @map("user_id") @db.Uuid
+  provider      String
+  latencyMs     Int      @map("latency_ms")
+  inputTokens   Int?     @map("input_tokens")
+  outputTokens  Int?     @map("output_tokens")
+  imageBytes    Int?     @map("image_bytes")
+  success       Boolean
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([provider, createdAt])
+  @@map("ocr_logs")
+}
