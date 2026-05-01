@@ -47,8 +47,21 @@ Mỗi phần tử trong "transactions":
   + "25/03/2026" → "2026-03-25".
   + "Hôm nay" / "Today" → ${todayIso} (đã cho ở trên).
   + "Hôm qua" / "Yesterday" → ${yesterdayIso} (đã cho ở trên).
-  + Header "Today" / "Hôm nay" trong app ngân hàng = TẤT CẢ giao dịch dưới header đó có date = ${todayIso}.
-  + Header "Yesterday" / "Hôm qua" = TẤT CẢ giao dịch dưới header đó có date = ${yesterdayIso}.
+  + Date header trong app ngân hàng (vd "Today", "Hôm nay", "Yesterday", "Hôm qua", "Sunday, 19 Apr 2026", "12 thg 4 2026", "Apr 19", "19/04/2026") chỉ áp dụng cho các giao dịch HIỂN THỊ NGAY DƯỚI header đó, kéo dài cho tới header ngày tiếp theo.
+    * ‼️ CỰC KỲ QUAN TRỌNG: giao dịch HIỂN THỊ Ở PHÍA TRÊN một date header KHÔNG thuộc ngày của header đó. Chúng thuộc 1 ngày KHÁC, thường mới hơn (gần hôm nay hơn).
+    * Ví dụ minh hoạ — đọc thứ tự từ trên xuống dưới:
+        txn A
+        txn B
+        [Sunday, 19 Apr 2026]   ← header
+        txn C
+        txn D
+        [Saturday, 18 Apr 2026] ← header
+        txn E
+      → txn A & B KHÔNG phải ngày 19/04 (chúng thuộc 1 ngày mới hơn 19/04). txn C & D = 19/04. txn E = 18/04.
+    * NHIỀU ảnh = user scroll list dài và chụp nhiều screenshot. Coi TẤT CẢ ảnh trong cùng request là 1 list liên tục theo thứ tự scroll (ảnh trước = phần trên list = ngày mới hơn; ảnh sau = phần dưới list = ngày cũ hơn). Date header KHÔNG bị giới hạn trong 1 ảnh — nó áp dụng cho mọi giao dịch ở phía DƯỚI nó, KỂ CẢ Ở CÁC ẢNH SAU, cho tới khi gặp header tiếp theo.
+      Vd: ảnh 1 có header "20/04/2026" rồi 5 giao dịch. Ảnh 2 mở đầu bằng 3 giao dịch (không có header) rồi header "19/04/2026" rồi 4 giao dịch. → 5 giao dịch ảnh 1 + 3 giao dịch đầu ảnh 2 đều thuộc 20/04. 4 giao dịch còn lại thuộc 19/04.
+    * User có thể chụp ảnh LỘN THỨ TỰ. Dùng date của header để suy ra thứ tự scroll đúng (header ngày mới hơn = ở phía trên trong list).
+    * Nếu thực sự KHÔNG có date header nào ở phía trên giao dịch trong TOÀN BỘ các ảnh → date = (date header gần nhất ở phía DƯỚI nó) + 1 ngày. Vd header đầu tiên xuất hiện trong list là "19/04/2026" và có giao dịch nằm phía trên header này → date = "2026-04-20".
   + Không đọc được → ${todayIso}.
   + TUYỆT ĐỐI KHÔNG dùng ngày từ kiến thức training. Luôn dùng ngày được cung cấp ở đầu prompt.
 - description (string): 3-8 từ tiếng Việt mô tả giao dịch.
