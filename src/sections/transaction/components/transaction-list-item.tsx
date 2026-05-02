@@ -82,7 +82,7 @@ export function TransactionListItem({ transaction }: Props) {
             {transaction.description || transaction.category.name}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {transaction.category.name}
+            {transaction.category.name} · {transaction.date.slice(11, 16)}
           </Typography>
         </Box>
 

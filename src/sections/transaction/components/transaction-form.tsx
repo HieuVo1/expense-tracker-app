@@ -38,7 +38,10 @@ const schema = z.object({
     .string()
     .min(1, { error: 'Vui lòng nhập số tiền' })
     .refine((v) => /^\d+$/.test(v) && Number(v) > 0, { error: 'Số tiền phải là số nguyên dương' }),
-  date: z.iso.date({ error: 'Ngày không hợp lệ' }),
+  // RHFDateTimePicker stores `dayjs(value).format()` — ISO with offset. We
+  // accept any string here and let dayjs validate; the strict wire format
+  // (`YYYY-MM-DDTHH:mm`) is built at submit time.
+  date: z.string().refine((v) => dayjs(v).isValid(), { error: 'Ngày không hợp lệ' }),
   categoryId: z.string().min(1, { error: 'Vui lòng chọn danh mục' }),
   description: z.string().max(200).optional(),
   merchant: z.string().max(100).optional(),
@@ -65,7 +68,11 @@ export function TransactionForm({ categories, initialValues }: Props) {
     defaultValues: {
       type: 'expense',
       amount: '',
-      date: dayjs().format('YYYY-MM-DD'),
+      // Default = today at noon, produced as a UTC dayjs ISO string so the
+      // picker (configured `timezone="UTC"`) renders the wall-clock as
+      // entered. Any caller-supplied date in `initialValues` already comes in
+      // as a UTC ISO string for the same reason.
+      date: dayjs.utc().hour(12).minute(0).second(0).millisecond(0).format(),
       categoryId: '',
       description: '',
       merchant: '',
@@ -94,7 +101,9 @@ export function TransactionForm({ categories, initialValues }: Props) {
           amount: Number(data.amount),
           type: data.type,
           categoryId: data.categoryId,
-          date: data.date,
+          // ISO with offset → server wire format `YYYY-MM-DDTHH:mm`.
+          // `.utc()` makes the format read the wall-clock the user picked.
+          date: dayjs.utc(data.date).format('YYYY-MM-DDTHH:mm'),
           description: data.description,
           merchant: data.merchant,
         });
@@ -140,11 +149,12 @@ export function TransactionForm({ categories, initialValues }: Props) {
               }}
             />
 
-            <Field.Text
+            <Field.DateTimePicker
               name="date"
-              type="date"
-              label="Ngày"
-              slotProps={{ inputLabel: { shrink: true } }}
+              label="Ngày & giờ"
+              timezone="UTC"
+              ampm={false}
+              format="DD/MM/YYYY HH:mm"
             />
 
             <Box>

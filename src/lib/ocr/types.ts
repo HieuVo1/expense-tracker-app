@@ -27,7 +27,12 @@ export type TransactionExtract = {
   amount: number;
   /** Chi (tiền ra) hoặc Thu (tiền vào). Detected from "+/-" sign or app convention. */
   type: 'expense' | 'income';
-  /** ISO YYYY-MM-DD. */
+  /**
+   * Wire format for the form layer: `YYYY-MM-DDTHH:mm` — naive (no timezone).
+   * Provider adapters fold the model's separate date + time outputs into this
+   * shape, defaulting to `T12:00` when the model can't see a time on the
+   * receipt/screenshot.
+   */
   date: string;
   /** Short human description. */
   description: string;

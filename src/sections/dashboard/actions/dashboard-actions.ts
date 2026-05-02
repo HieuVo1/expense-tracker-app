@@ -89,7 +89,7 @@ export async function getDashboardData(monthParam?: string): Promise<DashboardDa
     }),
     prisma.transaction.findMany({
       where: { userId: user.id },
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       take: 5,
       include: {
         category: { select: { id: true, name: true, icon: true, color: true } },
@@ -156,7 +156,7 @@ export async function getDashboardData(monthParam?: string): Promise<DashboardDa
       id: r.id,
       amount: Number(r.amount),
       type: r.type,
-      date: r.date.toISOString().slice(0, 10),
+      date: r.date.toISOString(),
       description: r.description,
       category: r.category,
     })),

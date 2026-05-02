@@ -22,6 +22,7 @@ model User {
   categories   Category[]
   budgets      Budget[]
   merchants    MerchantMemory[]
+  assets       Asset[]
 
   @@map("users")
 }
@@ -57,7 +58,10 @@ model Transaction {
   categoryId  String          @map("category_id")
   amount      Decimal         @db.Decimal(15, 0)
   type        TransactionType
-  date        DateTime        @db.Date
+  // Stored as TIMESTAMP(3): year-month-day plus time-of-day (HH:mm). Wall-clock
+  // time treated as UTC ("naive UTC") for consistency with how date-only rows
+  // were stored before — no timezone math anywhere in the app.
+  date        DateTime
   description String?
   receiptUrl  String?         @map("receipt_url")
   createdAt   DateTime        @default(now()) @map("created_at")
@@ -98,17 +102,46 @@ model MerchantMemory {
   @@map("merchant_memory")
 }
 
+enum AssetType {
+  CASH
+  STOCK
+  FUND
+  SAVINGS
+  CRYPTO
+  OTHER
+}
+
+model Asset {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id") @db.Uuid
+  name         String
+  type         AssetType
+  capital      Decimal   @db.Decimal(15, 0)
+  currentValue Decimal   @map("current_value") @db.Decimal(15, 0)
+  // Optional, only meaningful when type = SAVINGS.
+  interestRate Float?    @map("interest_rate")
+  maturityDate DateTime? @map("maturity_date") @db.Date
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("assets")
+}
+
 model OcrLog {
-  id            String   @id @default(cuid())
-  userId        String?  @map("user_id") @db.Uuid
-  provider      String
-  latencyMs     Int      @map("latency_ms")
-  inputTokens   Int?     @map("input_tokens")
-  outputTokens  Int?     @map("output_tokens")
-  imageBytes    Int?     @map("image_bytes")
-  success       Boolean
-  errorMessage  String?  @map("error_message")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id           String   @id @default(cuid())
+  userId       String?  @map("user_id") @db.Uuid
+  provider     String
+  latencyMs    Int      @map("latency_ms")
+  inputTokens  Int?     @map("input_tokens")
+  outputTokens Int?     @map("output_tokens")
+  imageBytes   Int?     @map("image_bytes")
+  success      Boolean
+  errorMessage String?  @map("error_message")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   @@index([provider, createdAt])
   @@map("ocr_logs")

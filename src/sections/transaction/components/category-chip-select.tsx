@@ -2,7 +2,7 @@
 
 import type { IconifyName } from 'src/components/iconify';
 
-import { useFormContext, Controller } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 import FormHelperText from '@mui/material/FormHelperText';

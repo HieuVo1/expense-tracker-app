@@ -12,6 +12,7 @@ alter table public.transactions    enable row level security;
 alter table public.budgets         enable row level security;
 alter table public.merchant_memory enable row level security;
 alter table public.ocr_logs        enable row level security;
+alter table public.assets          enable row level security;
 
 -- ─── users ────────────────────────────────────────────────────
 -- Users can only see / modify their own profile row.
@@ -57,3 +58,8 @@ create policy "ocr_logs_owner_select" on public.ocr_logs
 drop policy if exists "ocr_logs_owner_insert" on public.ocr_logs;
 create policy "ocr_logs_owner_insert" on public.ocr_logs
   for insert with check (auth.uid() = user_id or user_id is null);
+
+-- ─── assets ───────────────────────────────────────────────────
+drop policy if exists "assets_owner_all" on public.assets;
+create policy "assets_owner_all" on public.assets
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

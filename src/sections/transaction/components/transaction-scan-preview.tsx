@@ -16,13 +16,14 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+
 import { fCurrency } from 'src/utils/format-number';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 
-import { TransactionScanEditDialog } from './transaction-scan-edit-dialog';
 import { createTransactionsBatch } from '../actions/transaction-actions';
+import { TransactionScanEditDialog } from './transaction-scan-edit-dialog';
 
 type Category = {
   id: string;
@@ -107,10 +108,11 @@ export function TransactionScanPreview({ items: initialItems, categories, onCanc
     });
   };
 
-  // Group by date desc, then amount desc within a day — bigger transactions
-  // surface first, matching the saved list view ordering.
+  // Group by day desc (slice strips time), then amount desc within a day —
+  // bigger transactions surface first, matching the saved list view ordering.
   const grouped = items.reduce<Record<string, PreviewItem[]>>((acc, t) => {
-    (acc[t.date] ??= []).push(t);
+    const dayKey = t.date.slice(0, 10);
+    (acc[dayKey] ??= []).push(t);
     return acc;
   }, {});
   const groupKeys = Object.keys(grouped).sort((a, b) => (a < b ? 1 : -1));
@@ -215,7 +217,9 @@ function ScanRow({ item, categories, onEdit, onDelete }: RowProps) {
   const category = categories.find((c) => c.id === item.categoryId);
   const sign = item.type === 'expense' ? '−' : '+';
   const amountColor = item.type === 'expense' ? 'text.primary' : 'success.dark';
-  const caption = [category?.name ?? '—', item.merchant].filter(Boolean).join(' · ');
+  const caption = [category?.name ?? '—', item.date.slice(11, 16), item.merchant]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <Box

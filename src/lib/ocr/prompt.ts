@@ -47,6 +47,10 @@ Mỗi phần tử trong "transactions":
   + "25/03/2026" → "2026-03-25".
   + "Hôm nay" / "Today" → ${todayIso} (đã cho ở trên).
   + "Hôm qua" / "Yesterday" → ${yesterdayIso} (đã cho ở trên).
+- time (string | null): "HH:mm" 24h nếu giờ giao dịch HIỂN THỊ rõ trong ảnh.
+  + "14:30" / "2:30 PM" / "02:30 PM" → "14:30".
+  + "09:05" / "9:05 AM" → "09:05".
+  + KHÔNG đoán — nếu ảnh không có giờ rõ ràng → trả về null. Đừng dùng giờ chụp ảnh, giờ hiện tại, hay giờ trong header màn hình điện thoại.
   + Date header trong app ngân hàng (vd "Today", "Hôm nay", "Yesterday", "Hôm qua", "Sunday, 19 Apr 2026", "12 thg 4 2026", "Apr 19", "19/04/2026") chỉ áp dụng cho các giao dịch HIỂN THỊ NGAY DƯỚI header đó, kéo dài cho tới header ngày tiếp theo.
     * ‼️ CỰC KỲ QUAN TRỌNG: giao dịch HIỂN THỊ Ở PHÍA TRÊN một date header KHÔNG thuộc ngày của header đó. Chúng thuộc 1 ngày KHÁC, thường mới hơn (gần hôm nay hơn).
     * Ví dụ minh hoạ — đọc thứ tự từ trên xuống dưới:
@@ -83,12 +87,12 @@ Quy tắc category:
   - Điện / nước / internet / nạp điện thoại / thuê nhà / bệnh viện / hospital → "Hoá đơn"
   - Trả lãi tiền gửi / lương / chuyển khoản cá nhân (cả chi & thu) / không rõ → "Khác"
 
-VÍ DỤ 1 — Hoá đơn nhà hàng (1 giao dịch chi):
-Input: Hoá đơn "Quán Cơm Tấm Sài Gòn" 25/03/2026, tổng 85.000đ.
+VÍ DỤ 1 — Hoá đơn nhà hàng (1 giao dịch chi, có giờ):
+Input: Hoá đơn "Quán Cơm Tấm Sài Gòn" 25/03/2026 12:45, tổng 85.000đ.
 Output:
-{"transactions":[{"amount":85000,"type":"expense","date":"2026-03-25","description":"Cơm tấm trưa","merchant":"quán cơm tấm sài gòn","suggestedCategory":"Ăn uống"}]}
+{"transactions":[{"amount":85000,"type":"expense","date":"2026-03-25","time":"12:45","description":"Cơm tấm trưa","merchant":"quán cơm tấm sài gòn","suggestedCategory":"Ăn uống"}]}
 
-VÍ DỤ 2 — Banking app, 4 giao dịch trộn chi + thu:
+VÍ DỤ 2 — Banking app, 4 giao dịch trộn chi + thu (không hiện giờ):
 Input ảnh có (24/02/2026):
   TRA LAI TIEN GUI TK: 21547513495   +26 VND
 (19/02/2026):
@@ -100,16 +104,16 @@ Input ảnh có (24/02/2026):
   Từ: VO TRUNG HIEU   +1,000,000 VND
 Output:
 {"transactions":[
-  {"amount":26,"type":"income","date":"2026-02-24","description":"Trả lãi tiền gửi","merchant":null,"suggestedCategory":"Khác"},
-  {"amount":100000,"type":"expense","date":"2026-02-19","description":"Nạp tiền điện thoại 0968540305","merchant":null,"suggestedCategory":"Hoá đơn"},
-  {"amount":1000000,"type":"expense","date":"2026-02-17","description":"Chuyển tới Lê Lâm Phương Quyên","merchant":"lê lâm phương quyên","suggestedCategory":"Khác"},
-  {"amount":1000000,"type":"income","date":"2026-02-17","description":"Nhận từ Võ Trung Hiếu","merchant":"võ trung hiếu","suggestedCategory":"Khác"}
+  {"amount":26,"type":"income","date":"2026-02-24","time":null,"description":"Trả lãi tiền gửi","merchant":null,"suggestedCategory":"Khác"},
+  {"amount":100000,"type":"expense","date":"2026-02-19","time":null,"description":"Nạp tiền điện thoại 0968540305","merchant":null,"suggestedCategory":"Hoá đơn"},
+  {"amount":1000000,"type":"expense","date":"2026-02-17","time":null,"description":"Chuyển tới Lê Lâm Phương Quyên","merchant":"lê lâm phương quyên","suggestedCategory":"Khác"},
+  {"amount":1000000,"type":"income","date":"2026-02-17","time":null,"description":"Nhận từ Võ Trung Hiếu","merchant":"võ trung hiếu","suggestedCategory":"Khác"}
 ]}
 
-VÍ DỤ 3 — SMS Vietcombank chi:
+VÍ DỤ 3 — SMS Vietcombank chi (không có giờ):
 Input: "GD: -250,000 VND tai GRAB *RIDE 10/04/2026".
 Output:
-{"transactions":[{"amount":250000,"type":"expense","date":"2026-04-10","description":"Grab ride","merchant":"grab","suggestedCategory":"Di chuyển"}]}
+{"transactions":[{"amount":250000,"type":"expense","date":"2026-04-10","time":null,"description":"Grab ride","merchant":"grab","suggestedCategory":"Di chuyển"}]}
 
 QUAN TRỌNG:
 - Trả về JSON THUẦN, KHÔNG bọc markdown code block, KHÔNG kèm giải thích.

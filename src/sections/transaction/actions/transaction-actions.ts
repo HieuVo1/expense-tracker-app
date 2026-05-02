@@ -6,21 +6,32 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
-import { prisma } from 'src/lib/prisma';
 import { paths } from 'src/routes/paths';
+
+import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
 // `nullish()` = optional + nullable so OCR/DB can pass `null` directly.
 // Schema parsers normalise to undefined-or-string downstream.
+//
+// Wire format for `date`: `YYYY-MM-DDTHH:mm` — naive (no timezone). Server
+// appends `:00.000Z` and stores as UTC. The wall-clock time the user typed
+// is what gets persisted; we never apply timezone math.
+const DATE_WIRE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
 const createSchema = z.object({
   amount: z.number().int().min(1, 'Số tiền phải > 0'),
   type: z.enum(['expense', 'income']),
   categoryId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ'),
+  date: z.string().regex(DATE_WIRE_RE, 'Ngày không hợp lệ'),
   description: z.string().max(200).nullish(),
   merchant: z.string().max(100).nullish(),
   receiptUrl: z.string().nullish(),
 });
+
+function wireToDate(wire: string) {
+  return new Date(`${wire}:00.000Z`);
+}
 
 export type CreateTransactionInput = z.infer<typeof createSchema>;
 
@@ -52,7 +63,7 @@ export async function createTransactionsBatch(inputs: CreateTransactionInput[]) 
         categoryId: i.categoryId,
         amount: new Prisma.Decimal(i.amount),
         type: i.type,
-        date: new Date(`${i.date}T00:00:00.000Z`),
+        date: wireToDate(i.date),
         description: i.description?.trim() || null,
         receiptUrl: i.receiptUrl ?? null,
       })),
@@ -95,7 +106,7 @@ export async function createTransaction(input: CreateTransactionInput) {
       categoryId: data.categoryId,
       amount: new Prisma.Decimal(data.amount),
       type: data.type,
-      date: new Date(`${data.date}T00:00:00.000Z`),
+      date: wireToDate(data.date),
       description: data.description?.trim() || null,
       receiptUrl: data.receiptUrl ?? null,
     },
@@ -174,7 +185,11 @@ export async function listTransactions(
 
   const rows = await prisma.transaction.findMany({
     where,
-    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+    // `id` tiebreaker keeps order stable when ties exist on (date, createdAt) —
+    // OCR batch inserts via createMany can produce identical createdAt within
+    // a single Postgres transaction, and without a deterministic tiebreaker
+    // rows visibly "jump" between queries after revalidation.
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     skip,
     take: take + 1,
     include: {
@@ -193,7 +208,10 @@ export async function listTransactions(
       id: r.id,
       amount: Number(r.amount),
       type: r.type,
-      date: r.date.toISOString().slice(0, 10),
+      // Full ISO datetime — client uses `slice(0, 10)` for day grouping and
+      // `slice(11, 16)` for "HH:mm" display (avoids timezone shifts that a
+      // dayjs parse without explicit UTC plugin would introduce).
+      date: r.date.toISOString(),
       description: r.description,
       receiptUrl: r.receiptUrl,
       category: r.category,
@@ -210,7 +228,7 @@ const updateSchema = z.object({
   amount: z.number().int().min(1, 'Số tiền phải > 0'),
   type: z.enum(['expense', 'income']),
   categoryId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ'),
+  date: z.string().regex(DATE_WIRE_RE, 'Ngày không hợp lệ'),
   description: z.string().max(200).nullish(),
 });
 
@@ -237,7 +255,7 @@ export async function updateTransaction(input: UpdateTransactionInput) {
       categoryId: data.categoryId,
       amount: new Prisma.Decimal(data.amount),
       type: data.type,
-      date: new Date(`${data.date}T00:00:00.000Z`),
+      date: wireToDate(data.date),
       description: data.description?.trim() || null,
     },
   });

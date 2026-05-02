@@ -1,5 +1,8 @@
 'use client';
 
+import type { PreviewItem } from './transaction-scan-preview';
+
+import dayjs from 'dayjs';
 import { useId, useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -15,8 +18,6 @@ import { Iconify } from 'src/components/iconify';
 
 import { TransactionForm } from './transaction-form';
 import { TransactionScanPreview } from './transaction-scan-preview';
-
-import type { PreviewItem } from './transaction-scan-preview';
 
 type Category = {
   id: string;
@@ -46,19 +47,22 @@ function normalizeMerchant(s: string | null | undefined) {
     .trim();
 }
 
-// Dedup key = date + type + amount + normalized merchant.
+// Dedup key = day + type + amount + normalized merchant.
+// We deliberately key on the *day* portion of the timestamp (slice 0..10) and
+// not the full datetime — the model is inconsistent about time extraction
+// (some screenshots have it, some don't, defaulting to 12:00), and including
+// time would split duplicates across different minute strings.
 // Including merchant prevents collapsing two distinct transactions on the same
-// day with identical amount but different recipients (e.g., 40k to Quách Thị
-// Hiền AND 40k to Nguyễn Thùy Linh). Diacritic-stripping handles OCR variants
-// of the same name. When merchant is missing on both rows, the key still
-// dedupes them via empty-string match.
+// day with identical amount but different recipients. Diacritic-stripping
+// handles OCR variants of the same name. When merchant is missing on both
+// rows, the key still dedupes them via empty-string match.
 function dedupKey(t: {
   date: string;
   type: string;
   amount: number;
   merchant?: string | null;
 }) {
-  return `${t.date}|${t.type}|${t.amount}|${normalizeMerchant(t.merchant)}`;
+  return `${t.date.slice(0, 10)}|${t.type}|${t.amount}|${normalizeMerchant(t.merchant)}`;
 }
 
 // Orchestrates the Add Transaction page:
@@ -173,7 +177,10 @@ export function TransactionAddClient({ categories }: Props) {
         setFormInitial({
           type: t.type ?? 'expense',
           amount: String(t.amount ?? ''),
-          date: t.date,
+          // OCR returns wire format `YYYY-MM-DDTHH:mm`; the form stores ISO
+          // for the date picker. `dayjs.utc(...)` interprets the wire string
+          // as UTC so the wall-clock time is preserved.
+          date: dayjs.utc(t.date).format(),
           categoryId: resolveCategoryId(
             t.suggestedCategory,
             t.type ?? 'expense',

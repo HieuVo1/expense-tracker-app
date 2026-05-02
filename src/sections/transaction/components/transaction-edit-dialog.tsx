@@ -1,9 +1,10 @@
 'use client';
 
 import * as z from 'zod';
+import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
-import { useState, useEffect, useTransition } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -46,7 +47,9 @@ const schema = z.object({
     .string()
     .min(1, { error: 'Vui lòng nhập số tiền' })
     .refine((v) => /^\d+$/.test(v) && Number(v) > 0, { error: 'Số tiền phải là số nguyên dương' }),
-  date: z.iso.date({ error: 'Ngày không hợp lệ' }),
+  // RHFDateTimePicker stores `dayjs(value).format()` — ISO with offset. Strict
+  // wire format (`YYYY-MM-DDTHH:mm`) is built at submit time.
+  date: z.string().refine((v) => dayjs(v).isValid(), { error: 'Ngày không hợp lệ' }),
   categoryId: z.string().min(1, { error: 'Vui lòng chọn danh mục' }),
   description: z.string().max(200).optional(),
 });
@@ -72,6 +75,9 @@ export function TransactionEditDialog({ open, onClose, transaction }: Props) {
     defaultValues: {
       type: transaction.type,
       amount: String(transaction.amount),
+      // Server returns full UTC ISO; pass through to the picker which is
+      // configured `timezone="UTC"` so the wall-clock the user sees matches
+      // what's stored.
       date: transaction.date,
       categoryId: transaction.category.id,
       description: transaction.description ?? '',
@@ -109,7 +115,7 @@ export function TransactionEditDialog({ open, onClose, transaction }: Props) {
           amount: Number(data.amount),
           type: data.type,
           categoryId: data.categoryId,
-          date: data.date,
+          date: dayjs.utc(data.date).format('YYYY-MM-DDTHH:mm'),
           description: data.description,
         });
         toast.success('Đã cập nhật giao dịch');
@@ -154,11 +160,12 @@ export function TransactionEditDialog({ open, onClose, transaction }: Props) {
               }}
             />
 
-            <Field.Text
+            <Field.DateTimePicker
               name="date"
-              type="date"
-              label="Ngày"
-              slotProps={{ inputLabel: { shrink: true } }}
+              label="Ngày & giờ"
+              timezone="UTC"
+              ampm={false}
+              format="DD/MM/YYYY HH:mm"
             />
 
             <Box>

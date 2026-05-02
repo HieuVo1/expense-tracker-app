@@ -143,7 +143,9 @@ export async function getReportData(monthParam?: string): Promise<ReportData> {
     topTransactions: topTxs.map((r) => ({
       id: r.id,
       amount: Number(r.amount),
-      date: r.date.toISOString().slice(0, 10),
+      // Full ISO datetime — `top-transactions-card` parses with dayjs which
+      // accepts either format, so no display change needed there.
+      date: r.date.toISOString(),
       description: r.description,
       category: r.category,
     })),

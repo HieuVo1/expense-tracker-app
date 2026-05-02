@@ -2,8 +2,8 @@ import type { OcrProvider, OcrProviderName } from './types';
 
 import { geminiProvider } from './gemini';
 
-export type { OcrProvider, OcrResult, TransactionExtract, VnCategory } from './types';
 export { VN_CATEGORIES } from './types';
+export type { OcrResult, VnCategory, OcrProvider, TransactionExtract } from './types';
 
 // OCR_PROVIDER env switch:
 //   - "gemini"  → Gemini only (MVP default)

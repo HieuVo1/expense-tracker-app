@@ -1,6 +1,9 @@
 'use client';
 
+import type { PreviewItem } from './transaction-scan-preview';
+
 import * as z from 'zod';
+import dayjs from 'dayjs';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,8 +23,6 @@ import { Form, Field } from 'src/components/hook-form';
 import { TypeToggle } from './type-toggle';
 import { CategoryChipSelect } from './category-chip-select';
 
-import type { PreviewItem } from './transaction-scan-preview';
-
 type Category = {
   id: string;
   name: string;
@@ -36,7 +37,7 @@ const schema = z.object({
     .string()
     .min(1, { error: 'Vui lòng nhập số tiền' })
     .refine((v) => /^\d+$/.test(v) && Number(v) > 0, { error: 'Số tiền phải là số nguyên dương' }),
-  date: z.iso.date({ error: 'Ngày không hợp lệ' }),
+  date: z.string().refine((v) => dayjs(v).isValid(), { error: 'Ngày không hợp lệ' }),
   categoryId: z.string().min(1, { error: 'Vui lòng chọn danh mục' }),
   description: z.string().max(200).optional(),
 });
@@ -64,7 +65,9 @@ export function TransactionScanEditDialog({ open, onClose, item, categories, onS
       methods.reset({
         type: item.type,
         amount: String(item.amount),
-        date: item.date,
+        // PreviewItem.date is wire format `YYYY-MM-DDTHH:mm`. Pass via
+        // dayjs.utc so the picker (timezone="UTC") shows the same wall-clock.
+        date: dayjs.utc(item.date).format(),
         categoryId: item.categoryId,
         description: item.description ?? '',
       });
@@ -84,7 +87,8 @@ export function TransactionScanEditDialog({ open, onClose, item, categories, onS
       ...item,
       type: data.type,
       amount: Number(data.amount),
-      date: data.date,
+      // ISO from picker → wire format stored on PreviewItem.
+      date: dayjs.utc(data.date).format('YYYY-MM-DDTHH:mm'),
       categoryId: data.categoryId,
       description: data.description ?? '',
     });
@@ -123,11 +127,12 @@ export function TransactionScanEditDialog({ open, onClose, item, categories, onS
               }}
             />
 
-            <Field.Text
+            <Field.DateTimePicker
               name="date"
-              type="date"
-              label="Ngày"
-              slotProps={{ inputLabel: { shrink: true } }}
+              label="Ngày & giờ"
+              timezone="UTC"
+              ampm={false}
+              format="DD/MM/YYYY HH:mm"
             />
 
             <Box>

@@ -4,10 +4,11 @@ import { paths } from 'src/routes/paths';
 
 import { Iconify } from 'src/components/iconify';
 
-const icon = (name: 'home' | 'wallet' | 'target' | 'folder' | 'settings') => {
+const icon = (name: 'home' | 'wallet' | 'assets' | 'target' | 'folder' | 'settings') => {
   const map = {
     home: 'solar:home-angle-bold-duotone',
     wallet: 'solar:transfer-horizontal-bold-duotone',
+    assets: 'solar:wad-of-money-bold',
     target: 'solar:bill-list-bold-duotone',
     folder: 'solar:add-folder-bold',
     settings: 'solar:settings-bold-duotone',
@@ -20,6 +21,7 @@ export const navData: NavSectionProps['data'] = [
     subheader: 'Tổng quan',
     items: [
       { title: 'Tổng quan', path: paths.dashboard.root, icon: icon('home') },
+      { title: 'Tài sản', path: paths.dashboard.assets, icon: icon('assets') },
       { title: 'Giao dịch', path: paths.dashboard.transactions, icon: icon('wallet') },
     ],
   },

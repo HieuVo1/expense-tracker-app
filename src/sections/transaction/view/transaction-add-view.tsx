@@ -4,8 +4,8 @@ import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { TransactionAddClient } from '../components/transaction-add-client';
 import { listCategoriesForForm } from '../actions/transaction-actions';
+import { TransactionAddClient } from '../components/transaction-add-client';
 
 export async function TransactionAddView() {
   const categories = await listCategoriesForForm();
