@@ -14,10 +14,8 @@ import { fCurrency } from 'src/utils/format-number';
 import { Iconify } from 'src/components/iconify';
 
 import { TransactionListItem } from './transaction-list-item';
-import {
-  listTransactions,
-  type TransactionListFilter,
-} from '../actions/transaction-actions';
+import { listTransactions } from '../actions/transaction-actions';
+import { type TransactionListFilter } from '../lib/transaction-filter';
 
 type Tx = Awaited<ReturnType<typeof listTransactions>>['rows'][number];
 

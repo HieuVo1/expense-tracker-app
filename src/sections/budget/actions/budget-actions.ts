@@ -1,12 +1,13 @@
 'use server';
 
-import dayjs from 'dayjs';
 import { z } from 'zod';
+import dayjs from 'dayjs';
 import { Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
-import { prisma } from 'src/lib/prisma';
 import { paths } from 'src/routes/paths';
+
+import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
 // First day of given month (UTC), used as the canonical key for Budget rows.
@@ -96,5 +97,9 @@ export async function upsertBudgets(input: {
     )
   );
 
+  // Dashboard's BudgetProgress reads from the same Budget table, so its RSC
+  // cache must be invalidated too — otherwise the chart looks "hardcoded"
+  // after the user saves a new limit.
   revalidatePath(paths.dashboard.budgets);
+  revalidatePath(paths.dashboard.root);
 }

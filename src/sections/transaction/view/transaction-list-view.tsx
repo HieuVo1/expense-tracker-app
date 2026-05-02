@@ -12,6 +12,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import { ImportCsvButton } from '../components/import-csv-button';
 import { TransactionFilterBar } from '../components/transaction-filter-bar';
 import { TransactionListGrouped } from '../components/transaction-list-grouped';
 import { listTransactions, listCategoriesForForm } from '../actions/transaction-actions';
@@ -81,6 +82,16 @@ export async function TransactionListView({ searchParams }: Props) {
     searchParams.max ?? '',
   ].join('|');
 
+  // Build the export URL by re-encoding only the filter-relevant searchParams,
+  // so the CSV always matches the current view (filtered or full).
+  const exportParams = new URLSearchParams();
+  for (const k of ['type', 'categoryId', 'q', 'month', 'day', 'min', 'max'] as const) {
+    const v = searchParams[k];
+    if (v) exportParams.set(k, v);
+  }
+  const exportQuery = exportParams.toString();
+  const exportHref = exportQuery ? `/api/reports/export?${exportQuery}` : '/api/reports/export';
+
   return (
     <DashboardContent>
       <Stack spacing={3}>
@@ -93,14 +104,25 @@ export async function TransactionListView({ searchParams }: Props) {
               Lịch sử chi tiêu, sắp xếp theo ngày
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            href={paths.dashboard.addTransaction}
-            startIcon={<Iconify icon="solar:add-circle-bold" />}
-            sx={{ display: { xs: 'none', lg: 'inline-flex' } }}
-          >
-            Thêm giao dịch
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            <Button
+              component="a"
+              href={exportHref}
+              variant="outlined"
+              startIcon={<Iconify icon="solar:download-bold" />}
+            >
+              Xuất CSV
+            </Button>
+            <ImportCsvButton />
+            <Button
+              variant="contained"
+              href={paths.dashboard.addTransaction}
+              startIcon={<Iconify icon="solar:add-circle-bold" />}
+              sx={{ display: { xs: 'none', lg: 'inline-flex' } }}
+            >
+              Thêm giao dịch
+            </Button>
+          </Box>
         </Box>
 
         <TransactionFilterBar categories={categories} />

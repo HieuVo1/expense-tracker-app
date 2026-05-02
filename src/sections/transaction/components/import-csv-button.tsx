@@ -12,7 +12,7 @@ import { importTransactionsCsv } from 'src/sections/report/actions/report-action
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
 // Reads a user-selected CSV file as text and hands it to the server action.
-// Stays a separate client component so the dashboard view stays a server
+// Stays a separate client component so the transactions view stays a server
 // component.
 export function ImportCsvButton() {
   const inputRef = useRef<HTMLInputElement>(null);

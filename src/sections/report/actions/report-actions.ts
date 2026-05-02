@@ -10,6 +10,11 @@ import { paths } from 'src/routes/paths';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
+import {
+  buildTransactionWhere,
+  type TransactionListFilter,
+} from 'src/sections/transaction/lib/transaction-filter';
+
 // Server actions don't go through the client-side localization provider, so
 // extend the utc plugin here. Idempotent.
 dayjs.extend(utc);
@@ -172,15 +177,15 @@ export type CsvRow = {
   merchant: string;
 };
 
-export async function getTransactionsForExport(monthParam?: string): Promise<CsvRow[]> {
+// Export mirrors the transactions-page filter so the CSV always reflects what
+// the user is currently looking at. With no filter applied the export covers
+// the entire ledger.
+export async function getTransactionsForExport(
+  filter: TransactionListFilter = {}
+): Promise<CsvRow[]> {
   const user = await requireUser();
-  // Match the dashboard's resolution: missing/invalid month defaults to current.
-  // Export then mirrors what the user sees on screen instead of the entire ledger.
-  const anchor = parseMonthParam(monthParam);
-  const start = firstOfMonth(anchor);
-  const end = firstOfMonth(anchor.add(1, 'month'));
   const rows = await prisma.transaction.findMany({
-    where: { userId: user.id, date: { gte: start, lt: end } },
+    where: buildTransactionWhere(user.id, filter),
     orderBy: { date: 'desc' },
     include: { category: { select: { name: true } } },
   });

@@ -19,7 +19,6 @@ import { SummaryCard } from '../components/summary-card';
 import { CategoryDonut } from '../components/category-donut';
 import { BudgetProgress } from '../components/budget-progress';
 import { getDashboardData } from '../actions/dashboard-actions';
-import { ImportCsvButton } from '../components/import-csv-button';
 
 type Props = {
   searchParams?: { month?: string };
@@ -56,19 +55,6 @@ export async function DashboardOverviewView({ searchParams }: Props) {
           </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <MonthPicker />
-            <Button
-              component="a"
-              href={
-                searchParams?.month
-                  ? `/api/reports/export?month=${encodeURIComponent(searchParams.month)}`
-                  : '/api/reports/export'
-              }
-              variant="outlined"
-              startIcon={<Iconify icon="solar:download-bold" />}
-            >
-              Xuất CSV
-            </Button>
-            <ImportCsvButton />
             <Button
               variant="contained"
               href={paths.dashboard.addTransaction}
