@@ -4,14 +4,15 @@ import type { IconifyName } from 'src/components/iconify';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
-import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import { paths } from 'src/routes/paths';
+
 import { fCurrency } from 'src/utils/format-number';
 
-import Link from '@mui/material/Link';
 import { Iconify } from 'src/components/iconify';
 
 type Row = {
