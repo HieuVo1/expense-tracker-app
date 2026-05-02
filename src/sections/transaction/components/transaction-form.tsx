@@ -3,8 +3,8 @@
 import * as z from 'zod';
 import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
-import { useState, useTransition } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState, useEffect, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -82,16 +82,16 @@ export function TransactionForm({ categories, initialValues }: Props) {
 
   // Reactively narrow category list to the current type. When the user toggles
   // Chi/Thu, the selected categoryId is reset if it no longer belongs to the
-  // active list — prevents saving a "Lương" entry under "expense".
+  // active list — prevents saving a "Lương" entry under "expense". Cleared in
+  // an effect to avoid setState-during-render warnings on the Controller.
   const currentType = methods.watch('type');
   const filteredCategories = categories.filter((c) => c.type === currentType);
-  const selectedCategoryId = methods.watch('categoryId');
-  if (
-    selectedCategoryId &&
-    !filteredCategories.some((c) => c.id === selectedCategoryId)
-  ) {
-    methods.setValue('categoryId', '');
-  }
+  useEffect(() => {
+    const current = methods.getValues('categoryId');
+    if (current && !categories.some((c) => c.type === currentType && c.id === current)) {
+      methods.setValue('categoryId', '');
+    }
+  }, [currentType, categories, methods]);
 
   const onSubmit = methods.handleSubmit((data) => {
     setError(null);

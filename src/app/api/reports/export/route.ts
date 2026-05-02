@@ -1,3 +1,5 @@
+import type { NextRequest } from 'next/server';
+
 import { getTransactionsForExport } from 'src/sections/report/actions/report-actions';
 
 // Excel-compatible CSV escaping: wrap fields with quote / comma / newline in
@@ -9,8 +11,11 @@ function csvField(v: string) {
   return v;
 }
 
-export async function GET() {
-  const rows = await getTransactionsForExport();
+export async function GET(req: NextRequest) {
+  // `month` query param mirrors the dashboard's MonthPicker so the CSV
+  // contains exactly what the user sees on screen.
+  const month = req.nextUrl.searchParams.get('month') ?? undefined;
+  const rows = await getTransactionsForExport(month);
 
   const headers = ['Ngày', 'Loại', 'Số tiền (VND)', 'Danh mục', 'Mô tả', 'Cửa hàng'];
   const lines = [
@@ -25,7 +30,11 @@ export async function GET() {
   // file is opened locally on Windows.
   const csv = '﻿' + lines.join('\n');
 
-  const filename = `expense-tracker-${new Date().toISOString().slice(0, 10)}.csv`;
+  // Filename includes the exported month so the user can tell files apart.
+  const monthSlug = month && /^\d{4}-\d{2}$/.test(month)
+    ? month
+    : new Date().toISOString().slice(0, 7);
+  const filename = `expense-tracker-${monthSlug}.csv`;
   return new Response(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',

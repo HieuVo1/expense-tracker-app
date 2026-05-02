@@ -95,16 +95,17 @@ export function TransactionEditDialog({ open, onClose, transaction }: Props) {
 
   // Filter categories by current type. If the user switches type and the
   // current category no longer matches, clear it so they have to re-select.
+  // The clear runs in an effect to avoid setState-during-render warnings
+  // (RHF's setValue updates the Controller).
   const currentType = methods.watch('type');
   const filteredCategories = (categories ?? []).filter((c) => c.type === currentType);
-  const selectedCategoryId = methods.watch('categoryId');
-  if (
-    categories &&
-    selectedCategoryId &&
-    !filteredCategories.some((c) => c.id === selectedCategoryId)
-  ) {
-    methods.setValue('categoryId', '');
-  }
+  useEffect(() => {
+    if (!categories) return;
+    const current = methods.getValues('categoryId');
+    if (current && !categories.some((c) => c.type === currentType && c.id === current)) {
+      methods.setValue('categoryId', '');
+    }
+  }, [currentType, categories, methods]);
 
   const onSubmit = methods.handleSubmit((data) => {
     setError(null);

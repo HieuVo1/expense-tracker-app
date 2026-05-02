@@ -159,7 +159,37 @@ export type TransactionListFilter = {
   categoryId?: string;
   /** Free-text query — matches against description (Postgres ILIKE, accent-insensitive). */
   q?: string;
+  /** YYYY-MM. Filters to transactions whose UTC date falls in this calendar month. */
+  month?: string;
+  /** YYYY-MM-DD. Filters to a single UTC day. Wins over `month` if both are set. */
+  day?: string;
+  /** Inclusive lower bound on transaction amount (VND, integer). */
+  minAmount?: number;
+  /** Inclusive upper bound on transaction amount (VND, integer). */
+  maxAmount?: number;
 };
+
+const MONTH_RE = /^\d{4}-\d{2}$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// Builds a [start, end) UTC range for either a YYYY-MM-DD day or YYYY-MM month.
+// Returns null if the input doesn't match the expected format.
+function buildDateRange(day?: string, month?: string): { gte: Date; lt: Date } | null {
+  if (day && DAY_RE.test(day)) {
+    const start = new Date(`${day}T00:00:00.000Z`);
+    if (Number.isNaN(start.getTime())) return null;
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    return { gte: start, lt: end };
+  }
+  if (month && MONTH_RE.test(month)) {
+    const [y, m] = month.split('-').map(Number);
+    const start = new Date(Date.UTC(y, m - 1, 1));
+    const end = new Date(Date.UTC(y, m, 1));
+    if (Number.isNaN(start.getTime())) return null;
+    return { gte: start, lt: end };
+  }
+  return null;
+}
 
 // Returns the user's transactions, optionally filtered, joined with their
 // category for inline display. Pagination via skip/take; fetches one extra
@@ -181,6 +211,16 @@ export async function listTransactions(
     // mental "search by who I sent money to" works only when they typed it
     // into the description field at create time. Good enough for v1.
     where.description = { contains: filter.q.trim(), mode: 'insensitive' };
+  }
+
+  const dateRange = buildDateRange(filter.day, filter.month);
+  if (dateRange) where.date = dateRange;
+
+  if (filter.minAmount !== undefined || filter.maxAmount !== undefined) {
+    const amountRange: Prisma.DecimalFilter = {};
+    if (filter.minAmount !== undefined) amountRange.gte = new Prisma.Decimal(filter.minAmount);
+    if (filter.maxAmount !== undefined) amountRange.lte = new Prisma.Decimal(filter.maxAmount);
+    where.amount = amountRange;
   }
 
   const rows = await prisma.transaction.findMany({

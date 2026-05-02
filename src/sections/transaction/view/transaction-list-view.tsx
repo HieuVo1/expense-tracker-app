@@ -16,11 +16,27 @@ import { TransactionFilterBar } from '../components/transaction-filter-bar';
 import { TransactionListGrouped } from '../components/transaction-list-grouped';
 import { listTransactions, listCategoriesForForm } from '../actions/transaction-actions';
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 100;
 
 type Props = {
-  searchParams: { type?: string; categoryId?: string; q?: string };
+  searchParams: {
+    type?: string;
+    categoryId?: string;
+    q?: string;
+    month?: string;
+    day?: string;
+    min?: string;
+    max?: string;
+  };
 };
+
+// Parse a string searchParam to a positive integer. Returns undefined for
+// missing/blank/invalid values so the filter falls back to "no bound".
+function parseAmountParam(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+}
 
 export async function TransactionListView({ searchParams }: Props) {
   // Coerce searchParams to typed filter — drop unknown values silently.
@@ -29,17 +45,41 @@ export async function TransactionListView({ searchParams }: Props) {
       ? (searchParams.type as TransactionType)
       : undefined;
 
-  const filter = { type, categoryId: searchParams.categoryId, q: searchParams.q };
+  const filter = {
+    type,
+    categoryId: searchParams.categoryId,
+    q: searchParams.q,
+    month: searchParams.month,
+    day: searchParams.day,
+    minAmount: parseAmountParam(searchParams.min),
+    maxAmount: parseAmountParam(searchParams.max),
+  };
 
   const [page, categories] = await Promise.all([
     listTransactions(filter, { take: PAGE_SIZE }),
     listCategoriesForForm(),
   ]);
 
-  const hasActiveFilter = !!(searchParams.type || searchParams.categoryId || searchParams.q);
+  const hasActiveFilter = !!(
+    searchParams.type ||
+    searchParams.categoryId ||
+    searchParams.q ||
+    searchParams.month ||
+    searchParams.day ||
+    searchParams.min ||
+    searchParams.max
+  );
   // Filter signature drives the client component's `key` so it remounts (and
   // resets its appended-rows state) whenever the user changes a filter.
-  const filterKey = `${type ?? ''}|${searchParams.categoryId ?? ''}|${searchParams.q ?? ''}`;
+  const filterKey = [
+    type ?? '',
+    searchParams.categoryId ?? '',
+    searchParams.q ?? '',
+    searchParams.month ?? '',
+    searchParams.day ?? '',
+    searchParams.min ?? '',
+    searchParams.max ?? '',
+  ].join('|');
 
   return (
     <DashboardContent>

@@ -1,7 +1,10 @@
 'use client';
 
+import type { AssetRow, CashDelta } from '../types';
+
 import dayjs from 'dayjs';
 import { useTransition } from 'react';
+import { useLocalStorage } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -11,8 +14,12 @@ import { fCurrency } from 'src/utils/format-number';
 
 import { toast } from 'src/components/snackbar';
 
-import type { AssetRow, CashDelta } from '../types';
 import { applyCashDelta } from '../actions/asset-actions';
+
+// Stores the `sinceISO` the user last dismissed. Banner stays hidden while
+// that value matches the current sync window — once the user applies a sync,
+// `sinceISO` advances and the next drift naturally re-shows the banner.
+const DISMISS_STORAGE_KEY = 'asset.cashSyncBanner.dismissedSince';
 
 type Props = {
   cashAssets: AssetRow[];
@@ -33,10 +40,16 @@ function formatSinceLabel(sinceISO: string): string {
 
 export function CashSyncBanner({ cashAssets, cashDelta, onPickerOpen }: Props) {
   const [isPending, startTransition] = useTransition();
+  const { state: dismissedSince, setState: setDismissedSince } = useLocalStorage<string>(
+    DISMISS_STORAGE_KEY,
+    '',
+  );
 
   const { delta, count } = cashDelta;
   const positive = delta >= 0;
   const sign = positive ? '+' : '−';
+
+  if (dismissedSince === cashDelta.sinceISO) return null;
 
   // Single CASH → apply directly, skip picker.
   const handleClick = () => {
@@ -56,7 +69,10 @@ export function CashSyncBanner({ cashAssets, cashDelta, onPickerOpen }: Props) {
   };
 
   return (
-    <Alert severity={positive ? 'success' : 'warning'}>
+    <Alert
+      severity={positive ? 'success' : 'warning'}
+      onClose={() => setDismissedSince(cashDelta.sinceISO)}
+    >
       <Box
         sx={{
           display: 'flex',

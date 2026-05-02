@@ -4,13 +4,14 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
 import { getReportData } from 'src/sections/report/actions/report-actions';
-import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { TopMerchantsCard } from 'src/sections/report/components/top-merchants-card';
+import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { TopTransactionsCard } from 'src/sections/report/components/top-transactions-card';
 
 import { MonthPicker } from '../components/month-picker';
@@ -18,6 +19,7 @@ import { SummaryCard } from '../components/summary-card';
 import { CategoryDonut } from '../components/category-donut';
 import { BudgetProgress } from '../components/budget-progress';
 import { getDashboardData } from '../actions/dashboard-actions';
+import { ImportCsvButton } from '../components/import-csv-button';
 
 type Props = {
   searchParams?: { month?: string };
@@ -56,12 +58,17 @@ export async function DashboardOverviewView({ searchParams }: Props) {
             <MonthPicker />
             <Button
               component="a"
-              href="/api/reports/export"
+              href={
+                searchParams?.month
+                  ? `/api/reports/export?month=${encodeURIComponent(searchParams.month)}`
+                  : '/api/reports/export'
+              }
               variant="outlined"
               startIcon={<Iconify icon="solar:download-bold" />}
             >
               Xuất CSV
             </Button>
+            <ImportCsvButton />
             <Button
               variant="contained"
               href={paths.dashboard.addTransaction}

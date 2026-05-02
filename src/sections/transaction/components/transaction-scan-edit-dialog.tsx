@@ -76,10 +76,14 @@ export function TransactionScanEditDialog({ open, onClose, item, categories, onS
 
   const currentType = methods.watch('type');
   const filteredCategories = categories.filter((c) => c.type === currentType);
-  const selectedCategoryId = methods.watch('categoryId');
-  if (selectedCategoryId && !filteredCategories.some((c) => c.id === selectedCategoryId)) {
-    methods.setValue('categoryId', '');
-  }
+  // Clear categoryId in an effect (not during render) to avoid setState-in-render
+  // warnings on the underlying Controller.
+  useEffect(() => {
+    const current = methods.getValues('categoryId');
+    if (current && !categories.some((c) => c.type === currentType && c.id === current)) {
+      methods.setValue('categoryId', '');
+    }
+  }, [currentType, categories, methods]);
 
   const onSubmit = methods.handleSubmit((data) => {
     if (!item) return;
