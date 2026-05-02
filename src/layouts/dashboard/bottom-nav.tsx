@@ -19,6 +19,7 @@ import { Iconify } from 'src/components/iconify';
 // or contextual links (overcrowding the bar hurts thumb-reach).
 const TABS = [
   { value: paths.dashboard.root, label: 'Trang chủ', icon: 'solar:home-angle-bold-duotone' },
+  { value: paths.dashboard.assets, label: 'Tài sản', icon: 'solar:wad-of-money-bold' },
   { value: paths.dashboard.transactions, label: 'Lịch sử', icon: 'solar:clock-circle-bold' },
   { value: paths.dashboard.settings, label: 'Cài đặt', icon: 'solar:settings-bold-duotone' },
 ] as const;

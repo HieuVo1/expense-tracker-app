@@ -1,7 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+
 import Box from '@mui/material/Box';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 
 import { fDate } from 'src/utils/format-time';
@@ -29,12 +35,15 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
   const showSavingsLine =
     asset.type === 'SAVINGS' && (asset.interestRate !== null || asset.maturityDate !== null);
 
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const closeMenu = () => setMenuAnchor(null);
+
   return (
     <Box
       sx={{
-        py: 1.75,
-        px: 2.5,
-        gap: 2,
+        py: 1.5,
+        px: { xs: 1.5, sm: 2.5 },
+        gap: { xs: 1.25, sm: 2 },
         display: 'flex',
         alignItems: 'center',
         borderBottom: '0.5px solid',
@@ -61,7 +70,7 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
         <Typography variant="body2" noWrap>
           {asset.name}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
           {ASSET_TYPE_LABELS[asset.type]} · Vốn{' '}
           <span className="tabular">{fCurrency(asset.capital)}</span>
         </Typography>
@@ -69,7 +78,8 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ display: 'block', mt: 0.25 }}
+            noWrap
+            sx={{ display: 'block' }}
           >
             {asset.interestRate !== null && (
               <span className="tabular">{asset.interestRate}%/năm</span>
@@ -81,10 +91,15 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
       </Box>
 
       <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-        <Typography variant="subtitle2" className="tabular">
+        <Typography variant="subtitle2" className="tabular" noWrap>
           {fCurrency(asset.currentValue)}
         </Typography>
-        <Typography variant="caption" className="tabular" sx={{ color: plColor }}>
+        <Typography
+          variant="caption"
+          className="tabular"
+          noWrap
+          sx={{ color: plColor, display: 'block' }}
+        >
           {plSign}
           {fCurrency(Math.abs(pl))}
           {plPercent !== null && (
@@ -93,13 +108,40 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
         </Typography>
       </Box>
 
-      <IconButton size="small" onClick={onEdit} aria-label="Sửa" sx={{ ml: 0.5 }}>
-        <Iconify icon="solar:pen-bold" width={18} />
+      <IconButton
+        size="small"
+        onClick={(e) => setMenuAnchor(e.currentTarget)}
+        aria-label="Tuỳ chọn"
+        sx={{ flexShrink: 0 }}
+      >
+        <Iconify icon="eva:more-vertical-fill" width={18} />
       </IconButton>
 
-      <IconButton size="small" onClick={onDelete} aria-label="Xoá">
-        <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-      </IconButton>
+      <Menu anchorEl={menuAnchor} open={menuAnchor !== null} onClose={closeMenu}>
+        <MenuItem
+          onClick={() => {
+            closeMenu();
+            onEdit();
+          }}
+        >
+          <ListItemIcon>
+            <Iconify icon="solar:pen-bold" width={18} />
+          </ListItemIcon>
+          <ListItemText>Sửa</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            closeMenu();
+            onDelete();
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <ListItemIcon sx={{ color: 'error.main' }}>
+            <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+          </ListItemIcon>
+          <ListItemText>Xoá</ListItemText>
+        </MenuItem>
+      </Menu>
     </Box>
   );
 }
