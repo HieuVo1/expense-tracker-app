@@ -7,8 +7,35 @@ import { prisma } from 'src/lib/prisma';
 import { paths } from 'src/routes/paths';
 import { requireUser } from 'src/lib/auth-helpers';
 
-import type { AssetRow } from '../types';
+import type { AssetRow, CashDelta } from '../types';
 import { assetFormSchema, type AssetFormValues } from '../schemas';
+
+// Shared logic — fetch the latest CASH updatedAt + sum of net transactions
+// since then. Used by both `getCashTransactionDelta` (read) and
+// `applyCashDelta` (write) so they agree on the same window.
+async function computeCashDelta(userId: string): Promise<CashDelta | null> {
+  const latestCash = await prisma.asset.findFirst({
+    where: { userId, type: 'CASH' },
+    orderBy: { updatedAt: 'desc' },
+    select: { updatedAt: true },
+  });
+  if (!latestCash) return null;
+
+  // Use createdAt (when transaction was logged), not date (when it occurred).
+  // Backdated entries logged after the anchor still affect cash going forward.
+  const txns = await prisma.transaction.findMany({
+    where: { userId, createdAt: { gte: latestCash.updatedAt } },
+    select: { amount: true, type: true },
+  });
+  if (txns.length === 0) return null;
+
+  const delta = txns.reduce(
+    (s, t) => s + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)),
+    0,
+  );
+
+  return { delta, count: txns.length, sinceISO: latestCash.updatedAt.toISOString() };
+}
 
 // Decimal → number, Date → ISO date string for client consumption.
 export async function listAssets(): Promise<AssetRow[]> {
@@ -28,6 +55,7 @@ export async function listAssets(): Promise<AssetRow[]> {
     interestRate: r.interestRate,
     maturityDate: r.maturityDate ? r.maturityDate.toISOString().slice(0, 10) : null,
     notes: r.notes,
+    updatedAt: r.updatedAt.toISOString(),
   }));
 }
 
@@ -93,6 +121,39 @@ export async function deleteAsset(id: string): Promise<void> {
   if (result.count === 0) {
     throw new Error('Tài sản không tồn tại hoặc không có quyền xoá');
   }
+
+  revalidatePath(paths.dashboard.assets);
+}
+
+export async function getCashTransactionDelta(): Promise<CashDelta | null> {
+  const user = await requireUser();
+  return computeCashDelta(user.id);
+}
+
+// Applies the current delta to a single CASH asset. Recomputes server-side
+// to avoid trusting stale client value. The asset's updatedAt auto-bumps to
+// now via @updatedAt, which becomes the new anchor — next call returns null.
+export async function applyCashDelta(assetId: string): Promise<void> {
+  const user = await requireUser();
+
+  const asset = await prisma.asset.findFirst({
+    where: { id: assetId, userId: user.id, type: 'CASH' },
+    select: { id: true, currentValue: true },
+  });
+  if (!asset) {
+    throw new Error('Tài sản không tồn tại hoặc không phải tiền mặt');
+  }
+
+  const cashDelta = await computeCashDelta(user.id);
+  if (!cashDelta || cashDelta.delta === 0) {
+    return; // nothing to apply
+  }
+
+  const newValue = Math.max(0, Number(asset.currentValue) + cashDelta.delta);
+  await prisma.asset.update({
+    where: { id: asset.id },
+    data: { currentValue: new Prisma.Decimal(newValue) },
+  });
 
   revalidatePath(paths.dashboard.assets);
 }

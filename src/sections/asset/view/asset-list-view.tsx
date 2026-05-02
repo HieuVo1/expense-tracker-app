@@ -1,17 +1,25 @@
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { listAssets } from '../actions/asset-actions';
 import { AssetListClient } from './asset-list-client';
 import { getUserRiskProfile } from '../actions/risk-profile-actions';
+import { listAssets, getCashTransactionDelta } from '../actions/asset-actions';
 
-// Server component — fetches data + user's risk profile, then hands off to
-// the client wrapper which owns dialog/delete state.
+// Server component — fetches assets, user's risk profile, and net cash delta
+// (income−expense since latest CASH updatedAt). Client owns dialog state.
 export async function AssetListView() {
-  const [assets, riskProfile] = await Promise.all([listAssets(), getUserRiskProfile()]);
+  const [assets, riskProfile, cashDelta] = await Promise.all([
+    listAssets(),
+    getUserRiskProfile(),
+    getCashTransactionDelta(),
+  ]);
 
   return (
     <DashboardContent>
-      <AssetListClient assets={assets} initialRiskProfile={riskProfile} />
+      <AssetListClient
+        assets={assets}
+        initialRiskProfile={riskProfile}
+        cashDelta={cashDelta}
+      />
     </DashboardContent>
   );
 }

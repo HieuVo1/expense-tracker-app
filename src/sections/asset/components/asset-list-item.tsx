@@ -1,5 +1,6 @@
 'use client';
 
+import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -19,6 +20,21 @@ import type { AssetRow } from '../types';
 import { computeAssetPL } from '../utils/compute-totals';
 import { ASSET_TYPE_HEX, ASSET_TYPE_ICONS, ASSET_TYPE_LABELS } from '../constants/asset-types';
 
+// Stale = more than 14 days since last manual update. Encourages re-syncing
+// volatile assets (CASH/STOCK/CRYPTO move daily) without nagging on slow
+// movers (SAVINGS/FUND).
+const STALE_THRESHOLD_DAYS = 14;
+
+function formatUpdatedAgo(updatedAt: string): { text: string; stale: boolean } {
+  const days = dayjs().diff(dayjs(updatedAt), 'day');
+  const stale = days >= STALE_THRESHOLD_DAYS;
+  if (days <= 0) return { text: 'Cập nhật hôm nay', stale };
+  if (days === 1) return { text: 'Cập nhật hôm qua', stale };
+  if (days < 30) return { text: `Cập nhật ${days} ngày trước`, stale };
+  const months = Math.floor(days / 30);
+  return { text: `Cập nhật ${months} tháng trước`, stale };
+}
+
 type Props = {
   asset: AssetRow;
   onEdit: () => void;
@@ -34,6 +50,8 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
   const typeColor = ASSET_TYPE_HEX[asset.type];
   const showSavingsLine =
     asset.type === 'SAVINGS' && (asset.interestRate !== null || asset.maturityDate !== null);
+
+  const updatedAgo = formatUpdatedAgo(asset.updatedAt);
 
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const closeMenu = () => setMenuAnchor(null);
@@ -88,6 +106,20 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
             {asset.maturityDate && <>Đáo hạn {fDate(asset.maturityDate)}</>}
           </Typography>
         )}
+        <Typography
+          variant="caption"
+          noWrap
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            mt: 0.25,
+            color: updatedAgo.stale ? 'warning.main' : 'text.disabled',
+          }}
+        >
+          {updatedAgo.stale && <Iconify icon="solar:clock-circle-bold" width={12} />}
+          {updatedAgo.text}
+        </Typography>
       </Box>
 
       <Box sx={{ textAlign: 'right', flexShrink: 0 }}>

@@ -16,11 +16,13 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
-import type { AssetRow } from '../types';
+import type { AssetRow, CashDelta } from '../types';
 import { AssetList } from '../components/asset-list';
 import { AssetPLBar } from '../components/asset-pl-bar';
 import { computeTotals } from '../utils/compute-totals';
 import { deleteAsset } from '../actions/asset-actions';
+import { CashSyncBanner } from '../components/cash-sync-banner';
+import { CashSyncPicker } from '../components/cash-sync-picker';
 import { AssetEmptyState } from '../components/asset-empty-state';
 import { ASSET_TYPE_VALUES } from '../constants/asset-types';
 import { AssetFormDialog } from '../components/asset-form-dialog';
@@ -44,16 +46,21 @@ import {
 type Props = {
   assets: AssetRow[];
   initialRiskProfile: RiskProfile | null;
+  cashDelta: CashDelta | null;
 };
 
-export function AssetListClient({ assets, initialRiskProfile }: Props) {
+export function AssetListClient({ assets, initialRiskProfile, cashDelta }: Props) {
   const totals = computeTotals(assets);
   const isEmpty = assets.length === 0;
+
+  const cashAssets = useMemo(() => assets.filter((a) => a.type === 'CASH'), [assets]);
+  const showCashBanner = cashDelta !== null && cashDelta.delta !== 0 && cashAssets.length > 0;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AssetRow | null>(null);
 
   const [riskPickerOpen, setRiskPickerOpen] = useState(false);
+  const [cashPickerOpen, setCashPickerOpen] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<AssetRow | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
@@ -130,6 +137,14 @@ export function AssetListClient({ assets, initialRiskProfile }: Props) {
         <AssetEmptyState />
       ) : (
         <>
+          {showCashBanner && (
+            <CashSyncBanner
+              cashAssets={cashAssets}
+              cashDelta={cashDelta}
+              onPickerOpen={() => setCashPickerOpen(true)}
+            />
+          )}
+
           {suggested && (
             <RiskProfileSuggestBanner
               suggested={suggested}
@@ -198,6 +213,15 @@ export function AssetListClient({ assets, initialRiskProfile }: Props) {
         onClose={() => setRiskPickerOpen(false)}
         current={initialRiskProfile}
       />
+
+      {showCashBanner && (
+        <CashSyncPicker
+          open={cashPickerOpen}
+          onClose={() => setCashPickerOpen(false)}
+          cashAssets={cashAssets}
+          cashDelta={cashDelta}
+        />
+      )}
 
       <ConfirmDialog
         open={deleteTarget !== null}
