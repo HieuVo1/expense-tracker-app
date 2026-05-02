@@ -31,7 +31,9 @@ type Props = {
 // so the dashboard reads as one cohesive visual instead of competing palettes.
 // Categories without a budget are excluded — showing "0 / 0" feels noisy.
 export function BudgetProgress({ rows }: Props) {
-  const tracked = rows.filter((r) => r.limit > 0);
+  // Filter to budgeted categories, then sort by actual spend desc so the most
+  // pressing rows (and any overspend) sit at the top instead of being buried.
+  const tracked = rows.filter((r) => r.limit > 0).sort((a, b) => b.spent - a.spent);
 
   return (
     <Card sx={{ p: 3 }}>

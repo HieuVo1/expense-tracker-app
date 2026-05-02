@@ -39,14 +39,18 @@ type TabValue = 'expense' | 'income';
 export function CategoryDonut({ expenseData, incomeData }: Props) {
   const [tab, setTab] = useState<TabValue>('expense');
 
-  const slices =
+  // Sort by amount desc so the biggest categories appear at the top of the
+  // legend list and own the largest slice clockwise from 12 o'clock — quick
+  // read for "where did most of the money go?".
+  const slices = (
     tab === 'expense'
       ? expenseData
           .filter((d) => d.spent > 0)
           .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.spent }))
       : incomeData
           .filter((d) => d.earned > 0)
-          .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.earned }));
+          .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.earned }))
+  ).sort((a, b) => b.amount - a.amount);
 
   const total = slices.reduce((s, d) => s + d.amount, 0);
   const emptyMessage =
