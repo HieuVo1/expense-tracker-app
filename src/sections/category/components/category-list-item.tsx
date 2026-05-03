@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
@@ -17,12 +19,24 @@ import { deleteCategory } from '../actions/category-actions';
 
 type Props = {
   category: { id: string; name: string; icon: string; color: string; type: 'expense' | 'income' };
+  // When true the row is wired into a parent SortableContext and shows a drag
+  // handle. False (or omitted) renders a plain row — useful for read-only lists.
+  sortable?: boolean;
 };
 
-export function CategoryListItem({ category }: Props) {
+export function CategoryListItem({ category, sortable = false }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id, disabled: !sortable });
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -39,6 +53,7 @@ export function CategoryListItem({ category }: Props) {
   return (
     <>
       <Box
+        ref={sortable ? setNodeRef : undefined}
         sx={{
           py: 2,
           px: 2.5,
@@ -48,8 +63,35 @@ export function CategoryListItem({ category }: Props) {
           borderBottom: '0.5px solid',
           borderColor: 'divider',
           '&:last-of-type': { borderBottom: 'none' },
+          ...(sortable && {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            opacity: isDragging ? 0.4 : 1,
+            bgcolor: isDragging ? 'action.hover' : 'transparent',
+            position: 'relative',
+            zIndex: isDragging ? 1 : 'auto',
+          }),
         }}
       >
+        {sortable && (
+          <Box
+            {...attributes}
+            {...listeners}
+            sx={{
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'grab',
+              color: 'text.disabled',
+              touchAction: 'none',
+              '&:active': { cursor: 'grabbing' },
+              '&:hover': { color: 'text.secondary' },
+            }}
+            aria-label="Kéo để sắp xếp"
+          >
+            <Iconify icon="custom:drag-dots-fill" width={18} />
+          </Box>
+        )}
+
         <Box
           sx={{
             width: 40,

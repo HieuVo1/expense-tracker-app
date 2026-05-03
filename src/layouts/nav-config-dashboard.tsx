@@ -8,7 +8,7 @@ const icon = (name: 'home' | 'wallet' | 'assets' | 'target' | 'folder' | 'settin
   const map = {
     home: 'solar:home-angle-bold-duotone',
     wallet: 'solar:transfer-horizontal-bold-duotone',
-    assets: 'solar:wad-of-money-bold',
+    assets: 'solar:dollar-minimalistic-bold',
     target: 'solar:bill-list-bold-duotone',
     folder: 'solar:add-folder-bold',
     settings: 'solar:settings-bold-duotone',

@@ -76,6 +76,31 @@ export async function updateCategory(input: z.infer<typeof updateSchema>) {
   revalidatePath(paths.dashboard.categories);
 }
 
+export async function reorderCategories(orderedIds: string[]) {
+  const user = await requireUser();
+
+  // Verify every id belongs to the user before issuing writes — guards against
+  // a malicious client passing ids from another account.
+  const owned = await prisma.category.findMany({
+    where: { id: { in: orderedIds }, userId: user.id },
+    select: { id: true },
+  });
+  if (owned.length !== orderedIds.length) {
+    throw new Error('Danh mục không hợp lệ');
+  }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.category.update({
+        where: { id, userId: user.id },
+        data: { order: index },
+      })
+    )
+  );
+
+  revalidatePath(paths.dashboard.categories);
+}
+
 export async function deleteCategory(id: string) {
   const user = await requireUser();
 
