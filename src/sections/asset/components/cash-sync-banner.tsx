@@ -1,10 +1,8 @@
 'use client';
 
-import type { AssetRow, CashDelta } from '../types';
+import type { CashDelta } from '../types';
 
 import dayjs from 'dayjs';
-import { useTransition } from 'react';
-import { useLocalStorage } from 'minimal-shared/hooks';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -12,20 +10,10 @@ import Button from '@mui/material/Button';
 
 import { fCurrency } from 'src/utils/format-number';
 
-import { toast } from 'src/components/snackbar';
-
-import { applyCashDelta } from '../actions/asset-actions';
-
-// Stores the `sinceISO` the user last dismissed. Banner stays hidden while
-// that value matches the current sync window — once the user applies a sync,
-// `sinceISO` advances and the next drift naturally re-shows the banner.
-const DISMISS_STORAGE_KEY = 'asset.cashSyncBanner.dismissedSince';
-
 type Props = {
-  cashAssets: AssetRow[];
   cashDelta: CashDelta;
-  // Called when user has multiple CASH assets and needs to pick which one
-  // gets the delta. Single-CASH path skips this and applies directly.
+  // Always opens the picker — user can edit the amount before apply, so the
+  // banner doesn't try to apply directly.
   onPickerOpen: () => void;
 };
 
@@ -38,41 +26,13 @@ function formatSinceLabel(sinceISO: string): string {
   return `${months} tháng qua`;
 }
 
-export function CashSyncBanner({ cashAssets, cashDelta, onPickerOpen }: Props) {
-  const [isPending, startTransition] = useTransition();
-  const { state: dismissedSince, setState: setDismissedSince } = useLocalStorage<string>(
-    DISMISS_STORAGE_KEY,
-    '',
-  );
-
+export function CashSyncBanner({ cashDelta, onPickerOpen }: Props) {
   const { delta, count } = cashDelta;
   const positive = delta >= 0;
   const sign = positive ? '+' : '−';
 
-  if (dismissedSince === cashDelta.sinceISO) return null;
-
-  // Single CASH → apply directly, skip picker.
-  const handleClick = () => {
-    if (cashAssets.length > 1) {
-      onPickerOpen();
-      return;
-    }
-    const target = cashAssets[0];
-    startTransition(async () => {
-      try {
-        await applyCashDelta(target.id);
-        toast.success(`Đã cập nhật ${target.name}`);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Cập nhật thất bại');
-      }
-    });
-  };
-
   return (
-    <Alert
-      severity={positive ? 'success' : 'warning'}
-      onClose={() => setDismissedSince(cashDelta.sinceISO)}
-    >
+    <Alert severity={positive ? 'success' : 'warning'}>
       <Box
         sx={{
           display: 'flex',
@@ -93,10 +53,9 @@ export function CashSyncBanner({ cashAssets, cashDelta, onPickerOpen }: Props) {
           size="small"
           variant="contained"
           color={positive ? 'success' : 'warning'}
-          onClick={handleClick}
-          loading={isPending}
+          onClick={onPickerOpen}
         >
-          {cashAssets.length > 1 ? 'Cập nhật ví…' : 'Cập nhật ngay'}
+          Cập nhật ví…
         </Button>
       </Box>
     </Alert>

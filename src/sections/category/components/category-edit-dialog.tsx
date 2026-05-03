@@ -24,8 +24,8 @@ import { TypeToggle } from 'src/sections/transaction/components/type-toggle';
 import { createCategory, updateCategory } from '../actions/category-actions';
 import { ICON_GROUPS, DEFAULT_CATEGORY_ICON } from './category-icon-groups';
 
-// Palette aligned with the warm-minimalist tokens — paired warm/earthy/muted
-// hues so user-created categories don't clash with the seeded six.
+// Paired warm/earthy/muted hues so user-created categories don't clash with
+// the seeded six.
 const COLORS = [
   '#4a7c59', '#a3593e', '#3d5a80', '#8b5a8c',
   '#7a7445', '#747878', '#2e7d32', '#f57c00',

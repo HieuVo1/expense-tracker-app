@@ -10,9 +10,9 @@ import { requireUser } from 'src/lib/auth-helpers';
 import type { AssetRow, CashDelta } from '../types';
 import { assetFormSchema, type AssetFormValues } from '../schemas';
 
-// Shared logic — fetch the latest CASH updatedAt + sum of net transactions
-// since then. Used by both `getCashTransactionDelta` (read) and
-// `applyCashDelta` (write) so they agree on the same window.
+// Suggested delta for the banner — fetch the latest CASH updatedAt + sum of
+// net transactions since then. Server only suggests; the user can override
+// the amount in the picker before apply.
 async function computeCashDelta(userId: string): Promise<CashDelta | null> {
   const latestCash = await prisma.asset.findFirst({
     where: { userId, type: 'CASH' },
@@ -21,10 +21,15 @@ async function computeCashDelta(userId: string): Promise<CashDelta | null> {
   });
   if (!latestCash) return null;
 
-  // Use createdAt (when transaction was logged), not date (when it occurred).
-  // Backdated entries logged after the anchor still affect cash going forward.
+  // Use Transaction.updatedAt (vs createdAt) so edits surface in the banner —
+  // a row edited after the anchor still has updatedAt > anchor even if it was
+  // originally created before. Backdated entries also work since updatedAt =
+  // createdAt on create. Trade-off: edited rows return their *current* amount,
+  // not the diff vs the previously-synced amount, so the suggested delta can
+  // double-count edits to already-absorbed transactions — the picker lets the
+  // user override the amount before applying.
   const txns = await prisma.transaction.findMany({
-    where: { userId, createdAt: { gte: latestCash.updatedAt } },
+    where: { userId, updatedAt: { gte: latestCash.updatedAt } },
     select: { amount: true, type: true },
   });
   if (txns.length === 0) return null;
@@ -130,10 +135,16 @@ export async function getCashTransactionDelta(): Promise<CashDelta | null> {
   return computeCashDelta(user.id);
 }
 
-// Applies the current delta to a single CASH asset. Recomputes server-side
-// to avoid trusting stale client value. The asset's updatedAt auto-bumps to
-// now via @updatedAt, which becomes the new anchor — next call returns null.
-export async function applyCashDelta(assetId: string): Promise<void> {
+// Applies a user-chosen `amount` to a CASH asset. The picker shows the
+// computed delta as a default; user may edit it (e.g., subtract past tx they
+// don't want to sync). The asset's updatedAt auto-bumps via @updatedAt and
+// becomes the new anchor — every transaction in the previous window is then
+// considered "absorbed", so future banners only show genuinely new tx.
+export async function applyCashDelta(assetId: string, amount: number): Promise<void> {
+  if (!Number.isFinite(amount)) {
+    throw new Error('Số tiền không hợp lệ');
+  }
+
   const user = await requireUser();
 
   const asset = await prisma.asset.findFirst({
@@ -144,12 +155,7 @@ export async function applyCashDelta(assetId: string): Promise<void> {
     throw new Error('Tài sản không tồn tại hoặc không phải tiền mặt');
   }
 
-  const cashDelta = await computeCashDelta(user.id);
-  if (!cashDelta || cashDelta.delta === 0) {
-    return; // nothing to apply
-  }
-
-  const newValue = Math.max(0, Number(asset.currentValue) + cashDelta.delta);
+  const newValue = Math.max(0, Number(asset.currentValue) + amount);
   await prisma.asset.update({
     where: { id: asset.id },
     data: { currentValue: new Prisma.Decimal(newValue) },

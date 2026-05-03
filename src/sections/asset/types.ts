@@ -37,7 +37,7 @@ export type AssetPL = {
 // the user's cash bucket). Anchor = latest updatedAt among CASH assets;
 // delta = net (income − expense) for transactions logged after that anchor.
 export type CashDelta = {
-  delta: number;     // VND, signed (negative = net spend)
+  delta: number;     // VND, signed (negative = net spend) — suggested default
   count: number;
   sinceISO: string;  // ISO datetime of anchor (latest CASH updatedAt)
 };

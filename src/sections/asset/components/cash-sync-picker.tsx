@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -8,7 +8,9 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Radio from '@mui/material/Radio';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -27,23 +29,29 @@ type Props = {
   cashDelta: CashDelta;
 };
 
-// Picker for multi-CASH case — user chooses which wallet absorbs the delta.
-// Shows current value + projected value side-by-side so the impact is visible.
+// Picker for applying a delta into a CASH wallet. The amount is editable so
+// the user can subtract past transactions they don't want to sync (e.g.
+// backdated entries). Default = server-suggested net delta.
 export function CashSyncPicker({ open, onClose, cashAssets, cashDelta }: Props) {
   const [selectedId, setSelectedId] = useState<string>(cashAssets[0]?.id ?? '');
+  // String state so the user can type freely (incl. minus, partial input).
+  const [amountText, setAmountText] = useState<string>(String(cashDelta.delta));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const { delta } = cashDelta;
-  const positive = delta >= 0;
-  const sign = positive ? '+' : '−';
+  const parsedAmount = useMemo(() => {
+    const trimmed = amountText.trim();
+    if (trimmed === '' || trimmed === '-') return NaN;
+    return Number(trimmed);
+  }, [amountText]);
+  const isAmountValid = Number.isFinite(parsedAmount);
 
   const handleApply = () => {
-    if (!selectedId) return;
+    if (!selectedId || !isAmountValid) return;
     setError(null);
     startTransition(async () => {
       try {
-        await applyCashDelta(selectedId);
+        await applyCashDelta(selectedId, parsedAmount);
         const target = cashAssets.find((a) => a.id === selectedId);
         toast.success(`Đã cập nhật ${target?.name ?? 'tài sản'}`);
         onClose();
@@ -60,18 +68,33 @@ export function CashSyncPicker({ open, onClose, cashAssets, cashDelta }: Props) 
         <Stack spacing={2} sx={{ mt: 1 }}>
           {!!error && <Alert severity="error">{error}</Alert>}
 
-          <Typography variant="body2" color="text.secondary">
-            Net{' '}
-            <strong className="tabular">
-              {sign}
-              {fCurrency(Math.abs(delta))}
-            </strong>{' '}
-            sẽ được cộng vào ví bạn chọn. Số dư âm sẽ được giữ ở 0.
-          </Typography>
+          <TextField
+            label="Số tiền điều chỉnh (VND)"
+            value={amountText}
+            onChange={(e) => setAmountText(e.target.value)}
+            error={!isAmountValid}
+            helperText={
+              isAmountValid
+                ? 'Số dương = cộng vào ví, số âm = trừ. Bạn có thể sửa để bỏ qua giao dịch không muốn đồng bộ.'
+                : 'Số tiền không hợp lệ'
+            }
+            slotProps={{
+              input: {
+                endAdornment: <InputAdornment position="end">₫</InputAdornment>,
+              },
+              htmlInput: {
+                inputMode: 'numeric',
+                pattern: '-?[0-9]*',
+              },
+            }}
+            fullWidth
+          />
 
           <Stack spacing={1}>
             {cashAssets.map((asset) => {
-              const projected = Math.max(0, asset.currentValue + delta);
+              const projected = isAmountValid
+                ? Math.max(0, asset.currentValue + parsedAmount)
+                : asset.currentValue;
               const isSelected = selectedId === asset.id;
               return (
                 <Box
@@ -121,7 +144,7 @@ export function CashSyncPicker({ open, onClose, cashAssets, cashDelta }: Props) 
         <Button
           variant="contained"
           onClick={handleApply}
-          disabled={!selectedId}
+          disabled={!selectedId || !isAmountValid}
           loading={isPending}
         >
           Áp dụng

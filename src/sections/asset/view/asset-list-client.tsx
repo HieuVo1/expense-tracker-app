@@ -139,7 +139,6 @@ export function AssetListClient({ assets, initialRiskProfile, cashDelta }: Props
         <>
           {showCashBanner && (
             <CashSyncBanner
-              cashAssets={cashAssets}
               cashDelta={cashDelta}
               onPickerOpen={() => setCashPickerOpen(true)}
             />

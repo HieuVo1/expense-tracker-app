@@ -87,6 +87,7 @@ export async function createTransactionsBatch(inputs: CreateTransactionInput[]) 
 
   revalidatePath(paths.dashboard.transactions);
   revalidatePath(paths.dashboard.root);
+  revalidatePath(paths.dashboard.assets);
   return { count: parsed.length };
 }
 
@@ -130,6 +131,7 @@ export async function createTransaction(input: CreateTransactionInput) {
 
   revalidatePath(paths.dashboard.transactions);
   revalidatePath(paths.dashboard.root);
+  revalidatePath(paths.dashboard.assets);
 
   return transaction.id;
 }
@@ -247,6 +249,7 @@ export async function updateTransaction(input: UpdateTransactionInput) {
 
   revalidatePath(paths.dashboard.transactions);
   revalidatePath(paths.dashboard.root);
+  revalidatePath(paths.dashboard.assets);
 }
 
 export async function deleteTransaction(id: string) {
@@ -254,4 +257,5 @@ export async function deleteTransaction(id: string) {
   await prisma.transaction.delete({ where: { id, userId: user.id } });
   revalidatePath(paths.dashboard.transactions);
   revalidatePath(paths.dashboard.root);
+  revalidatePath(paths.dashboard.assets);
 }
