@@ -1,6 +1,5 @@
 import type { AssetType } from '@prisma/client';
-
-import type { AssetRow, AssetPL, AssetTotals } from '../types';
+import type { AssetPL, AssetRow, AssetTotals } from '../types';
 
 const EMPTY_BY_TYPE: Record<AssetType, number> = {
   CASH: 0,

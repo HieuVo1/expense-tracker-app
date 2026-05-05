@@ -1,6 +1,6 @@
 {
   "name": "expense-tracker-app",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Personal expense tracker — Next.js + Supabase + Prisma",
   "private": true,
   "scripts": {
@@ -42,6 +42,11 @@
     "@prisma/client": "^6.19.3",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.87.1",
+    "@tiptap/core": "^3.22.5",
+    "@tiptap/extension-text-align": "^3.22.5",
+    "@tiptap/extensions": "^3.22.5",
+    "@tiptap/react": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5",
     "apexcharts": "^5.3.6",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",
@@ -58,6 +63,7 @@
     "simplebar-react": "^3.3.2",
     "sonner": "^2.0.7",
     "swr": "^2.3.7",
+    "tiptap-markdown": "^0.9.0",
     "yet-another-react-lightbox": "^3.27.0",
     "zod": "^4.1.13"
   },

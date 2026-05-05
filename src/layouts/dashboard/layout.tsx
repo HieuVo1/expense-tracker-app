@@ -12,11 +12,11 @@ import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
 
 import { BottomNav } from './bottom-nav';
-import { BackToTopFab } from './back-to-top-fab';
-import { AddTransactionFab } from './add-transaction-fab';
 import { VerticalDivider } from './content';
 import { NavVertical } from './nav-vertical';
+import { BackToTopFab } from './back-to-top-fab';
 import { NavHorizontal } from './nav-horizontal';
+import { AddTransactionFab } from './add-transaction-fab';
 import { navData as dashboardNavData } from '../nav-config-dashboard';
 import { dashboardLayoutVars, dashboardNavColorVars } from './css-vars';
 import { MainSection, layoutClasses, HeaderSection, LayoutSection } from '../core';

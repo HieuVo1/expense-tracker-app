@@ -3,10 +3,11 @@
 import { revalidatePath } from 'next/cache';
 
 import { paths } from 'src/routes/paths';
-import { createClient } from 'src/lib/supabase/server';
-import { requireUser } from 'src/lib/auth-helpers';
 
-import { RISK_PROFILE_VALUES, type RiskProfile } from '../constants/risk-profiles';
+import { requireUser } from 'src/lib/auth-helpers';
+import { createClient } from 'src/lib/supabase/server';
+
+import { type RiskProfile, RISK_PROFILE_VALUES } from '../constants/risk-profiles';
 
 const RISK_KEY = 'risk_profile';
 

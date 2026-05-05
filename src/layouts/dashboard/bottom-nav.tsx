@@ -14,11 +14,14 @@ import { RouterLink } from 'src/routes/components';
 import { Iconify } from 'src/components/iconify';
 
 // Tabs shown in the mobile bottom bar. Order is the user's mental hierarchy:
-// Home → History → Settings. Reports were merged into Home so they share the
-// same month-picker context. Categories + Budgets stay accessible via Settings
-// or contextual links (overcrowding the bar hurts thumb-reach).
+// Home → productivity (Plans, Notes) → financial (Assets, History) → Settings.
+// Six tabs fit at icon+label on most phones; if reach issues surface, the
+// secondary pairs (Plans/Notes, Assets/History) can be folded into a "More"
+// overflow popover.
 const TABS = [
   { value: paths.dashboard.root, label: 'Trang chủ', icon: 'solar:home-angle-bold-duotone' },
+  { value: paths.dashboard.plans, label: 'Kế hoạch', icon: 'solar:calendar-date-bold' },
+  { value: paths.dashboard.notes, label: 'Ghi chú', icon: 'solar:notebook-bold-duotone' },
   { value: paths.dashboard.assets, label: 'Tài sản', icon: 'solar:dollar-minimalistic-bold' },
   { value: paths.dashboard.transactions, label: 'Lịch sử', icon: 'solar:clock-circle-bold' },
   { value: paths.dashboard.settings, label: 'Cài đặt', icon: 'solar:settings-bold-duotone' },
@@ -67,10 +70,17 @@ export function BottomNav({ hideAtBreakpoint = 'lg' }: Props) {
         sx={{
           height: 64,
           bgcolor: 'transparent',
+          // 6 tabs fit on phones >=360px when each action shrinks proportionally.
           '& .MuiBottomNavigationAction-root': {
             minWidth: 0,
+            padding: '6px 4px',
             color: 'text.secondary',
             '&.Mui-selected': { color: 'text.primary' },
+            // Smaller label so 6 tabs don't overflow on narrow phones.
+            '& .MuiBottomNavigationAction-label': {
+              fontSize: '0.65rem',
+              '&.Mui-selected': { fontSize: '0.7rem' },
+            },
           },
         }}
       >

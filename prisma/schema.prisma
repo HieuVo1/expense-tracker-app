@@ -23,6 +23,8 @@ model User {
   budgets      Budget[]
   merchants    MerchantMemory[]
   assets       Asset[]
+  notes        Note[]
+  plans        Plan[]
 
   @@map("users")
 }
@@ -129,6 +131,84 @@ model Asset {
 
   @@index([userId, type])
   @@map("assets")
+}
+
+enum NoteType {
+  insight
+  strength
+  weakness
+  idea
+}
+
+enum PlanScope {
+  weekly
+  monthly
+}
+
+enum PlanStatus {
+  active
+  completed
+  archived
+}
+
+// Eisenhower Matrix quadrants — required on every PlanTask, no default.
+// Future: an `aiSuggestedPriority` field may be added without migration pain.
+enum TaskPriority {
+  do_first   // Q1: urgent + important — Khẩn cấp & Quan trọng
+  schedule   // Q2: important, not urgent — Quan trọng
+  delegate   // Q3: urgent, not important — Khẩn cấp
+  eliminate  // Q4: neither — Không quan trọng
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id") @db.Uuid
+  type      NoteType
+  title     String
+  content   String   @db.Text // Raw Markdown text (rendered by TipTap editor — see plan.md decision #4)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, updatedAt(sort: Desc)])
+  @@map("notes")
+}
+
+model Plan {
+  id          String     @id @default(cuid())
+  userId      String     @map("user_id") @db.Uuid
+  scope       PlanScope
+  title       String
+  description String?    @db.Text
+  startDate   DateTime   @map("start_date") @db.Date
+  endDate     DateTime   @map("end_date") @db.Date
+  status      PlanStatus @default(active)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks PlanTask[]
+
+  @@index([userId, scope, startDate(sort: Desc)])
+  @@map("plans")
+}
+
+model PlanTask {
+  id        String       @id @default(cuid())
+  planId    String       @map("plan_id")
+  title     String
+  isDone    Boolean      @default(false) @map("is_done")
+  priority  TaskPriority // REQUIRED, no default — UI forces pick on add
+  dueDate   DateTime?    @map("due_date") @db.Date
+  order     Int          @default(0)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId, order, createdAt])
+  @@index([planId, priority])
+  @@map("plan_tasks")
 }
 
 model OcrLog {

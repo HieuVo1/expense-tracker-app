@@ -1,5 +1,7 @@
 'use client';
 
+import type { AssetRow } from '../types';
+
 import dayjs from 'dayjs';
 import { useState } from 'react';
 
@@ -7,16 +9,15 @@ import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Typography from '@mui/material/Typography';
 
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
 
-import type { AssetRow } from '../types';
 import { computeAssetPL } from '../utils/compute-totals';
 import { ASSET_TYPE_HEX, ASSET_TYPE_ICONS, ASSET_TYPE_LABELS } from '../constants/asset-types';
 

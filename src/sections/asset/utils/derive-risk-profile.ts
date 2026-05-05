@@ -3,8 +3,8 @@ import type { AssetType } from '@prisma/client';
 import { ASSET_TYPE_VALUES } from '../constants/asset-types';
 import {
   RISK_TARGETS,
-  RISK_PROFILE_VALUES,
   type RiskProfile,
+  RISK_PROFILE_VALUES,
 } from '../constants/risk-profiles';
 
 export type Allocation = Record<AssetType, number>; // ratios, sum to 1

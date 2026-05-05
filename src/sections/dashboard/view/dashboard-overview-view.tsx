@@ -10,6 +10,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 
 import { getReportData } from 'src/sections/report/actions/report-actions';
+import { getPlan, listPlans } from 'src/sections/plan/actions/plan-actions';
 import { TopMerchantsCard } from 'src/sections/report/components/top-merchants-card';
 import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { TopTransactionsCard } from 'src/sections/report/components/top-transactions-card';
@@ -19,6 +20,9 @@ import { SummaryCard } from '../components/summary-card';
 import { CategoryDonut } from '../components/category-donut';
 import { BudgetProgress } from '../components/budget-progress';
 import { getDashboardData } from '../actions/dashboard-actions';
+import { CurrentWeekPlanCard } from '../components/current-week-plan-card';
+import { getDashboardReminders } from '../actions/dashboard-reminders';
+import { DashboardRemindersCard } from '../components/dashboard-reminders-card';
 
 type Props = {
   searchParams?: { month?: string };
@@ -28,10 +32,19 @@ type Props = {
 // the 6-month trend and rankings — fewer hops for the user, and the month
 // picker drives both halves consistently.
 export async function DashboardOverviewView({ searchParams }: Props) {
-  const [data, reportData] = await Promise.all([
+  const [data, reportData, allPlans, reminders] = await Promise.all([
     getDashboardData(searchParams?.month),
     getReportData(searchParams?.month),
+    listPlans(),
+    getDashboardReminders(),
   ]);
+
+  // Current weekly plan: scope=weekly, active, today within [startDate, endDate].
+  // `listPlans` already sorts with isCurrent=true plans first, so `.find` picks
+  // the most-relevant row. If multiple overlapping weekly plans exist (data anomaly),
+  // the first match (earliest by startDate DESC from DB sort) is used.
+  const currentWeekRow = allPlans.find((p) => p.scope === 'weekly' && p.isCurrent) ?? null;
+  const currentWeekPlan = currentWeekRow ? await getPlan(currentWeekRow.id) : null;
 
   return (
     <DashboardContent>
@@ -66,12 +79,17 @@ export async function DashboardOverviewView({ searchParams }: Props) {
           </Box>
         </Box>
 
+        {/* Reminders — shown FIRST when there's anything pending so user sees it on app open. */}
+        <DashboardRemindersCard reminders={reminders} />
+
         <SummaryCard
           totalExpense={data.totalExpense}
           totalIncome={data.totalIncome}
           expenseDeltaPct={data.expenseDeltaPct}
           monthLabel={data.monthLabel}
         />
+
+        <CurrentWeekPlanCard plan={currentWeekPlan} />
 
         <MonthlyTrendChart data={reportData.monthlyTrend} />
 

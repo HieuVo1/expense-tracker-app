@@ -1,14 +1,14 @@
 'use client';
 
+import type { IconifyName } from 'src/components/iconify';
+
+import { CSS } from '@dnd-kit/utilities';
 import { useState, useTransition } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-
-import type { IconifyName } from 'src/components/iconify';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';

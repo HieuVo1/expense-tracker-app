@@ -1,8 +1,8 @@
 'use client';
 
 import * as z from 'zod';
-import { useForm, Controller } from 'react-hook-form';
 import { useState, useTransition } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Box from '@mui/material/Box';
@@ -21,8 +21,8 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { TypeToggle } from 'src/sections/transaction/components/type-toggle';
 
-import { createCategory, updateCategory } from '../actions/category-actions';
 import { ICON_GROUPS, DEFAULT_CATEGORY_ICON } from './category-icon-groups';
+import { createCategory, updateCategory } from '../actions/category-actions';
 
 // Paired warm/earthy/muted hues so user-created categories don't clash with
 // the seeded six.

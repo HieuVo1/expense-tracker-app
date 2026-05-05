@@ -3,8 +3,9 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
-import { prisma } from 'src/lib/prisma';
 import { paths } from 'src/routes/paths';
+
+import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
 const nameSchema = z.string().min(1, 'Tên không được trống').max(50, 'Tên tối đa 50 ký tự');

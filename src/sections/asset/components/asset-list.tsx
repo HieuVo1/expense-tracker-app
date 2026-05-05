@@ -1,7 +1,8 @@
+import type { AssetRow } from '../types';
+
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 
-import type { AssetRow } from '../types';
 import { AssetListItem } from './asset-list-item';
 
 type Props = {

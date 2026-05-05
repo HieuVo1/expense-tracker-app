@@ -6,9 +6,9 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import {
+  type RiskProfile,
   RISK_PROFILE_COLORS,
   RISK_PROFILE_LABELS,
-  type RiskProfile,
 } from '../constants/risk-profiles';
 
 type Props = {

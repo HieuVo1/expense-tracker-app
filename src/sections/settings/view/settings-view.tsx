@@ -9,15 +9,16 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
-import { CONFIG } from 'src/global-config';
+
 import { fCurrency } from 'src/utils/format-number';
+
 import { prisma } from 'src/lib/prisma';
+import { CONFIG } from 'src/global-config';
 import { requireUser } from 'src/lib/auth-helpers';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { SignOutButton } from 'src/layouts/components/sign-out-button';
 
 import { Iconify } from 'src/components/iconify';
-
-import { SignOutButton } from 'src/layouts/components/sign-out-button';
 
 // Server component — pulls auth user (Supabase) + a few summary numbers from
 // Prisma (transaction count, total spend) so the user has a sense of what's

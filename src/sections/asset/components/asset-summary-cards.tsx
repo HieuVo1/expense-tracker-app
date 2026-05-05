@@ -1,12 +1,13 @@
+import type { AssetTotals } from '../types';
+import type { RiskProfile } from '../constants/risk-profiles';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 
 import { fCurrency } from 'src/utils/format-number';
 
-import type { AssetTotals } from '../types';
 import { RiskProfileCard } from './risk-profile-card';
-import type { RiskProfile } from '../constants/risk-profiles';
 
 type Props = {
   totals: AssetTotals;

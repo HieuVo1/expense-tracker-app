@@ -4,8 +4,8 @@ import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { CategoryActions } from '../components/category-actions-bar';
 import { listCategories } from '../actions/category-actions';
+import { CategoryActions } from '../components/category-actions-bar';
 import { SortableCategorySection } from '../components/sortable-category-section';
 
 export async function CategoryListView() {

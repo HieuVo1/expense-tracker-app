@@ -1,5 +1,7 @@
 export * from './fields';
 
+export * from './rhf-editor';
+
 export * from './rhf-upload';
 
 export * from './rhf-select';

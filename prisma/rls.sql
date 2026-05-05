@@ -63,3 +63,25 @@ create policy "ocr_logs_owner_insert" on public.ocr_logs
 drop policy if exists "assets_owner_all" on public.assets;
 create policy "assets_owner_all" on public.assets
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ─── notes ────────────────────────────────────────────────────
+alter table public.notes      enable row level security;
+alter table public.plans      enable row level security;
+alter table public.plan_tasks enable row level security;
+
+drop policy if exists "notes_owner_all" on public.notes;
+create policy "notes_owner_all" on public.notes
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "plans_owner_all" on public.plans;
+create policy "plans_owner_all" on public.plans
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- plan_tasks have no user_id column; ownership inherited via plan.
+drop policy if exists "plan_tasks_owner_all" on public.plan_tasks;
+create policy "plan_tasks_owner_all" on public.plan_tasks
+  for all using (
+    exists (select 1 from public.plans p where p.id = plan_id and p.user_id = auth.uid())
+  ) with check (
+    exists (select 1 from public.plans p where p.id = plan_id and p.user_id = auth.uid())
+  );

@@ -1,5 +1,7 @@
 'use client';
 
+import type { AssetRow } from '../types';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
@@ -8,7 +10,6 @@ import { fCurrency, fShortenNumber } from 'src/utils/format-number';
 
 import { Chart, useChart } from 'src/components/chart';
 
-import type { AssetRow } from '../types';
 import { computeAssetPL } from '../utils/compute-totals';
 
 type Props = {

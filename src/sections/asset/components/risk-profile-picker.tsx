@@ -16,16 +16,16 @@ import DialogActions from '@mui/material/DialogActions';
 
 import { toast } from 'src/components/snackbar';
 
-import { ASSET_TYPE_VALUES, ASSET_TYPE_LABELS } from '../constants/asset-types';
 import { setUserRiskProfile } from '../actions/risk-profile-actions';
+import { ASSET_TYPE_VALUES, ASSET_TYPE_LABELS } from '../constants/asset-types';
 import {
   RISK_TARGETS,
   RISK_PROFILE_HEX,
+  type RiskProfile,
   RISK_PROFILE_COLORS,
   RISK_PROFILE_LABELS,
   RISK_PROFILE_VALUES,
   RISK_PROFILE_DESCRIPTIONS,
-  type RiskProfile,
 } from '../constants/risk-profiles';
 
 type Props = {

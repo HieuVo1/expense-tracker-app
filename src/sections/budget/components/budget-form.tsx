@@ -1,5 +1,7 @@
 'use client';
 
+import type { IconifyName } from 'src/components/iconify';
+
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { useState, useTransition } from 'react';
@@ -11,8 +13,6 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-
-import type { IconifyName } from 'src/components/iconify';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';

@@ -1,6 +1,7 @@
 'use client';
 
 import type { AssetType } from '@prisma/client';
+import type { AssetRow, CashDelta } from '../types';
 
 import { useMemo, useState, useTransition } from 'react';
 
@@ -16,15 +17,14 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
-import type { AssetRow, CashDelta } from '../types';
 import { AssetList } from '../components/asset-list';
+import { deleteAsset } from '../actions/asset-actions';
 import { AssetPLBar } from '../components/asset-pl-bar';
 import { computeTotals } from '../utils/compute-totals';
-import { deleteAsset } from '../actions/asset-actions';
+import { ASSET_TYPE_VALUES } from '../constants/asset-types';
 import { CashSyncBanner } from '../components/cash-sync-banner';
 import { CashSyncPicker } from '../components/cash-sync-picker';
 import { AssetEmptyState } from '../components/asset-empty-state';
-import { ASSET_TYPE_VALUES } from '../constants/asset-types';
 import { AssetFormDialog } from '../components/asset-form-dialog';
 import { AssetSummaryCards } from '../components/asset-summary-cards';
 import { RiskProfilePicker } from '../components/risk-profile-picker';
@@ -33,8 +33,8 @@ import { AssetAllocationDonut } from '../components/asset-allocation-donut';
 import { RiskProfileSuggestBanner } from '../components/risk-profile-suggest-banner';
 import {
   RISK_TARGETS,
-  DRIFT_WARN_THRESHOLD,
   type RiskProfile,
+  DRIFT_WARN_THRESHOLD,
 } from '../constants/risk-profiles';
 import {
   calcDrift,

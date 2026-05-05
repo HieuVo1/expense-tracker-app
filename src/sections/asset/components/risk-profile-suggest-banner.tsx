@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import { toast } from 'src/components/snackbar';
 
 import { setUserRiskProfile } from '../actions/risk-profile-actions';
-import { RISK_PROFILE_LABELS, type RiskProfile } from '../constants/risk-profiles';
+import { type RiskProfile, RISK_PROFILE_LABELS } from '../constants/risk-profiles';
 
 type Props = {
   suggested: RiskProfile;

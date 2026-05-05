@@ -4,8 +4,9 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-import { CONFIG } from 'src/global-config';
 import { paths } from 'src/routes/paths';
+
+import { CONFIG } from 'src/global-config';
 
 export const metadata: Metadata = { title: `Không tìm thấy trang - ${CONFIG.appName}` };
 
