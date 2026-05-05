@@ -28,11 +28,19 @@ type NoteListClientProps = {
 export function NoteListClient({ initial }: NoteListClientProps) {
   const [activeType, setActiveType] = useState<ActiveType>('all');
   const [query, setQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Dialog state
   const [viewNote, setViewNote] = useState<NoteRow | null>(null);
   const [editNote, setEditNote] = useState<NoteRow | null | undefined>(undefined); // undefined = closed
   const [createOpen, setCreateOpen] = useState(false);
+
+  // All unique tags across the user's notes — sorted alphabetically.
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    initial.forEach((n) => n.tags.forEach((t) => set.add(t)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [initial]);
 
   const filtered = useMemo(() => {
     let rows = initial;
@@ -41,17 +49,27 @@ export function NoteListClient({ initial }: NoteListClientProps) {
       rows = rows.filter((r) => r.type === activeType);
     }
 
+    if (selectedTags.length > 0) {
+      // OR semantic: note matches if it has ANY of the selected tags
+      // (matches Obsidian's tag pane click behavior).
+      rows = rows.filter((r) => r.tags.some((t) => selectedTags.includes(t)));
+    }
+
     if (query.trim()) {
       const q = query.toLowerCase();
       rows = rows.filter(
-        (r) => r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q)
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.content.toLowerCase().includes(q) ||
+          r.tags.some((t) => t.includes(q))
       );
     }
 
     return rows;
-  }, [initial, activeType, query]);
+  }, [initial, activeType, query, selectedTags]);
 
-  const isFiltered = activeType !== 'all' || query.trim() !== '';
+  const isFiltered =
+    activeType !== 'all' || query.trim() !== '' || selectedTags.length > 0;
 
   const handleDelete = useCallback(async (note: NoteRow) => {
     try {
@@ -85,8 +103,11 @@ export function NoteListClient({ initial }: NoteListClientProps) {
       <NoteFilterBar
         activeType={activeType}
         query={query}
+        allTags={allTags}
+        selectedTags={selectedTags}
         onTypeChange={setActiveType}
         onQueryChange={setQuery}
+        onTagsChange={setSelectedTags}
       />
 
       {filtered.length === 0 ? (
@@ -116,6 +137,7 @@ export function NoteListClient({ initial }: NoteListClientProps) {
       <NoteEditDialog
         open={editNote !== undefined}
         note={editNote ?? null}
+        knownTags={allTags}
         onClose={handleCloseEdit}
       />
 
@@ -123,6 +145,7 @@ export function NoteListClient({ initial }: NoteListClientProps) {
       <NoteEditDialog
         open={createOpen}
         note={null}
+        knownTags={allTags}
         onClose={() => setCreateOpen(false)}
       />
     </Stack>

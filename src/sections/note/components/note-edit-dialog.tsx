@@ -4,10 +4,11 @@ import type { z } from 'zod';
 import type { NoteType } from '@prisma/client';
 import type { NoteRow } from '../types';
 
+import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -37,38 +38,93 @@ type NoteFormValues = z.infer<typeof noteFormSchema>;
 type NoteEditDialogProps = {
   open: boolean;
   note?: NoteRow | null; // null/undefined = create mode
+  knownTags?: string[]; // existing tags for autocomplete suggestions
   onClose: () => void;
 };
 
-export function NoteEditDialog({ open, note, onClose }: NoteEditDialogProps) {
+// Daily-note title — Obsidian-style date prefix.
+function buildDailyTitle(date = dayjs()): string {
+  return `Nhật ký ${date.format('DD/MM/YYYY')}`;
+}
+
+// Type picker isolated in its own component so the heavy TipTap editor in
+// the parent doesn't re-render when the user changes type. Also owns the
+// daily auto-fill side effect for the same reason.
+function NoteTypePicker({ isEdit }: { isEdit: boolean }) {
+  const { control, setValue, getValues } = useFormContext<NoteFormValues>();
+  const activeType = useWatch({ control, name: 'type' }) as NoteType;
+
+  useEffect(() => {
+    if (isEdit) return;
+    if (activeType !== 'daily') return;
+    const { title } = getValues();
+    if (!title?.trim()) {
+      setValue('title', buildDailyTitle(), { shouldDirty: true, shouldValidate: true });
+    }
+  }, [activeType, isEdit, getValues, setValue]);
+
+  return (
+    <Box>
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        Phân loại
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        {NOTE_TYPE_VALUES.map((type) => {
+          const isActive = activeType === type;
+          return (
+            <Button
+              key={type}
+              size="small"
+              variant={isActive ? 'contained' : 'outlined'}
+              onClick={() => setValue('type', type, { shouldValidate: true })}
+              sx={{
+                ...(isActive && {
+                  backgroundColor: NOTE_TYPE_COLORS[type],
+                  borderColor: NOTE_TYPE_COLORS[type],
+                  '&:hover': { backgroundColor: NOTE_TYPE_COLORS[type], opacity: 0.9 },
+                }),
+                ...(!isActive && {
+                  borderColor: NOTE_TYPE_COLORS[type],
+                  color: NOTE_TYPE_COLORS[type],
+                }),
+              }}
+            >
+              {NOTE_TYPE_LABELS[type]}
+            </Button>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
+export function NoteEditDialog({ open, note, knownTags = [], onClose }: NoteEditDialogProps) {
   const isEdit = !!note;
 
   const methods = useForm<NoteFormValues>({
     resolver: zodResolver(noteFormSchema),
     defaultValues: {
-      type: note?.type ?? 'insight',
+      type: note?.type ?? 'daily',
       title: note?.title ?? '',
       content: note?.content ?? '',
+      tags: note?.tags ?? [],
     },
   });
 
   const {
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { isSubmitting },
   } = methods;
-
-  const activeType = watch('type') as NoteType;
 
   // Sync form when note changes or dialog re-opens
   useEffect(() => {
     if (open) {
       reset({
-        type: note?.type ?? 'insight',
+        type: note?.type ?? 'daily',
         title: note?.title ?? '',
         content: note?.content ?? '',
+        tags: note?.tags ?? [],
       });
     }
   }, [open, note, reset]);
@@ -98,38 +154,8 @@ export function NoteEditDialog({ open, note, onClose }: NoteEditDialogProps) {
       <Form methods={methods} onSubmit={onSubmit}>
         <DialogContent sx={{ px: 3, py: 2.5 }}>
           <Stack spacing={3}>
-            {/* Type picker */}
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Phân loại
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {NOTE_TYPE_VALUES.map((type) => {
-                  const isActive = activeType === type;
-                  return (
-                    <Button
-                      key={type}
-                      size="small"
-                      variant={isActive ? 'contained' : 'outlined'}
-                      onClick={() => setValue('type', type, { shouldValidate: true })}
-                      sx={{
-                        ...(isActive && {
-                          backgroundColor: NOTE_TYPE_COLORS[type],
-                          borderColor: NOTE_TYPE_COLORS[type],
-                          '&:hover': { backgroundColor: NOTE_TYPE_COLORS[type], opacity: 0.9 },
-                        }),
-                        ...(!isActive && {
-                          borderColor: NOTE_TYPE_COLORS[type],
-                          color: NOTE_TYPE_COLORS[type],
-                        }),
-                      }}
-                    >
-                      {NOTE_TYPE_LABELS[type]}
-                    </Button>
-                  );
-                })}
-              </Box>
-            </Box>
+            {/* Type picker — isolated so type changes don't re-render the editor */}
+            <NoteTypePicker isEdit={isEdit} />
 
             {/* Title */}
             <Field.Text
@@ -137,6 +163,17 @@ export function NoteEditDialog({ open, note, onClose }: NoteEditDialogProps) {
               label="Tiêu đề"
               placeholder="Nhập tiêu đề ghi chú..."
               inputProps={{ maxLength: 120 }}
+            />
+
+            {/* Tags */}
+            <Field.Autocomplete
+              name="tags"
+              label="Thẻ"
+              placeholder="Gõ rồi Enter để thêm thẻ..."
+              multiple
+              freeSolo
+              options={knownTags}
+              helperText="Thẻ giúp gom nhóm và lọc ghi chú."
             />
 
             {/* Content — markdown editor (lazy-loaded via Field.Editor / RHFEditor) */}

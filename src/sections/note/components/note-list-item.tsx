@@ -116,6 +116,29 @@ export function NoteListItem({ note, onView, onEdit, onDelete }: NoteListItemPro
             {preview || '—'}
           </Typography>
 
+          {/* Tags (if any) */}
+          {note.tags.length > 0 && (
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+              {note.tags.slice(0, 4).map((tag) => (
+                <Chip
+                  key={tag}
+                  size="small"
+                  label={`#${tag}`}
+                  variant="outlined"
+                  sx={{ height: 20, fontSize: 11 }}
+                />
+              ))}
+              {note.tags.length > 4 && (
+                <Chip
+                  size="small"
+                  label={`+${note.tags.length - 4}`}
+                  variant="outlined"
+                  sx={{ height: 20, fontSize: 11 }}
+                />
+              )}
+            </Stack>
+          )}
+
           {/* Updated at */}
           <Typography variant="caption" color="text.disabled">
             {fDate(note.updatedAt)}

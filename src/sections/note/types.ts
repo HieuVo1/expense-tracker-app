@@ -7,6 +7,7 @@ export type NoteRow = {
   type: NoteType;
   title: string;
   content: string;
+  tags: string[];
   createdAt: string; // ISO string — Date serialized for client
   updatedAt: string; // ISO string — Date serialized for client
 };

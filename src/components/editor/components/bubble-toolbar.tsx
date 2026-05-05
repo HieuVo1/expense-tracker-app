@@ -61,21 +61,21 @@ export function BubbleToolbar({ editor, sx, ...other }: BubbleToolbarProps) {
         />
         <ToolbarItem
           aria-label="Uppercase"
-          active={toolbarState.isTextTransform('uppercase')}
+          active={toolbarState.textTransform === 'uppercase'}
           className={editorClasses.toolbar.clear}
           onClick={() => chainCommands().toggleTextTransform('uppercase').run()}
           icon={toolbarIcons.uppercase}
         />
         <ToolbarItem
           aria-label="Lowercase"
-          active={toolbarState.isTextTransform('lowercase')}
+          active={toolbarState.textTransform === 'lowercase'}
           className={editorClasses.toolbar.clear}
           onClick={() => chainCommands().toggleTextTransform('lowercase').run()}
           icon={toolbarIcons.lowercase}
         />
         <ToolbarItem
           aria-label="Capitalize"
-          active={toolbarState.isTextTransform('capitalize')}
+          active={toolbarState.textTransform === 'capitalize'}
           className={editorClasses.toolbar.clear}
           onClick={() => chainCommands().toggleTextTransform('capitalize').run()}
           icon={toolbarIcons.capitalize}

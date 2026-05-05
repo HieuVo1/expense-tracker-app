@@ -42,7 +42,7 @@ export function Toolbar({
       sx={sx}
       {...other}
     >
-      <HeadingBlock editor={editor} isActive={toolbarState.isTextLevel} />
+      <HeadingBlock editor={editor} activeLevel={toolbarState.headingLevel} />
 
       {/* Text styles */}
       <ToolbarBlock>
@@ -99,28 +99,28 @@ export function Toolbar({
         <ToolbarBlock>
           <ToolbarItem
             aria-label="Align left (⌘⇧L)"
-            active={toolbarState.isAlign('left')}
+            active={toolbarState.textAlign === 'left'}
             className={editorClasses.toolbar.alignLeft}
             onClick={() => chainCommands().toggleTextAlign('left').run()}
             icon={toolbarIcons.alignLeft}
           />
           <ToolbarItem
             aria-label="Align center (⌘⇧E)"
-            active={toolbarState.isAlign('center')}
+            active={toolbarState.textAlign === 'center'}
             className={editorClasses.toolbar.alignCenter}
             onClick={() => chainCommands().toggleTextAlign('center').run()}
             icon={toolbarIcons.alignCenter}
           />
           <ToolbarItem
             aria-label="Align right (⌘⇧R)"
-            active={toolbarState.isAlign('right')}
+            active={toolbarState.textAlign === 'right'}
             className={editorClasses.toolbar.alignRight}
             onClick={() => chainCommands().toggleTextAlign('right').run()}
             icon={toolbarIcons.alignRight}
           />
           <ToolbarItem
             aria-label="Align justify (⌘⇧J)"
-            active={toolbarState.isAlign('justify')}
+            active={toolbarState.textAlign === 'justify'}
             className={editorClasses.toolbar.alignJustify}
             onClick={() => chainCommands().toggleTextAlign('justify').run()}
             icon={toolbarIcons.alignJustify}

@@ -138,6 +138,7 @@ enum NoteType {
   strength
   weakness
   idea
+  daily
 }
 
 enum PlanScope {
@@ -166,6 +167,7 @@ model Note {
   type      NoteType
   title     String
   content   String   @db.Text // Raw Markdown text (rendered by TipTap editor — see plan.md decision #4)
+  tags      String[] @default([])
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

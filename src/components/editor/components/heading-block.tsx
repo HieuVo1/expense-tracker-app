@@ -28,15 +28,15 @@ export type TextHeadingLevel = (typeof HEADING_OPTIONS)[number]['level'];
 
 type HeadingBlock = {
   editor: Editor;
-  isActive: (value: TextHeadingLevel) => boolean;
+  activeLevel: TextHeadingLevel;
 };
 
-export function HeadingBlock({ editor, isActive }: HeadingBlock) {
+export function HeadingBlock({ editor, activeLevel }: HeadingBlock) {
   const { anchorEl, open, onOpen, onClose } = usePopover();
 
   const selectedOption = useMemo(
-    () => HEADING_OPTIONS.find((option) => isActive(option.level)),
-    [isActive]
+    () => HEADING_OPTIONS.find((option) => option.level === activeLevel),
+    [activeLevel]
   );
 
   const handleSelect = useCallback(
@@ -114,7 +114,7 @@ export function HeadingBlock({ editor, isActive }: HeadingBlock) {
             component="li"
             aria-label={option.label}
             label={option.label}
-            active={isActive(option.level)}
+            active={option.level === activeLevel}
             onClick={() => handleSelect(option.level)}
             sx={{
               ...(option.level && {

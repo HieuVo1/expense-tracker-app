@@ -85,6 +85,19 @@ export function NoteDetailDialog({ note, open, onClose, onEdit, onDelete }: Note
             </Typography>
           </Stack>
           <Typography variant="h6">{note.title}</Typography>
+          {note.tags.length > 0 && (
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+              {note.tags.map((tag) => (
+                <Chip
+                  key={tag}
+                  size="small"
+                  label={`#${tag}`}
+                  variant="outlined"
+                  sx={{ height: 22 }}
+                />
+              ))}
+            </Stack>
+          )}
         </Stack>
       </DialogTitle>
 

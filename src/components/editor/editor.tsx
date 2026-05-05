@@ -54,8 +54,13 @@ export function Editor({
     content: initialContent,
     shouldRerenderOnTransaction: !!rerenderKey,
     onUpdate: (ctx) => {
-      // tiptap-markdown stores getMarkdown() in editor.storage.markdown
+      // Skip emit during IME composition (Vietnamese Telex/VNI, CJK, etc.) —
+      // a React state update mid-compose can interrupt the browser's IME
+      // and cause perceived typing lag. ProseMirror dispatches a final
+      // transaction on compositionend, so the committed value still flows up.
+      if (ctx.editor.view.composing) return;
 
+      // tiptap-markdown stores getMarkdown() in editor.storage.markdown
       const md = (ctx.editor.storage as any).markdown.getMarkdown() as string;
       lastEmittedRef.current = md;
       onChangeRef.current?.(md);
