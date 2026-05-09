@@ -3,7 +3,7 @@
 import type { NoteType } from '@prisma/client';
 import type { NoteRow } from '../types';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -32,8 +32,20 @@ export function NoteListClient({ initial }: NoteListClientProps) {
 
   // Dialog state
   const [viewNote, setViewNote] = useState<NoteRow | null>(null);
-  const [editNote, setEditNote] = useState<NoteRow | null | undefined>(undefined); // undefined = closed
-  const [createOpen, setCreateOpen] = useState(false);
+  // Single edit-dialog state covers both create + edit modes:
+  //   undefined = closed | null = create | NoteRow = edit
+  // Two NoteEditDialog instances mounted simultaneously caused the save button
+  // to become unresponsive when modal stacks overlapped — keep just one.
+  const [editorTarget, setEditorTarget] =
+    useState<NoteRow | null | undefined>(undefined);
+  // Note queued from detail dialog "Sửa" click — opens edit dialog only after
+  // detail dialog finishes its exit transition. Stacking two MUI Dialogs while
+  // both are mid-transition can leave the resulting dialog unresponsive
+  // (focus trap and backdrop pointer-events get out of sync).
+  const [pendingEdit, setPendingEdit] = useState<NoteRow | null>(null);
+
+  const viewNoteRef = useRef(viewNote);
+  viewNoteRef.current = viewNote;
 
   // All unique tags across the user's notes — sorted alphabetically.
   const allTags = useMemo(() => {
@@ -80,13 +92,31 @@ export function NoteListClient({ initial }: NoteListClientProps) {
   }, []);
 
   const handleOpenEdit = useCallback((note: NoteRow) => {
-    setViewNote(null);
-    setEditNote(note);
+    // If detail dialog is currently open, queue the edit to fire after its
+    // exit transition completes (see pendingEdit + onExited below).
+    // Otherwise open edit dialog immediately (called directly from list).
+    if (viewNoteRef.current) {
+      setPendingEdit(note);
+      setViewNote(null);
+    } else {
+      setEditorTarget(note);
+    }
   }, []);
 
-  const handleCloseEdit = useCallback(() => {
-    setEditNote(undefined);
+  const handleOpenCreate = useCallback(() => {
+    setEditorTarget(null); // null = create mode
   }, []);
+
+  const handleCloseEditor = useCallback(() => {
+    setEditorTarget(undefined);
+  }, []);
+
+  const handleDetailExited = useCallback(() => {
+    if (pendingEdit) {
+      setEditorTarget(pendingEdit);
+      setPendingEdit(null);
+    }
+  }, [pendingEdit]);
 
   return (
     <Stack spacing={3}>
@@ -94,7 +124,7 @@ export function NoteListClient({ initial }: NoteListClientProps) {
         <Button
           variant="contained"
           startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={() => setCreateOpen(true)}
+          onClick={handleOpenCreate}
         >
           Tạo ghi chú
         </Button>
@@ -113,7 +143,7 @@ export function NoteListClient({ initial }: NoteListClientProps) {
       {filtered.length === 0 ? (
         <NoteEmptyState
           filtered={isFiltered && initial.length > 0}
-          onCreate={initial.length === 0 ? () => setCreateOpen(true) : undefined}
+          onCreate={initial.length === 0 ? handleOpenCreate : undefined}
         />
       ) : (
         <NoteList
@@ -131,22 +161,15 @@ export function NoteListClient({ initial }: NoteListClientProps) {
         onClose={() => setViewNote(null)}
         onEdit={handleOpenEdit}
         onDelete={handleDelete}
+        onExited={handleDetailExited}
       />
 
-      {/* Edit dialog */}
+      {/* Editor dialog — single instance handles both create + edit modes */}
       <NoteEditDialog
-        open={editNote !== undefined}
-        note={editNote ?? null}
+        open={editorTarget !== undefined}
+        note={editorTarget ?? null}
         knownTags={allTags}
-        onClose={handleCloseEdit}
-      />
-
-      {/* Create dialog */}
-      <NoteEditDialog
-        open={createOpen}
-        note={null}
-        knownTags={allTags}
-        onClose={() => setCreateOpen(false)}
+        onClose={handleCloseEditor}
       />
     </Stack>
   );

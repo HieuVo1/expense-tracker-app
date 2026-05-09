@@ -6,7 +6,7 @@ import type { NoteRow } from '../types';
 
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, useFormContext } from 'react-hook-form';
 
@@ -47,19 +47,37 @@ function buildDailyTitle(date = dayjs()): string {
   return `Nhật ký ${date.format('DD/MM/YYYY')}`;
 }
 
+// Matches any auto-generated daily title — used to detect & clear it when
+// the user switches away from the daily type.
+const DAILY_TITLE_PATTERN = /^Nhật ký \d{2}\/\d{2}\/\d{4}$/;
+
 // Type picker isolated in its own component so the heavy TipTap editor in
 // the parent doesn't re-render when the user changes type. Also owns the
 // daily auto-fill side effect for the same reason.
 function NoteTypePicker({ isEdit }: { isEdit: boolean }) {
   const { control, setValue, getValues } = useFormContext<NoteFormValues>();
   const activeType = useWatch({ control, name: 'type' }) as NoteType;
+  const autoTitleRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isEdit) return;
-    if (activeType !== 'daily') return;
     const { title } = getValues();
-    if (!title?.trim()) {
-      setValue('title', buildDailyTitle(), { shouldDirty: true, shouldValidate: true });
+    if (activeType === 'daily') {
+      // Auto-fill default title only when title is empty — preserve any
+      // user-typed title.
+      if (!title?.trim()) {
+        const next = buildDailyTitle();
+        autoTitleRef.current = next;
+        setValue('title', next, { shouldDirty: true, shouldValidate: true });
+      }
+      return;
+    }
+    // Switched away from daily — clear default title so user starts fresh.
+    // Only clears the EXACT auto-generated title (this session's or any past
+    // "Nhật ký DD/MM/YYYY"); user-typed titles are preserved.
+    if (title === autoTitleRef.current || DAILY_TITLE_PATTERN.test(title ?? '')) {
+      autoTitleRef.current = null;
+      setValue('title', '', { shouldDirty: true, shouldValidate: true });
     }
   }, [activeType, isEdit, getValues, setValue]);
 

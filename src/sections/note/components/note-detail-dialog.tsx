@@ -2,6 +2,7 @@
 
 import type { NoteRow } from '../types';
 
+import { useRef } from 'react';
 import dynamic from 'next/dynamic';
 
 import Chip from '@mui/material/Chip';
@@ -44,29 +45,54 @@ type NoteDetailDialogProps = {
   onClose: () => void;
   onEdit: (note: NoteRow) => void;
   onDelete: (note: NoteRow) => void;
+  onExited?: () => void;
 };
 
-export function NoteDetailDialog({ note, open, onClose, onEdit, onDelete }: NoteDetailDialogProps) {
-  if (!note) return null;
+export function NoteDetailDialog({
+  note,
+  open,
+  onClose,
+  onEdit,
+  onDelete,
+  onExited,
+}: NoteDetailDialogProps) {
+  // Keep last note in a ref so the Dialog can render its content during the
+  // exit transition (after parent sets note=null). Without this the Dialog
+  // unmounts instantly and onExited never fires — breaking the detail→edit
+  // hand-off below.
+  const lastNoteRef = useRef<NoteRow | null>(note);
+  if (note) lastNoteRef.current = note;
+  const view = note ?? lastNoteRef.current;
+  if (!view) return null;
 
-  const typeColor = NOTE_TYPE_COLORS[note.type];
-  const typeLabel = NOTE_TYPE_LABELS[note.type];
-  const typeIcon = NOTE_TYPE_ICONS[note.type];
+  const typeColor = NOTE_TYPE_COLORS[view.type];
+  const typeLabel = NOTE_TYPE_LABELS[view.type];
+  const typeIcon = NOTE_TYPE_ICONS[view.type];
 
   const handleDelete = () => {
-    if (window.confirm(`Xoá ghi chú "${note.title}"?`)) {
-      onDelete(note);
+    if (window.confirm(`Xoá ghi chú "${view.title}"?`)) {
+      onDelete(view);
       onClose();
     }
   };
 
   const handleEdit = () => {
-    onEdit(note);
-    onClose();
+    // Parent's onEdit already closes this dialog (clears viewNote) and
+    // queues edit-open for after our exit transition. No onClose() here —
+    // calling it would cause two state updates that re-trigger render and
+    // can break MUI's modal stack timing.
+    onEdit(view);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" scroll="paper">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      scroll="paper"
+      slotProps={{ transition: { onExited } }}
+    >
       <DialogTitle sx={{ pb: 1 }}>
         <Stack spacing={1}>
           <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
@@ -81,13 +107,13 @@ export function NoteDetailDialog({ note, open, onClose, onEdit, onDelete }: Note
               }}
             />
             <Typography variant="caption" color="text.disabled">
-              Cập nhật: {fDate(note.updatedAt)}
+              Cập nhật: {fDate(view.updatedAt)}
             </Typography>
           </Stack>
-          <Typography variant="h6">{note.title}</Typography>
-          {note.tags.length > 0 && (
+          <Typography variant="h6">{view.title}</Typography>
+          {view.tags.length > 0 && (
             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-              {note.tags.map((tag) => (
+              {view.tags.map((tag) => (
                 <Chip
                   key={tag}
                   size="small"
@@ -104,7 +130,7 @@ export function NoteDetailDialog({ note, open, onClose, onEdit, onDelete }: Note
       <Divider />
 
       <DialogContent sx={{ pt: 2 }}>
-        <Editor value={note.content} editable={false} />
+        <Editor value={view.content} editable={false} />
       </DialogContent>
 
       <Divider />
