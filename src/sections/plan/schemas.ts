@@ -1,9 +1,16 @@
 import { z } from 'zod';
+import dayjs from 'dayjs';
 
-// YYYY-MM-DD string (no time component)
-const dateString = z
+// Accepts any dayjs-parseable date (ISO from picker, YYYY-MM-DD seed values).
+// Server action narrows to YYYY-MM-DD before persisting.
+const dateLike = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày không hợp lệ (YYYY-MM-DD)');
+  .min(1, 'Vui lòng chọn ngày')
+  .refine((v) => dayjs(v).isValid(), 'Ngày không hợp lệ');
+
+function ymd(v: string): string {
+  return dayjs(v).format('YYYY-MM-DD');
+}
 
 // ----------------------------------------------------------------------
 
@@ -12,10 +19,10 @@ export const planFormSchema = z
     scope: z.enum(['weekly', 'monthly']),
     title: z.string().trim().min(1, 'Vui lòng nhập tiêu đề').max(120, 'Tiêu đề tối đa 120 ký tự'),
     description: z.string().max(500, 'Mô tả tối đa 500 ký tự').optional(),
-    startDate: dateString,
-    endDate: dateString,
+    startDate: dateLike,
+    endDate: dateLike,
   })
-  .refine((d) => d.startDate <= d.endDate, {
+  .refine((d) => ymd(d.startDate) <= ymd(d.endDate), {
     path: ['endDate'],
     message: 'Ngày kết thúc phải sau ngày bắt đầu',
   });

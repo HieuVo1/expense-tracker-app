@@ -1,13 +1,16 @@
+'use client';
+
 import type { AssetTotals } from '../types';
 import type { RiskProfile } from '../constants/risk-profiles';
 
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
 
-import { fCurrency } from 'src/utils/format-number';
+import { Iconify } from 'src/components/iconify';
+import { SummaryCard } from 'src/components/summary-card';
 
 import { RiskProfileCard } from './risk-profile-card';
+
+// ----------------------------------------------------------------------
 
 type Props = {
   totals: AssetTotals;
@@ -15,64 +18,65 @@ type Props = {
   onChangeRiskProfile: () => void;
 };
 
+/**
+ * Asset page top summary strip — 3 gradient SummaryCards + 1 risk-profile card.
+ * Sparkline data: mock 6 flat points (no asset-value history in DB yet).
+ * TODO: replace mock series with real monthly asset-value snapshots once history is stored.
+ */
 export function AssetSummaryCards({ totals, riskProfile, onChangeRiskProfile }: Props) {
-  const { totalCurrentValue, totalCapital, totalPL, plPercent } = totals;
-  const plPositive = totalPL >= 0;
-  const plSign = plPositive ? '+' : '−';
-  const plColor = totalPL === 0 ? 'text.primary' : plPositive ? 'success.dark' : 'error.main';
+  const { totalCurrentValue, totalCapital, totalPL } = totals;
+  const plColor = totalPL === 0 ? 'primary' : totalPL > 0 ? 'success' : 'error';
+
+  // No sparkline yet — asset value history not stored. Pass empty series to
+  // hide chart cleanly (TODO: real monthly snapshots).
+  const empty = { series: [], categories: [] };
 
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gap: 3,
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-      }}
-    >
-      <MetricCard label="Tổng tài sản" value={fCurrency(totalCurrentValue)} />
+    <Grid container spacing={3}>
+      {/* Card 1 — Tổng tài sản (secondary purple — distinct from Lời/Lỗ green) */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <SummaryCard
+          title="Tổng tài sản"
+          total={totalCurrentValue}
+          percent={0}
+          color="secondary"
+          icon={<Iconify icon="solar:money-bag-bold" width={48} />}
+          chart={empty}
+          format="currency"
+        />
+      </Grid>
 
-      <MetricCard
-        label="Tổng vốn"
-        value={fCurrency(totalCapital)}
-        valueColor="text.secondary"
-      />
+      {/* Card 2 — Tổng vốn */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <SummaryCard
+          title="Tổng vốn đầu tư"
+          total={totalCapital}
+          percent={0}
+          color="info"
+          icon={<Iconify icon="solar:banknote-bold" width={48} />}
+          chart={empty}
+          format="currency"
+        />
+      </Grid>
 
-      <MetricCard
-        label="Lời / Lỗ"
-        value={`${plSign}${fCurrency(Math.abs(totalPL))}`}
-        valueColor={plColor}
-        footer={
-          plPercent !== null ? (
-            <Typography variant="caption" className="tabular" sx={{ color: plColor }}>
-              {plSign}
-              {Math.abs(plPercent).toFixed(2)}%
-            </Typography>
-          ) : null
-        }
-      />
+      {/* Card 3 — Lời / Lỗ */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <SummaryCard
+          title="Lời / Lỗ"
+          total={totalPL}
+          percent={0}
+          color={plColor}
+          icon={<Iconify icon="solar:graph-up-bold" width={48} />}
+          chart={empty}
+          format="currency"
+        />
+      </Grid>
 
-      <RiskProfileCard profile={riskProfile} onChangeClick={onChangeRiskProfile} />
-    </Box>
+      {/* Card 4 — Risk profile (non-gradient, keeps existing style) */}
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <RiskProfileCard profile={riskProfile} onChangeClick={onChangeRiskProfile} />
+      </Grid>
+    </Grid>
   );
 }
 
-type MetricCardProps = {
-  label: string;
-  value: string;
-  valueColor?: string;
-  footer?: React.ReactNode;
-};
-
-function MetricCard({ label, value, valueColor = 'text.primary', footer }: MetricCardProps) {
-  return (
-    <Card sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-      <Typography variant="caption" color="text.secondary">
-        {label}
-      </Typography>
-      <Typography variant="h4" className="tabular" sx={{ color: valueColor }}>
-        {value}
-      </Typography>
-      {footer && <Box sx={{ mt: 0.5 }}>{footer}</Box>}
-    </Card>
-  );
-}

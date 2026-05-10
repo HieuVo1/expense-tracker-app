@@ -16,7 +16,6 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -145,25 +144,15 @@ export function PlanCreateDialog({ open, onClose }: PlanCreateDialogProps) {
 
             {/* Date range */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                fullWidth
+              <Field.DatePicker
+                name="startDate"
                 label="Ngày bắt đầu"
-                type="date"
-                value={watch('startDate')}
-                onChange={(e) =>
-                  setValue('startDate', e.target.value, { shouldDirty: true, shouldValidate: true })
-                }
-                slotProps={{ inputLabel: { shrink: true } }}
+                format="DD/MM/YYYY"
               />
-              <TextField
-                fullWidth
+              <Field.DatePicker
+                name="endDate"
                 label="Ngày kết thúc"
-                type="date"
-                value={watch('endDate')}
-                onChange={(e) =>
-                  setValue('endDate', e.target.value, { shouldDirty: true, shouldValidate: true })
-                }
-                slotProps={{ inputLabel: { shrink: true } }}
+                format="DD/MM/YYYY"
               />
             </Stack>
           </Stack>

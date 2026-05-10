@@ -99,14 +99,15 @@ export async function SettingsView() {
         </Card>
 
         <Card>
-          {/* Categories + Budgets used to live in the sidebar nav. With the
-              mobile bottom-nav showing only 4 main tabs, they're surfaced here
-              instead so the user can always reach them in 2 taps. */}
+          {/* Pages absent from the mobile bottom-nav (Tài sản, Ngân sách,
+              Hoá đơn định kỳ, Danh mục) are surfaced here so they're always
+              reachable in 2 taps on phones. Desktop users still get them in
+              the sidebar — having both is harmless. */}
           <SettingsRow
-            icon="solar:add-folder-bold"
-            title="Danh mục"
-            description="Sửa tên, icon, màu cho từng nhóm"
-            actionHref={paths.dashboard.categories}
+            icon="solar:dollar-minimalistic-bold"
+            title="Tài sản"
+            description="Theo dõi danh mục đầu tư và biến động"
+            actionHref={paths.dashboard.assets}
             actionLabel="Mở"
           />
           <SettingsRow
@@ -114,6 +115,20 @@ export async function SettingsView() {
             title="Ngân sách"
             description="Đặt hạn mức chi tiêu theo tháng"
             actionHref={paths.dashboard.budgets}
+            actionLabel="Mở"
+          />
+          <SettingsRow
+            icon="solar:card-bold"
+            title="Hoá đơn định kỳ"
+            description="Quản lý các khoản thanh toán lặp lại"
+            actionHref={paths.dashboard.subscriptions}
+            actionLabel="Mở"
+          />
+          <SettingsRow
+            icon="solar:add-folder-bold"
+            title="Danh mục"
+            description="Sửa tên, icon, màu cho từng nhóm"
+            actionHref={paths.dashboard.categories}
             actionLabel="Mở"
           />
           <SettingsRow

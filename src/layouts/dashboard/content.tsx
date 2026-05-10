@@ -24,7 +24,9 @@ export function DashboardContent({
   children,
   className,
   disablePadding,
-  maxWidth = 'lg',
+  // Default to xl (1536px) so widescreens use more horizontal real estate.
+  // Pages can still pass maxWidth="lg" or "md" if dense layouts need it.
+  maxWidth = 'xl',
   layoutQuery = 'lg',
   ...other
 }: DashboardContentProps) {

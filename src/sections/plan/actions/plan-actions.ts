@@ -4,6 +4,7 @@ import type { PlanStatus } from '@prisma/client';
 import type { PlanFormValues } from '../schemas';
 import type { PlanRow, PlanDetail } from '../types';
 
+import dayjs from 'dayjs';
 import { revalidatePath } from 'next/cache';
 
 import { paths } from 'src/routes/paths';
@@ -18,6 +19,12 @@ import { nextRange, isPlanCurrent } from '../utils/plan-dates';
 
 function toDateString(d: Date): string {
   return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+// Form schema accepts any dayjs-parseable date; narrow to date-only UTC
+// midnight here so Prisma @db.Date persists what the user picked.
+function toDateOnlyUtc(input: string): Date {
+  return new Date(`${dayjs(input).format('YYYY-MM-DD')}T00:00:00.000Z`);
 }
 
 // ----------------------------------------------------------------------
@@ -88,9 +95,9 @@ export async function createPlan(
       scope: data.scope,
       title: data.title,
       description: data.description?.trim() || null,
-      // Prisma @db.Date stores date-only; new Date('YYYY-MM-DD') parses as UTC midnight
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      // Prisma @db.Date stores date-only; toDateOnlyUtc handles ISO/YYYY-MM-DD inputs
+      startDate: toDateOnlyUtc(data.startDate),
+      endDate: toDateOnlyUtc(data.endDate),
       status: 'active',
     },
     select: { id: true },
@@ -162,8 +169,8 @@ export async function updatePlan(id: string, input: PlanFormValues): Promise<voi
       scope: data.scope,
       title: data.title,
       description: data.description?.trim() || null,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      startDate: toDateOnlyUtc(data.startDate),
+      endDate: toDateOnlyUtc(data.endDate),
     },
   });
 

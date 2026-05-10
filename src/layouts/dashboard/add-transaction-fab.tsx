@@ -11,11 +11,12 @@ import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
 
-// Hide on the Add page itself (FAB pointing at the page you're on is noise)
-// and on auth pages (no DashboardLayout there but we guard anyway).
+// Show only on the Transactions page (and its sub-routes), hide everywhere
+// else — including the Add page itself, where pointing at the page you're on
+// is noise.
 function shouldShow(pathname: string) {
   if (pathname.startsWith(paths.dashboard.addTransaction)) return false;
-  return pathname.startsWith(paths.dashboard.root);
+  return pathname.startsWith(paths.dashboard.transactions);
 }
 
 type Props = {

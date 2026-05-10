@@ -1,5 +1,7 @@
 'use client';
 
+import 'dayjs/locale/vi';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -10,6 +12,10 @@ import { LocalizationProvider as MuiLocalizationProvider } from '@mui/x-date-pic
 // registered. Extending here (idempotent) keeps the rule in one place.
 dayjs.extend(utc);
 
+// Vietnamese as the global dayjs locale so all formatters (fDate etc.) and
+// MUI X pickers render Vietnamese weekday/month names by default.
+dayjs.locale('vi');
+
 type Props = {
   children: React.ReactNode;
 };
@@ -19,5 +25,9 @@ type Props = {
 // time the user types matches what's persisted (see CLAUDE.md "naive UTC"
 // convention).
 export function LocalizationProvider({ children }: Props) {
-  return <MuiLocalizationProvider dateAdapter={AdapterDayjs}>{children}</MuiLocalizationProvider>;
+  return (
+    <MuiLocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="vi">
+      {children}
+    </MuiLocalizationProvider>
+  );
 }

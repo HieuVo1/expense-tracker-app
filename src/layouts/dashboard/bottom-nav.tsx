@@ -13,17 +13,16 @@ import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
 
-// Tabs shown in the mobile bottom bar. Order is the user's mental hierarchy:
-// Home → productivity (Plans, Notes) → financial (Assets, History) → Settings.
-// Six tabs fit at icon+label on most phones; if reach issues surface, the
-// secondary pairs (Plans/Notes, Assets/History) can be folded into a "More"
-// overflow popover.
+// Tabs shown in the mobile bottom bar. Order matches the user's mental
+// hierarchy: Home → daily input (Transactions, Notes, About me) → Plans →
+// Settings. Tài sản dropped from the bar — accessible via the Trang chủ
+// summary widgets, so a tap target there is preserved.
 const TABS = [
   { value: paths.dashboard.root, label: 'Trang chủ', icon: 'solar:home-angle-bold-duotone' },
+  { value: paths.dashboard.transactions, label: 'Giao dịch', icon: 'solar:wallet-money-bold' },
+  { value: paths.dashboard.aboutMe, label: 'Về tôi', icon: 'solar:user-rounded-bold' },
+  { value: paths.dashboard.notes, label: 'Nhật ký', icon: 'solar:notebook-bold-duotone' },
   { value: paths.dashboard.plans, label: 'Kế hoạch', icon: 'solar:calendar-date-bold' },
-  { value: paths.dashboard.notes, label: 'Ghi chú', icon: 'solar:notebook-bold-duotone' },
-  { value: paths.dashboard.assets, label: 'Tài sản', icon: 'solar:dollar-minimalistic-bold' },
-  { value: paths.dashboard.transactions, label: 'Lịch sử', icon: 'solar:clock-circle-bold' },
   { value: paths.dashboard.settings, label: 'Cài đặt', icon: 'solar:settings-bold-duotone' },
 ] as const;
 

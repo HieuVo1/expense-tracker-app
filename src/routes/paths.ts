@@ -26,6 +26,9 @@ export const paths = {
     notes: `${ROOTS.DASHBOARD}/notes`,
     plans: `${ROOTS.DASHBOARD}/plans`,
     planDetail: (id: string) => `${ROOTS.DASHBOARD}/plans/${id}`,
+    subscriptions: `${ROOTS.DASHBOARD}/subscriptions`,
     settings: `${ROOTS.DASHBOARD}/settings`,
+    aboutMe: `${ROOTS.DASHBOARD}/about-me`,
+    aboutMeType: (type: string) => `${ROOTS.DASHBOARD}/about-me/${type.toLowerCase()}`,
   },
 };

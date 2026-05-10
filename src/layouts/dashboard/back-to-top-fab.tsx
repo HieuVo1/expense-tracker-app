@@ -32,12 +32,14 @@ export function BackToTopFab() {
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         sx={{
           position: 'fixed',
-          // 64px nav + safe-area + 16px FAB gap + ~64px FAB diameter + 16px buffer.
+          // Mobile: stack above bottom nav + page FAB.
+          // Desktop: sit above any page-specific FAB at bottom: 24 — leaves
+          // room for FABs like AboutMeQuickCaptureFab without overlap.
           bottom: {
             xs: 'calc(64px + env(safe-area-inset-bottom) + 96px)',
-            lg: 24,
+            lg: 96,
           },
-          right: 16,
+          right: 24,
           zIndex: (theme) => theme.zIndex.appBar + 1,
           bgcolor: 'background.paper',
           color: 'text.primary',

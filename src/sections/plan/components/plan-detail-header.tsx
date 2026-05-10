@@ -30,8 +30,8 @@ import { Iconify } from 'src/components/iconify';
 
 import { PlanEditDialog } from './plan-edit-dialog';
 import { PlanProgressBar } from './plan-progress-bar';
-import { deletePlan, setPlanStatus, rolloverPlan } from '../actions/plan-actions';
 import { PLAN_SCOPE_LABELS, PLAN_STATUS_LABELS } from '../constants/plan-meta';
+import { deletePlan, rolloverPlan, setPlanStatus } from '../actions/plan-actions';
 
 // ----------------------------------------------------------------------
 
