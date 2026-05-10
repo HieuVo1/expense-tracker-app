@@ -16,7 +16,7 @@ export function NoteEmptyState({ filtered = false, onCreate }: NoteEmptyStatePro
     return (
       <Card sx={{ p: 4 }}>
         <EmptyContent
-          title="Không tìm thấy ghi chú phù hợp"
+          title="Không tìm thấy nhật ký phù hợp"
           description="Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm."
         />
       </Card>
@@ -26,8 +26,8 @@ export function NoteEmptyState({ filtered = false, onCreate }: NoteEmptyStatePro
   return (
     <Card sx={{ p: 4 }}>
       <EmptyContent
-        title="Chưa có ghi chú nào"
-        description="Bấm + để tạo ghi chú đầu tiên của bạn."
+        title="Chưa có nhật ký nào"
+        description="Bấm + để tạo nhật ký đầu tiên của bạn."
         action={
           onCreate && (
             <Button
@@ -36,7 +36,7 @@ export function NoteEmptyState({ filtered = false, onCreate }: NoteEmptyStatePro
               onClick={onCreate}
               sx={{ mt: 2 }}
             >
-              Tạo ghi chú
+              Tạo nhật ký
             </Button>
           )
         }

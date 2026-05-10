@@ -3,29 +3,21 @@ import type { IconifyName } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export const NOTE_TYPE_LABELS: Record<NoteType, string> = {
-  daily: 'Nhật ký hàng ngày',
-  insight: 'Hiểu biết bản thân',
-  strength: 'Điểm mạnh',
-  weakness: 'Điểm yếu',
-  idea: 'Ý tưởng',
+// Notes module now only uses the 'daily' type.
+// Other Note types (GOAL, THOUGHT, LESSON, SIGNAL, PRINCIPLE, TRAIT, ACTION)
+// belong exclusively to the About-me module.
+type DailyNoteType = Extract<NoteType, 'daily'>;
+
+export const NOTE_TYPE_LABELS: Record<DailyNoteType, string> = {
+  daily: 'Nhật ký',
 };
 
-export const NOTE_TYPE_COLORS: Record<NoteType, string> = {
+export const NOTE_TYPE_COLORS: Record<DailyNoteType, string> = {
   daily: '#5d737e',
-  insight: '#3d5a80',
-  strength: '#4a7c59',
-  weakness: '#a3593e',
-  idea: '#8b5a8c',
 };
 
-export const NOTE_TYPE_ICONS: Record<NoteType, IconifyName> = {
+export const NOTE_TYPE_ICONS: Record<DailyNoteType, IconifyName> = {
   daily: 'solar:calendar-date-bold',
-  insight: 'solar:lightbulb-bolt-bold',
-  strength: 'solar:dumbbell-large-minimalistic-bold',
-  weakness: 'solar:danger-bold',
-  idea: 'solar:notes-bold-duotone',
 };
 
-// Daily-first ordering — matches Obsidian-like daily-notes prominence.
-export const NOTE_TYPE_VALUES: NoteType[] = ['daily', 'insight', 'strength', 'weakness', 'idea'];
+export const NOTE_TYPE_VALUES: [DailyNoteType] = ['daily'];

@@ -65,9 +65,10 @@ export function NoteDetailDialog({
   const view = note ?? lastNoteRef.current;
   if (!view) return null;
 
-  const typeColor = NOTE_TYPE_COLORS[view.type];
-  const typeLabel = NOTE_TYPE_LABELS[view.type];
-  const typeIcon = NOTE_TYPE_ICONS[view.type];
+  // Notes module only shows 'daily' type entries.
+  const typeColor = NOTE_TYPE_COLORS['daily'];
+  const typeLabel = NOTE_TYPE_LABELS['daily'];
+  const typeIcon = NOTE_TYPE_ICONS['daily'];
 
   const handleDelete = () => {
     if (window.confirm(`Xoá ghi chú "${view.title}"?`)) {

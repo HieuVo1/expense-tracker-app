@@ -1,6 +1,5 @@
 'use client';
 
-import type { NoteType } from '@prisma/client';
 import type { NoteRow } from '../types';
 
 import { useRef, useMemo, useState, useCallback } from 'react';
@@ -19,14 +18,11 @@ import { NoteDetailDialog } from '../components/note-detail-dialog';
 
 // ----------------------------------------------------------------------
 
-type ActiveType = NoteType | 'all';
-
 type NoteListClientProps = {
   initial: NoteRow[];
 };
 
 export function NoteListClient({ initial }: NoteListClientProps) {
-  const [activeType, setActiveType] = useState<ActiveType>('all');
   const [query, setQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -36,12 +32,10 @@ export function NoteListClient({ initial }: NoteListClientProps) {
   //   undefined = closed | null = create | NoteRow = edit
   // Two NoteEditDialog instances mounted simultaneously caused the save button
   // to become unresponsive when modal stacks overlapped — keep just one.
-  const [editorTarget, setEditorTarget] =
-    useState<NoteRow | null | undefined>(undefined);
+  const [editorTarget, setEditorTarget] = useState<NoteRow | null | undefined>(undefined);
   // Note queued from detail dialog "Sửa" click — opens edit dialog only after
   // detail dialog finishes its exit transition. Stacking two MUI Dialogs while
-  // both are mid-transition can leave the resulting dialog unresponsive
-  // (focus trap and backdrop pointer-events get out of sync).
+  // both are mid-transition can leave the resulting dialog unresponsive.
   const [pendingEdit, setPendingEdit] = useState<NoteRow | null>(null);
 
   const viewNoteRef = useRef(viewNote);
@@ -57,13 +51,8 @@ export function NoteListClient({ initial }: NoteListClientProps) {
   const filtered = useMemo(() => {
     let rows = initial;
 
-    if (activeType !== 'all') {
-      rows = rows.filter((r) => r.type === activeType);
-    }
-
     if (selectedTags.length > 0) {
-      // OR semantic: note matches if it has ANY of the selected tags
-      // (matches Obsidian's tag pane click behavior).
+      // OR semantic: note matches if it has ANY of the selected tags.
       rows = rows.filter((r) => r.tags.some((t) => selectedTags.includes(t)));
     }
 
@@ -78,10 +67,9 @@ export function NoteListClient({ initial }: NoteListClientProps) {
     }
 
     return rows;
-  }, [initial, activeType, query, selectedTags]);
+  }, [initial, query, selectedTags]);
 
-  const isFiltered =
-    activeType !== 'all' || query.trim() !== '' || selectedTags.length > 0;
+  const isFiltered = query.trim() !== '' || selectedTags.length > 0;
 
   const handleDelete = useCallback(async (note: NoteRow) => {
     try {
@@ -93,8 +81,7 @@ export function NoteListClient({ initial }: NoteListClientProps) {
 
   const handleOpenEdit = useCallback((note: NoteRow) => {
     // If detail dialog is currently open, queue the edit to fire after its
-    // exit transition completes (see pendingEdit + onExited below).
-    // Otherwise open edit dialog immediately (called directly from list).
+    // exit transition completes. Otherwise open edit dialog immediately.
     if (viewNoteRef.current) {
       setPendingEdit(note);
       setViewNote(null);
@@ -126,16 +113,14 @@ export function NoteListClient({ initial }: NoteListClientProps) {
           startIcon={<Iconify icon="mingcute:add-line" />}
           onClick={handleOpenCreate}
         >
-          Tạo ghi chú
+          Tạo nhật ký
         </Button>
       </Stack>
 
       <NoteFilterBar
-        activeType={activeType}
         query={query}
         allTags={allTags}
         selectedTags={selectedTags}
-        onTypeChange={setActiveType}
         onQueryChange={setQuery}
         onTagsChange={setSelectedTags}
       />

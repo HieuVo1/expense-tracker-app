@@ -34,9 +34,11 @@ type NoteListItemProps = {
 
 export function NoteListItem({ note, onView, onEdit, onDelete }: NoteListItemProps) {
   const preview = stripMarkdown(note.content).slice(0, 160);
-  const typeColor = NOTE_TYPE_COLORS[note.type];
-  const typeLabel = NOTE_TYPE_LABELS[note.type];
-  const typeIcon = NOTE_TYPE_ICONS[note.type];
+  // Notes module only shows 'daily' type entries; cast is safe — listNotes()
+  // filters to NOTE_TYPE_VALUES which is ['daily'] only.
+  const typeColor = NOTE_TYPE_COLORS['daily'];
+  const typeLabel = NOTE_TYPE_LABELS['daily'];
+  const typeIcon = NOTE_TYPE_ICONS['daily'];
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();

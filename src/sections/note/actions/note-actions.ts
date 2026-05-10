@@ -41,7 +41,14 @@ export async function listNotes(): Promise<NoteRow[]> {
   const user = await requireUser();
 
   const rows = await prisma.note.findMany({
-    where: { userId: user.id },
+    where: {
+      userId: user.id,
+      // Scope strictly to old Notes module types — prevents about-me UPPERCASE rows
+      // (GOAL/THOUGHT/LESSON/SIGNAL/PRINCIPLE/TRAIT/ACTION) from leaking into Notes UI.
+      // NOTE_TYPE_LABELS/COLORS/ICONS are narrowed to OldNoteType only, so UPPERCASE
+      // entries would produce undefined lookups and crash MUI icon renders.
+      type: { in: NOTE_TYPE_VALUES },
+    },
     orderBy: { updatedAt: 'desc' },
   });
 
@@ -63,7 +70,7 @@ export async function createNote(input: z.infer<typeof noteSchema>): Promise<voi
   await prisma.note.create({
     data: {
       userId: user.id,
-      type: data.type as 'daily' | 'insight' | 'strength' | 'weakness' | 'idea',
+      type: data.type as 'daily',
       title: data.title,
       content: data.content,
       tags: normalizeTags(data.tags),
@@ -80,7 +87,7 @@ export async function updateNote(input: z.infer<typeof updateSchema>): Promise<v
   await prisma.note.update({
     where: { id: data.id, userId: user.id },
     data: {
-      type: data.type as 'daily' | 'insight' | 'strength' | 'weakness' | 'idea',
+      type: data.type as 'daily',
       title: data.title,
       content: data.content,
       tags: normalizeTags(data.tags),
