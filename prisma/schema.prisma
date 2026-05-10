@@ -18,13 +18,14 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  transactions Transaction[]
-  categories   Category[]
-  budgets      Budget[]
-  merchants    MerchantMemory[]
-  assets       Asset[]
-  notes        Note[]
-  plans        Plan[]
+  transactions  Transaction[]
+  categories    Category[]
+  budgets       Budget[]
+  merchants     MerchantMemory[]
+  assets        Asset[]
+  notes         Note[]
+  plans         Plan[]
+  subscriptions Subscription[]
 
   @@map("users")
 }
@@ -45,9 +46,10 @@ model Category {
   // user doesn't see "Lương" while logging a coffee receipt.
   type   TransactionType @default(expense)
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-  budgets      Budget[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  budgets       Budget[]
+  subscriptions Subscription[]
 
   @@unique([userId, name])
   @@index([userId, type, order])
@@ -134,11 +136,15 @@ model Asset {
 }
 
 enum NoteType {
-  insight
-  strength
-  weakness
-  idea
   daily
+  // About-me types (UPPERCASE disambiguates from the original Notes lowercase set)
+  GOAL
+  THOUGHT
+  LESSON
+  SIGNAL
+  PRINCIPLE
+  TRAIT
+  ACTION
 }
 
 enum PlanScope {
@@ -168,6 +174,9 @@ model Note {
   title     String
   content   String   @db.Text // Raw Markdown text (rendered by TipTap editor — see plan.md decision #4)
   tags      String[] @default([])
+  // Nullable JSON for about-me type-specific metadata (validated via Zod at action layer).
+  // Old Notes rows have NULL — no backfill needed.
+  metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -211,6 +220,36 @@ model PlanTask {
   @@index([planId, order, createdAt])
   @@index([planId, priority])
   @@map("plan_tasks")
+}
+
+enum BillingCycle {
+  monthly
+  quarterly
+  yearly
+}
+
+// Recurring obligation (subscription, monthly bill, etc.). Distinct from
+// Transaction: it's a *future* commitment + due-date schedule, not a logged
+// payment. "Mark paid" creates a Transaction and advances nextDueDate by one
+// cycle — the source of truth for monthly burn rate stays in this table.
+model Subscription {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id") @db.Uuid
+  categoryId  String       @map("category_id")
+  name        String
+  amount      Decimal      @db.Decimal(15, 0)
+  cycle       BillingCycle
+  nextDueDate DateTime     @map("next_due_date") @db.Date
+  active      Boolean      @default(true)
+  notes       String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, active, nextDueDate])
+  @@map("subscriptions")
 }
 
 model OcrLog {
