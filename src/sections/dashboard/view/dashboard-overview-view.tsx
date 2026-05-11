@@ -12,50 +12,29 @@ import { Iconify } from 'src/components/iconify';
 import { SummaryCard } from 'src/components/summary-card';
 
 import { getReportData } from 'src/sections/report/actions/report-actions';
-import { getPlan, listPlans } from 'src/sections/plan/actions/plan-actions';
-import { computeSubscriptionTotals } from 'src/sections/subscription/utils/summary';
 import { TopMerchantsCard } from 'src/sections/report/components/top-merchants-card';
 import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { TopTransactionsCard } from 'src/sections/report/components/top-transactions-card';
-import { listSubscriptions } from 'src/sections/subscription/actions/subscription-actions';
-import { SubscriptionDashboardCard } from 'src/sections/subscription/components/subscription-dashboard-card';
 
 import { MonthPicker } from '../components/month-picker';
 import { CategoryDonut } from '../components/category-donut';
 import { BudgetProgress } from '../components/budget-progress';
 import { getDashboardData } from '../actions/dashboard-actions';
-import { getDashboardReminders } from '../actions/dashboard-reminders';
-import { CurrentWeekPlanCard } from '../components/current-week-plan-card';
-import { DashboardRemindersCard } from '../components/dashboard-reminders-card';
 
 type Props = {
   searchParams?: { month?: string };
 };
 
-// Single landing view that combines the at-a-glance summary (this month) with
-// the 6-month trend and rankings — fewer hops for the user, and the month
-// picker drives both halves consistently.
+/**
+ * Pure chi-tiêu detail page — month-scoped totals, trend, category breakdown,
+ * budget progress, top transactions/merchants. Cross-domain items (reminders,
+ * weekly plan, subs, daily reflection) live on the /dashboard hub.
+ */
 export async function DashboardOverviewView({ searchParams }: Props) {
-  const [data, reportData, allPlans, reminders, subs] = await Promise.all([
+  const [data, reportData] = await Promise.all([
     getDashboardData(searchParams?.month),
     getReportData(searchParams?.month),
-    listPlans(),
-    getDashboardReminders(),
-    listSubscriptions(),
   ]);
-
-  // Current weekly plan: scope=weekly, active, today within [startDate, endDate].
-  // `listPlans` already sorts with isCurrent=true plans first, so `.find` picks
-  // the most-relevant row. If multiple overlapping weekly plans exist (data anomaly),
-  // the first match (earliest by startDate DESC from DB sort) is used.
-  const currentWeekRow = allPlans.find((p) => p.scope === 'weekly' && p.isCurrent) ?? null;
-  const currentWeekPlan = currentWeekRow ? await getPlan(currentWeekRow.id) : null;
-
-  const subTotals = computeSubscriptionTotals(subs);
-  const upcomingSubs = subs
-    .filter((s) => s.active)
-    .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
-    .slice(0, 5);
 
   return (
     <DashboardContent>
@@ -71,7 +50,7 @@ export async function DashboardOverviewView({ searchParams }: Props) {
         >
           <Box>
             <Typography variant="h4" sx={{ mb: 0.5 }}>
-              Tổng quan
+              Chi tiêu
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Tóm tắt và phân tích chi tiêu tháng {data.monthLabel}
@@ -89,9 +68,6 @@ export async function DashboardOverviewView({ searchParams }: Props) {
             </Button>
           </Box>
         </Box>
-
-        {/* Reminders — shown FIRST when there's anything pending so user sees it on app open. */}
-        <DashboardRemindersCard reminders={reminders} />
 
         {/* 4 gradient summary cards — distinct color per metric (no two greens). */}
         <Grid container spacing={3}>
@@ -135,10 +111,6 @@ export async function DashboardOverviewView({ searchParams }: Props) {
             </Grid>
           ))}
         </Grid>
-
-        <CurrentWeekPlanCard plan={currentWeekPlan} />
-
-        <SubscriptionDashboardCard upcoming={upcomingSubs} totals={subTotals} />
 
         <MonthlyTrendChart data={reportData.monthlyTrend} />
 

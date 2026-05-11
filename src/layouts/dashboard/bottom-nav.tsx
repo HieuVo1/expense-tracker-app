@@ -19,7 +19,7 @@ import { Iconify } from 'src/components/iconify';
 // summary widgets, so a tap target there is preserved.
 const TABS = [
   { value: paths.dashboard.root, label: 'Trang chủ', icon: 'solar:home-angle-bold-duotone' },
-  { value: paths.dashboard.transactions, label: 'Giao dịch', icon: 'solar:wallet-money-bold' },
+  { value: paths.dashboard.transactions, label: 'Giao dịch', icon: 'solar:transfer-horizontal-bold-duotone' },
   { value: paths.dashboard.aboutMe, label: 'Về tôi', icon: 'solar:user-rounded-bold' },
   { value: paths.dashboard.notes, label: 'Nhật ký', icon: 'solar:notebook-bold-duotone' },
   { value: paths.dashboard.plans, label: 'Kế hoạch', icon: 'solar:calendar-date-bold' },

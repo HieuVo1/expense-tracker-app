@@ -28,16 +28,6 @@ export async function NoteListView() {
             Nhật ký hàng ngày của bạn.
           </Typography>
         </Box>
-
-        <Button
-          variant="outlined"
-          size="small"
-          href={paths.dashboard.aboutMe}
-          endIcon={<Iconify icon="eva:arrow-ios-forward-fill" width={16} />}
-          sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-        >
-          Sang Về tôi
-        </Button>
       </Stack>
 
       <NoteListClient initial={notes} />

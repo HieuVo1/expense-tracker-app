@@ -8,6 +8,7 @@ const icon = (
   name:
     | 'home'
     | 'wallet'
+    | 'spending'
     | 'assets'
     | 'target'
     | 'folder'
@@ -20,6 +21,7 @@ const icon = (
   const map = {
     home: 'solar:home-angle-bold-duotone',
     wallet: 'solar:transfer-horizontal-bold-duotone',
+    spending: 'solar:graph-up-bold',
     assets: 'solar:dollar-minimalistic-bold',
     target: 'solar:bill-list-bold-duotone',
     folder: 'solar:add-folder-bold',
@@ -42,6 +44,7 @@ export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Tài chính',
     items: [
+      { title: 'Chi tiêu', path: paths.dashboard.spending, icon: icon('spending') },
       // deepMatch so /dashboard/transactions/new still highlights "Giao dịch".
       { title: 'Giao dịch', path: paths.dashboard.transactions, icon: icon('wallet'), deepMatch: true },
       { title: 'Tài sản', path: paths.dashboard.assets, icon: icon('assets') },

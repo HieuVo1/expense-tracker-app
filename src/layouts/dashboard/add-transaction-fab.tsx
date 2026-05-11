@@ -5,6 +5,7 @@ import type { Breakpoint } from '@mui/material/styles';
 import { usePathname } from 'next/navigation';
 
 import Fab from '@mui/material/Fab';
+import Tooltip from '@mui/material/Tooltip';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
@@ -29,22 +30,25 @@ export function AddTransactionFab({ hideAtBreakpoint = 'lg' }: Props) {
   if (!shouldShow(pathname)) return null;
 
   return (
-    <Fab
-      component={RouterLink}
-      href={paths.dashboard.addTransaction}
-      color="primary"
-      aria-label="Thêm giao dịch"
-      sx={{
-        position: 'fixed',
-        // Sits above the bottom nav (64px) plus its safe-area inset, with a
-        // little extra breathing room so it doesn't kiss the divider line.
-        bottom: 'calc(64px + env(safe-area-inset-bottom) + 16px)',
-        right: 16,
-        zIndex: (theme) => theme.zIndex.appBar + 1,
-        display: { xs: 'inline-flex', [hideAtBreakpoint]: 'none' },
-      }}
-    >
-      <Iconify icon="solar:add-circle-bold" width={28} />
-    </Fab>
+    <Tooltip title="Thêm giao dịch" placement="left">
+      <Fab
+        component={RouterLink}
+        href={paths.dashboard.addTransaction}
+        color="primary"
+        aria-label="Thêm giao dịch"
+        sx={{
+          position: 'fixed',
+          // Sits above the bottom nav (64px) plus its safe-area inset, with a
+          // little extra breathing room so it doesn't kiss the divider line.
+          bottom: 'calc(64px + env(safe-area-inset-bottom) + 16px)',
+          right: 16,
+          zIndex: (theme) => theme.zIndex.fab,
+          boxShadow: (theme) => theme.customShadows?.primary ?? 4,
+          display: { xs: 'inline-flex', [hideAtBreakpoint]: 'none' },
+        }}
+      >
+        <Iconify icon="mingcute:add-line" width={28} />
+      </Fab>
+    </Tooltip>
   );
 }

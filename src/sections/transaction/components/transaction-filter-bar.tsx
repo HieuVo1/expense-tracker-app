@@ -17,6 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { Iconify } from 'src/components/iconify';
+import { HorizontalScrollStrip } from 'src/components/horizontal-scroll-strip';
 
 type Category = { id: string; name: string };
 
@@ -314,33 +315,10 @@ export function TransactionFilterBar({ categories }: Props) {
         </Stack>
       </Collapse>
 
-      {/* Outer wrapper carries the width constraint so the inner scroller can
-          actually overflow. Without this, the inner Box just stretches to fit
-          its content inside flex/stack parents and there's nothing to scroll.
-          Mouse-wheel → horizontal-scroll handled below for desktop. */}
+      {/* Width-constrained wrapper enables horizontal overflow inside the
+          parent flex/stack. Desktop gets arrow buttons; touch + wheel both work. */}
       <Box sx={{ width: '100%', minWidth: 0 }}>
-        <Box
-          onWheel={(e) => {
-            // Convert vertical wheel to horizontal scroll so desktop users
-            // without a trackpad can still pan the chip row.
-            const target = e.currentTarget;
-            if (target.scrollWidth <= target.clientWidth) return;
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-              target.scrollLeft += e.deltaY;
-            }
-          }}
-          sx={{
-            display: 'flex',
-            gap: 1,
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            pb: 0.5,
-            touchAction: 'pan-x',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            '&::-webkit-scrollbar': { display: 'none' },
-          }}
-        >
+        <HorizontalScrollStrip scrollSx={{ gap: 1, overflowY: 'hidden', pb: 0.5 }}>
           <FilterChip
             label="Tất cả"
             selected={!currentCategory}
@@ -354,7 +332,7 @@ export function TransactionFilterBar({ categories }: Props) {
               onClick={() => setCategory(c.id)}
             />
           ))}
-        </Box>
+        </HorizontalScrollStrip>
       </Box>
 
       {/* Thin bar under the filters that stays visible until the server
