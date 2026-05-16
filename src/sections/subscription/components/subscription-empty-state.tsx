@@ -34,7 +34,7 @@ export function SubscriptionEmptyState({ onCreate }: Props) {
         </Box>
         <Button
           variant="contained"
-          startIcon={<Iconify icon="mingcute:add-line" />}
+          startIcon={<Iconify icon="solar:add-circle-bold" />}
           onClick={onCreate}
         >
           Thêm hoá đơn

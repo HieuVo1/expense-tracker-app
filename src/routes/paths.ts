@@ -30,6 +30,7 @@ export const paths = {
     subscriptions: `${ROOTS.DASHBOARD}/subscriptions`,
     settings: `${ROOTS.DASHBOARD}/settings`,
     aboutMe: `${ROOTS.DASHBOARD}/about-me`,
+    aboutMeCompanion: `${ROOTS.DASHBOARD}/about-me/companion`,
     aboutMeType: (type: string) => `${ROOTS.DASHBOARD}/about-me/${type.toLowerCase()}`,
   },
 };

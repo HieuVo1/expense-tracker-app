@@ -59,7 +59,7 @@ export function PlanListClient({ initial }: PlanListClientProps) {
           <Typography variant="h4">Kế hoạch</Typography>
           <Button
             variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
+            startIcon={<Iconify icon="solar:add-circle-bold" />}
             onClick={() => setCreateOpen(true)}
           >
             Tạo kế hoạch

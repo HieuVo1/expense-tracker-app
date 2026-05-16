@@ -100,11 +100,11 @@ export function AboutMeListClient({ rows, type }: Props) {
     const q = search.trim().toLowerCase();
     let result = q
       ? rows.filter(
-          (r) =>
-            r.title.toLowerCase().includes(q) ||
-            r.content.toLowerCase().includes(q) ||
-            r.tags.some((t) => t.includes(q))
-        )
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.content.toLowerCase().includes(q) ||
+          r.tags.some((t) => t.includes(q))
+      )
       : rows;
 
     if (type === 'GOAL' && goalStatusFilter !== 'all') {

@@ -1,6 +1,7 @@
 // Zod schemas for about-me metadata — discriminated union per type.
 // Validated at server action boundary only; form state may use Partial<>.
 
+import dayjs from 'dayjs';
 import { z } from 'zod';
 
 import { ABOUT_ME_TYPE_VALUES } from './constants/about-me-types';
@@ -8,10 +9,21 @@ import { ABOUT_ME_TYPE_VALUES } from './constants/about-me-types';
 // ----------------------------------------------------------------------
 // Shared helpers
 
+// Accepts any dayjs-parseable string (e.g. full ISO from DatePicker) and
+// normalizes to `YYYY-MM-DD`. Empty / null / undefined → undefined.
 const isoDateOnly = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Phải là ngày dạng YYYY-MM-DD')
-  .optional();
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((v) => {
+    if (v == null || v === '') return undefined;
+    const d = dayjs(v);
+    return d.isValid() ? d.format('YYYY-MM-DD') : v;
+  })
+  .pipe(
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Phải là ngày dạng YYYY-MM-DD')
+      .optional()
+  );
 
 // ----------------------------------------------------------------------
 // Per-type metadata schemas

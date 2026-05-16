@@ -4,8 +4,10 @@ import type { NoteRow } from '../types';
 
 import { useRef, useMemo, useState, useCallback } from 'react';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -107,10 +109,24 @@ export function NoteListClient({ initial }: NoteListClientProps) {
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" alignItems="flex-start" justifyContent="flex-end">
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ sm: 'center' }}
+        justifyContent="space-between"
+        gap={2}
+      >
+        <Box>
+          <Typography variant="h4" sx={{ mb: 0.5 }}>
+            Nhật ký
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Nhật ký hàng ngày của bạn.
+          </Typography>
+        </Box>
+
         <Button
           variant="contained"
-          startIcon={<Iconify icon="mingcute:add-line" />}
+          startIcon={<Iconify icon="solar:add-circle-bold" />}
           onClick={handleOpenCreate}
         >
           Tạo nhật ký

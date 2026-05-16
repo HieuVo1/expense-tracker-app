@@ -1,11 +1,12 @@
 import type { AboutMeType } from '../types';
 
-import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { listAboutMe } from '../actions/about-me-actions';
 import { AboutMeListClient } from './about-me-list-client';
@@ -27,35 +28,19 @@ export async function AboutMeListView({ type }: Props) {
 
   return (
     <DashboardContent>
-      {/* Breadcrumb */}
-      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-        <Box
-          component="a"
-          href={paths.dashboard.notes}
-          sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
-        >
-          Nhật ký
-        </Box>
-        {' / '}
-        <Box
-          component="a"
-          href={paths.dashboard.aboutMe}
-          sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
-        >
-          Về tôi
-        </Box>
-        {' / '}
-        {label}
-      </Typography>
+      <CustomBreadcrumbs
+        heading={label}
+        links={[
+          { name: 'Nhật ký', href: paths.dashboard.notes },
+          { name: 'Về tôi', href: paths.dashboard.aboutMe },
+          { name: label },
+        ]}
+        sx={{ mb: 1 }}
+      />
 
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-          {label}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {rows.length > 0 ? `${rows.length} mục` : 'Chưa có mục nào'}
-        </Typography>
-      </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        {rows.length > 0 ? `${rows.length} mục` : 'Chưa có mục nào'}
+      </Typography>
 
       {/* SIGNAL: pattern board above entry list */}
       {type === 'SIGNAL' && patterns && (

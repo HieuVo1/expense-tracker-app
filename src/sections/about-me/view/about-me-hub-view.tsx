@@ -2,11 +2,14 @@ import type { GoalMetadata } from '../types';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
 
 import { AboutMeHubClient } from './about-me-hub-client';
 import { listAboutMe } from '../actions/about-me-actions';
@@ -48,17 +51,6 @@ export async function AboutMeHubView() {
       {/* Header */}
       <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'flex-start' }} justifyContent="space-between" gap={2} sx={{ mb: 3 }}>
         <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-            <Box
-              component="a"
-              href={paths.dashboard.notes}
-              sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
-            >
-              Nhật ký
-            </Box>
-            {' / '}
-            Về tôi
-          </Typography>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
             Về tôi
           </Typography>
@@ -74,6 +66,14 @@ export async function AboutMeHubView() {
           </Typography>
         </Box>
 
+        <Button
+          href={paths.dashboard.aboutMeCompanion}
+          variant="contained"
+          startIcon={<Iconify icon="solar:heart-pulse-bold" />}
+          sx={{ flexShrink: 0 }}
+        >
+          Tâm sự
+        </Button>
       </Stack>
 
       {/* Stats strip */}

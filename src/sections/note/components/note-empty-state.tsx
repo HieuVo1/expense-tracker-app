@@ -32,7 +32,7 @@ export function NoteEmptyState({ filtered = false, onCreate }: NoteEmptyStatePro
           onCreate && (
             <Button
               variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
+              startIcon={<Iconify icon="solar:add-circle-bold" />}
               onClick={onCreate}
               sx={{ mt: 2 }}
             >
