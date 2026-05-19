@@ -5,7 +5,7 @@ import { Type, GoogleGenAI } from '@google/genai';
 import { VN_CATEGORIES } from './types';
 import { buildExtractionPrompt } from './prompt';
 
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.1-flash-lite';
 
 // Free-tier: 15 RPM, 1M tokens/day. Flash handles VN OCR well at near-zero
 // latency vs Pro, which is overkill for receipt extraction.

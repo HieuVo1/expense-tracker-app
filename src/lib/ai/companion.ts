@@ -8,7 +8,7 @@ import { buildCompanionPrompt } from './companion-prompt';
 
 // Flash, not Pro: empathetic VN text + id selection is well within Flash's
 // reach, at near-zero latency vs Pro and inside the free-tier quota.
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.1-flash-lite';
 
 function getClient() {
   const apiKey = process.env.GEMINI_API_KEY;
