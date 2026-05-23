@@ -26,6 +26,7 @@ model User {
   notes         Note[]
   plans         Plan[]
   subscriptions Subscription[]
+  gratitudes    GratitudeEntry[]
 
   @@map("users")
 }
@@ -184,6 +185,25 @@ model Note {
 
   @@index([userId, type, updatedAt(sort: Desc)])
   @@map("notes")
+}
+
+// Daily gratitude practice — one row per user per calendar day (UTC date).
+// `items`: ordered plain-text list of things the user is grateful for.
+// The >= 5 minimum is enforced at the action layer, not the DB.
+// LLM-friendly (typed, dated, plain text) — feeds future AI self-development surfaces.
+model GratitudeEntry {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id") @db.Uuid
+  date      DateTime @db.Date
+  items     String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date(sort: Desc)])
+  @@map("gratitude_entries")
 }
 
 model Plan {

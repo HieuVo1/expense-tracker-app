@@ -30,6 +30,7 @@ import { fDate } from 'src/utils/format-time';
 import { Iconify } from 'src/components/iconify';
 
 import { rolloverPlan } from 'src/sections/plan/actions/plan-actions';
+import { GRATITUDE_MIN_ITEMS } from 'src/sections/gratitude/constants/gratitude';
 import {
   TASK_PRIORITY_ICON,
   TASK_PRIORITY_LABEL,
@@ -80,6 +81,7 @@ export function DashboardRemindersCard({ reminders }: Props) {
           {reminders.expiredPlans.length > 0 && (
             <ExpiredPlansSection plans={reminders.expiredPlans} />
           )}
+          {reminders.gratitudePending && <GratitudeSection />}
         </Stack>
       </CardContent>
     </Card>
@@ -187,6 +189,49 @@ function ExpiredPlansSection({ plans }: { plans: ReminderExpiredPlan[] }) {
           <ExpiredPlanRow key={p.id} plan={p} />
         ))}
       </Stack>
+    </Box>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function GratitudeSection() {
+  return (
+    <Box>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+        <Iconify icon="solar:hand-heart-bold" width={18} sx={{ color: 'secondary.main' }} />
+        <Typography variant="subtitle2" sx={{ color: 'secondary.main' }}>
+          Lòng biết ơn hôm nay
+        </Typography>
+      </Stack>
+      <Box
+        component="a"
+        href={paths.dashboard.gratitude}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          p: 1.25,
+          borderRadius: 1,
+          textDecoration: 'none',
+          color: 'inherit',
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          '&:hover': { bgcolor: 'action.hover' },
+        }}
+      >
+        <Iconify icon="solar:pen-bold" width={18} sx={{ color: 'secondary.main' }} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            Bạn chưa ghi đủ {GRATITUDE_MIN_ITEMS} điều biết ơn
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Dành một phút ghi lại những điều tốt đẹp hôm nay
+          </Typography>
+        </Box>
+        <Iconify icon="eva:arrow-ios-forward-fill" width={18} sx={{ color: 'text.disabled' }} />
+      </Box>
     </Box>
   );
 }
