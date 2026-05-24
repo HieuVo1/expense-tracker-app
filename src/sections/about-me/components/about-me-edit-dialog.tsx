@@ -22,6 +22,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import DialogContent from '@mui/material/DialogContent';
 
 import { Form } from 'src/components/hook-form';
+import { NoteImagesField } from 'src/components/note-images/note-images-field';
 
 import { aboutMeFormSchema } from '../schemas';
 import { AboutMeFormGoal } from './forms/about-me-form-goal';
@@ -45,6 +46,7 @@ function buildDefaults(type: AboutMeType, row?: AboutMeRow): FormValues {
     title: row?.title ?? '',
     content: row?.content ?? '',
     tags: row?.tags ?? [],
+    images: row?.images ?? [],
   };
 
   const meta = row?.metadata ?? {};
@@ -159,6 +161,15 @@ export function AboutMeEditDialog({ open, type, row, onClose }: Props) {
     }
   });
 
+  // Seed signed display URLs for existing images so the uploader shows previews
+  // without re-signing client-side. Keyed by storage path.
+  const initialSignedUrls: Record<string, string> = {};
+  if (row) {
+    row.images.forEach((path, i) => {
+      initialSignedUrls[path] = row.imageUrls[i] ?? '';
+    });
+  }
+
   const formContent = (
     <Form methods={methods} onSubmit={onSubmit}>
       {/* Type chip header */}
@@ -184,8 +195,10 @@ export function AboutMeEditDialog({ open, type, row, onClose }: Props) {
       {type === 'TRAIT' && <AboutMeFormTrait />}
       {type === 'ACTION' && <AboutMeFormAction />}
 
-      {/* Shared tags input — applies to all 7 types */}
+      {/* Shared tags + image attachments — apply to all 7 types */}
       <AboutMeFormTags />
+
+      <NoteImagesField initialSignedUrls={initialSignedUrls} />
 
       <Divider sx={{ mt: 3, mb: 2 }} />
 

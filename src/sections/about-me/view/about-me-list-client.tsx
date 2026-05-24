@@ -2,7 +2,8 @@
 
 import type { AboutMeRow, AboutMeType, GoalMetadata, TraitMetadata, ActionMetadata } from '../types';
 
-import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -124,6 +125,16 @@ export function AboutMeListClient({ rows, type }: Props) {
     setSelectedRow(row);
     setDetailOpen(true);
   };
+
+  // Deep-link from the gallery: `?open=<id>` auto-opens that entry's detail.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const openId = searchParams.get('open');
+    if (!openId) return;
+    const row = rows.find((r) => r.id === openId);
+    if (row) openDetail(row);
+     
+  }, [searchParams, rows]);
 
   // ---- GOAL grouped render ----
   if (type === 'GOAL') {

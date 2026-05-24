@@ -1,8 +1,10 @@
 // Zod schemas for about-me metadata — discriminated union per type.
 // Validated at server action boundary only; form state may use Partial<>.
 
-import dayjs from 'dayjs';
 import { z } from 'zod';
+import dayjs from 'dayjs';
+
+import { NOTE_IMAGE_MAX } from 'src/lib/storage/note-images';
 
 import { ABOUT_ME_TYPE_VALUES } from './constants/about-me-types';
 
@@ -90,6 +92,9 @@ const baseAboutMeFields = {
     .array(z.string().trim().min(1).max(32).transform((s) => s.toLowerCase()))
     .max(12)
     .default([]),
+  // Storage paths of attached images ("<uid>/<uuid>.<ext>"). Uploaded client-side
+  // to the private `note-images` bucket; signed URLs are generated on read.
+  images: z.array(z.string().trim().min(1).max(300)).max(NOTE_IMAGE_MAX).default([]),
 };
 
 // ----------------------------------------------------------------------

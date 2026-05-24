@@ -18,6 +18,7 @@ const icon = (
     | 'invoice'
     | 'about-me'
     | 'gratitude'
+    | 'gallery'
 ) => {
   const map = {
     home: 'solar:home-angle-bold-duotone',
@@ -32,6 +33,7 @@ const icon = (
     invoice: 'solar:card-bold',
     'about-me': 'solar:user-rounded-bold',
     gratitude: 'solar:hand-heart-bold',
+    gallery: 'solar:gallery-wide-bold',
   } as const;
   return <Iconify icon={map[name]} width={24} />;
 };
@@ -61,6 +63,7 @@ export const navData: NavSectionProps['data'] = [
       { title: 'Về tôi', path: paths.dashboard.aboutMe, icon: icon('about-me'), deepMatch: true },
       { title: 'Lòng biết ơn', path: paths.dashboard.gratitude, icon: icon('gratitude') },
       { title: 'Nhật ký', path: paths.dashboard.notes, icon: icon('notes') },
+      { title: 'Thư viện ảnh', path: paths.dashboard.gallery, icon: icon('gallery') },
       // deepMatch so /dashboard/plans/[id] still highlights "Kế hoạch".
       { title: 'Kế hoạch', path: paths.dashboard.plans, icon: icon('plans'), deepMatch: true },
     ],

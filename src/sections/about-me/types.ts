@@ -84,6 +84,10 @@ export type AboutMeRow = {
   title: string;
   content: string;
   tags: string[];
+  /** Canonical Storage paths ("<uid>/<uuid>.<ext>") — persisted on the row. */
+  images: string[];
+  /** Signed display URLs for `images` (same order, generated on read). */
+  imageUrls: string[];
   /**
    * Raw metadata JSON. Use the typed helpers or Zod safeParse from schemas.ts
    * to narrow to the correct metadata shape before rendering.

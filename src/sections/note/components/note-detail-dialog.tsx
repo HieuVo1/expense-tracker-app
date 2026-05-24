@@ -2,9 +2,10 @@
 
 import type { NoteRow } from '../types';
 
-import { useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { useRef, useMemo } from 'react';
 
+import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -19,6 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { fDate } from 'src/utils/format-time';
 
 import { Iconify } from 'src/components/iconify';
+import { Lightbox, useLightbox } from 'src/components/lightbox';
 
 import { NOTE_TYPE_ICONS, NOTE_TYPE_LABELS, NOTE_TYPE_COLORS } from '../constants/note-types';
 
@@ -63,6 +65,14 @@ export function NoteDetailDialog({
   const lastNoteRef = useRef<NoteRow | null>(note);
   if (note) lastNoteRef.current = note;
   const view = note ?? lastNoteRef.current;
+
+  // Hooks must run unconditionally — derive slides before any early return.
+  const slides = useMemo(
+    () => (view?.imageUrls ?? []).filter(Boolean).map((src) => ({ src })),
+    [view]
+  );
+  const lightbox = useLightbox(slides);
+
   if (!view) return null;
 
   // Notes module only shows 'daily' type entries.
@@ -86,6 +96,7 @@ export function NoteDetailDialog({
   };
 
   return (
+    <>
     <Dialog
       open={open}
       onClose={onClose}
@@ -132,6 +143,38 @@ export function NoteDetailDialog({
 
       <DialogContent sx={{ pt: 2 }}>
         <Editor value={view.content} editable={false} />
+
+        {/* Attached images — private, shown via signed URLs. Tap to preview. */}
+        {view.imageUrls.some((u) => u) && (
+          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
+            {view.imageUrls.map((url, i) =>
+              url ? (
+                <Box
+                  key={i}
+                  onClick={() => lightbox.onOpen(url)}
+                  sx={{
+                    cursor: 'pointer',
+                    width: 96,
+                    height: 96,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    transition: (t) => t.transitions.create('opacity'),
+                    '&:hover': { opacity: 0.85 },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={url}
+                    alt=""
+                    sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </Box>
+              ) : null
+            )}
+          </Stack>
+        )}
       </DialogContent>
 
       <Divider />
@@ -156,5 +199,17 @@ export function NoteDetailDialog({
         </Button>
       </DialogActions>
     </Dialog>
+
+      <Lightbox
+        open={lightbox.open}
+        close={lightbox.onClose}
+        slides={slides}
+        index={lightbox.selected}
+        onGetCurrentIndex={(index) => lightbox.setSelected(index)}
+        disableVideo
+        disableSlideshow
+        disableThumbnails
+      />
+    </>
   );
 }

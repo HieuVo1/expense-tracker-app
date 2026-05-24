@@ -59,6 +59,9 @@ export async function getDailyReflection(): Promise<AboutMeRow | null> {
     title: row.title,
     content: row.content,
     tags: row.tags,
+    // Reflection card shows only title + content preview — images not needed here.
+    images: [],
+    imageUrls: [],
     metadata:
       row.metadata !== null && typeof row.metadata === 'object'
         ? (row.metadata as Record<string, unknown>)

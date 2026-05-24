@@ -100,9 +100,9 @@ export async function SettingsView() {
 
         <Card>
           {/* Pages absent from the mobile bottom-nav (Tài sản, Ngân sách,
-              Hoá đơn định kỳ, Danh mục) are surfaced here so they're always
-              reachable in 2 taps on phones. Desktop users still get them in
-              the sidebar — having both is harmless. */}
+              Hoá đơn định kỳ, Danh mục, Lòng biết ơn, Thư viện ảnh) are surfaced
+              here so they're always reachable in 2 taps on phones. Desktop users
+              still get them in the sidebar — having both is harmless. */}
           <SettingsRow
             icon="solar:dollar-minimalistic-bold"
             title="Tài sản"
@@ -129,6 +129,20 @@ export async function SettingsView() {
             title="Danh mục"
             description="Sửa tên, icon, màu cho từng nhóm"
             actionHref={paths.dashboard.categories}
+            actionLabel="Mở"
+          />
+          <SettingsRow
+            icon="solar:hand-heart-bold"
+            title="Lòng biết ơn"
+            description="Ghi lại những điều bạn biết ơn mỗi ngày"
+            actionHref={paths.dashboard.gratitude}
+            actionLabel="Mở"
+          />
+          <SettingsRow
+            icon="solar:gallery-wide-bold"
+            title="Thư viện ảnh"
+            description="Tất cả ảnh đính kèm trong Nhật ký và Về tôi"
+            actionHref={paths.dashboard.gallery}
             actionLabel="Mở"
           />
           <SettingsRow

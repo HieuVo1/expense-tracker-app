@@ -7,7 +7,8 @@ import dayjs from 'dayjs';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
-import { GRATITUDE_MIN_ITEMS } from 'src/sections/gratitude/constants/gratitude';
+import { GRATITUDE_TARGET } from 'src/sections/gratitude/constants/gratitude';
+
 
 // ----------------------------------------------------------------------
 
@@ -32,7 +33,7 @@ export type DashboardReminders = {
   todayTasks: ReminderTask[];
   overdueTasks: ReminderTask[];
   expiredPlans: ReminderExpiredPlan[];
-  // True when today's gratitude practice has fewer than GRATITUDE_MIN_ITEMS items.
+  // True when today has fewer than GRATITUDE_TARGET gratitude items (soft goal).
   gratitudePending: boolean;
   totalCount: number;
 };
@@ -106,12 +107,13 @@ export async function getDashboardReminders(): Promise<DashboardReminders> {
       incompleteCount: p._count.tasks,
     }));
 
-  // Daily gratitude nudge — pending until today has >= GRATITUDE_MIN_ITEMS items.
+  // Daily gratitude nudge — pending until today reaches the soft goal (not
+  // enforced on save, just used to keep reminding).
   const gratitudeToday = await prisma.gratitudeEntry.findUnique({
     where: { userId_date: { userId: user.id, date: todayDate } },
     select: { items: true },
   });
-  const gratitudePending = (gratitudeToday?.items.length ?? 0) < GRATITUDE_MIN_ITEMS;
+  const gratitudePending = (gratitudeToday?.items.length ?? 0) < GRATITUDE_TARGET;
 
   return {
     todayTasks,

@@ -9,6 +9,8 @@ import { paths } from 'src/routes/paths';
 
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
+import { NOTE_IMAGE_MAX } from 'src/lib/storage/note-images';
+import { signNoteImages, deleteNoteImages } from 'src/lib/storage/note-images-server';
 
 import { NOTE_TYPE_VALUES } from '../constants/note-types';
 
@@ -26,6 +28,7 @@ const noteSchema = z.object({
   title: z.string().trim().min(1).max(120),
   content: z.string().trim().min(1).max(10000),
   tags: z.array(tagSchema).max(12).default([]),
+  images: z.array(z.string().trim().min(1).max(300)).max(NOTE_IMAGE_MAX).default([]),
 });
 
 const updateSchema = noteSchema.extend({ id: z.string().min(1) });
@@ -52,12 +55,16 @@ export async function listNotes(): Promise<NoteRow[]> {
     orderBy: { updatedAt: 'desc' },
   });
 
+  const urlMap = await signNoteImages(rows.flatMap((r) => r.images));
+
   return rows.map((r) => ({
     id: r.id,
     type: r.type,
     title: r.title,
     content: r.content,
     tags: r.tags,
+    images: r.images,
+    imageUrls: r.images.map((p) => urlMap.get(p) ?? ''),
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
   }));
@@ -74,6 +81,7 @@ export async function createNote(input: z.infer<typeof noteSchema>): Promise<voi
       title: data.title,
       content: data.content,
       tags: normalizeTags(data.tags),
+      images: data.images,
     },
   });
 
@@ -84,6 +92,12 @@ export async function updateNote(input: z.infer<typeof updateSchema>): Promise<v
   const user = await requireUser();
   const data = updateSchema.parse(input);
 
+  // Fetch old images (scoped to a daily note the user owns) to purge orphans.
+  const existing = await prisma.note.findFirst({
+    where: { id: data.id, userId: user.id, type: { in: NOTE_TYPE_VALUES } },
+    select: { images: true },
+  });
+
   await prisma.note.update({
     where: { id: data.id, userId: user.id },
     data: {
@@ -91,8 +105,13 @@ export async function updateNote(input: z.infer<typeof updateSchema>): Promise<v
       title: data.title,
       content: data.content,
       tags: normalizeTags(data.tags),
+      images: data.images,
     },
   });
+
+  if (existing) {
+    await deleteNoteImages(existing.images.filter((p) => !data.images.includes(p)));
+  }
 
   revalidatePath(paths.dashboard.notes);
 }
@@ -100,9 +119,16 @@ export async function updateNote(input: z.infer<typeof updateSchema>): Promise<v
 export async function deleteNote(id: string): Promise<void> {
   const user = await requireUser();
 
+  const existing = await prisma.note.findFirst({
+    where: { id, userId: user.id, type: { in: NOTE_TYPE_VALUES } },
+    select: { images: true },
+  });
+
   await prisma.note.delete({
     where: { id, userId: user.id },
   });
+
+  if (existing) await deleteNoteImages(existing.images);
 
   revalidatePath(paths.dashboard.notes);
 }

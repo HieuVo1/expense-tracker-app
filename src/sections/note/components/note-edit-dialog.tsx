@@ -21,6 +21,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 
 import { Form, Field } from 'src/components/hook-form';
+import { NoteImagesField } from 'src/components/note-images/note-images-field';
 
 import { noteFormSchema } from '../schemas';
 import { createNote, updateNote } from '../actions/note-actions';
@@ -51,6 +52,7 @@ export function NoteEditDialog({ open, note, knownTags = [], onClose }: NoteEdit
       title: note?.title ?? (isEdit ? '' : buildDailyTitle()),
       content: note?.content ?? '',
       tags: note?.tags ?? [],
+      images: note?.images ?? [],
     },
   });
 
@@ -68,9 +70,18 @@ export function NoteEditDialog({ open, note, knownTags = [], onClose }: NoteEdit
         title: note?.title ?? (isEdit ? '' : buildDailyTitle()),
         content: note?.content ?? '',
         tags: note?.tags ?? [],
+        images: note?.images ?? [],
       });
     }
   }, [open, note, isEdit, reset]);
+
+  // Seed signed display URLs for existing images so the uploader shows previews.
+  const initialSignedUrls: Record<string, string> = {};
+  if (note) {
+    note.images.forEach((path, i) => {
+      initialSignedUrls[path] = note.imageUrls[i] ?? '';
+    });
+  }
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -123,6 +134,9 @@ export function NoteEditDialog({ open, note, knownTags = [], onClose }: NoteEdit
               </Typography>
               <Field.Editor name="content" placeholder="Viết nhật ký của bạn ở đây..." />
             </Box>
+
+            {/* Image attachments — private, stored in `note-images` bucket */}
+            <NoteImagesField initialSignedUrls={initialSignedUrls} />
           </Stack>
         </DialogContent>
 

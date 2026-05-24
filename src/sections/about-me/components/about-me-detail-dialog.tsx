@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import type { AboutMeRow , GoalMetadata } from '../types';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -18,6 +18,8 @@ import DialogActions from '@mui/material/DialogActions';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import { fDate } from 'src/utils/format-time';
+
+import { Lightbox, useLightbox } from 'src/components/lightbox';
 
 import { AboutMeEditDialog } from './about-me-edit-dialog';
 import { AboutMeDeleteConfirm } from './about-me-delete-confirm';
@@ -127,6 +129,13 @@ export function AboutMeDetailDialog({ open, row, onClose }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  // Hooks must run unconditionally — derive slides from a possibly-null row.
+  const slides = useMemo(
+    () => (row?.imageUrls ?? []).filter(Boolean).map((src) => ({ src })),
+    [row]
+  );
+  const lightbox = useLightbox(slides);
+
   if (!row) return null;
 
   return (
@@ -154,6 +163,38 @@ export function AboutMeDetailDialog({ open, row, onClose }: Props) {
             {row.type === 'SIGNAL' && renderSignalMeta(row)}
             {row.type === 'ACTION' && renderActionMeta(row)}
             {row.type === 'TRAIT' && renderTraitMeta(row)}
+
+            {/* Attached images — private, shown via signed URLs. Tap to preview. */}
+            {row.imageUrls.some((u) => u) && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {row.imageUrls.map((url, i) =>
+                  url ? (
+                    <Box
+                      key={i}
+                      onClick={() => lightbox.onOpen(url)}
+                      sx={{
+                        cursor: 'pointer',
+                        width: 96,
+                        height: 96,
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        transition: (t) => t.transitions.create('opacity'),
+                        '&:hover': { opacity: 0.85 },
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={url}
+                        alt=""
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </Box>
+                  ) : null
+                )}
+              </Box>
+            )}
 
             {/* Content — written via TipTap, rendered as escaped plain text.
                 Using whiteSpace: pre-wrap so newlines are preserved without
@@ -211,6 +252,17 @@ export function AboutMeDetailDialog({ open, row, onClose }: Props) {
         row={row}
         onClose={() => setDeleteOpen(false)}
         onDeleted={onClose}
+      />
+
+      <Lightbox
+        open={lightbox.open}
+        close={lightbox.onClose}
+        slides={slides}
+        index={lightbox.selected}
+        onGetCurrentIndex={(index) => lightbox.setSelected(index)}
+        disableVideo
+        disableSlideshow
+        disableThumbnails
       />
     </>
   );

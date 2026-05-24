@@ -11,9 +11,10 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 
 import { GratitudeForm } from '../components/gratitude-form';
+import { GRATITUDE_TARGET, GRATITUDE_ACCENT } from '../constants/gratitude';
 import { GratitudeHistoryList } from '../components/gratitude-history-list';
-import { GRATITUDE_ACCENT, GRATITUDE_MIN_ITEMS } from '../constants/gratitude';
 import { listGratitude, getTodayGratitude } from '../actions/gratitude-actions';
+import { GratitudeTodayEditButton } from '../components/gratitude-today-edit-button';
 
 // ----------------------------------------------------------------------
 
@@ -22,7 +23,7 @@ export async function GratitudeView() {
 
   const todayStr = dayjs().format('YYYY-MM-DD');
   const history = all.filter((e) => e.date !== todayStr);
-  const done = (today?.items.length ?? 0) >= GRATITUDE_MIN_ITEMS;
+  const done = (today?.items.length ?? 0) >= GRATITUDE_TARGET;
 
   return (
     <DashboardContent>
@@ -32,7 +33,7 @@ export async function GratitudeView() {
             Lòng biết ơn
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Mỗi ngày ghi lại ít nhất {GRATITUDE_MIN_ITEMS} điều bạn biết ơn.
+            Mỗi ngày ghi lại những điều bạn biết ơn.
           </Typography>
         </Box>
 
@@ -63,6 +64,9 @@ export async function GratitudeView() {
             >
               {dayjs().format('DD/MM/YYYY')}
             </Typography>
+            {/* Only when today already has a saved entry — lets the user re-date
+                it onto a previous day (or edit/delete it) via the edit dialog. */}
+            {today && <GratitudeTodayEditButton entry={today} />}
           </Stack>
 
           <GratitudeForm entry={today} />

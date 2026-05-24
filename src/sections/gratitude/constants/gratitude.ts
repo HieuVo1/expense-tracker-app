@@ -1,9 +1,10 @@
 // ----------------------------------------------------------------------
 // Daily gratitude practice — shared constants.
 
-// Hard minimum: an entry counts as "done for today" only with >= 5 items.
-// The form blocks saving below this threshold.
-export const GRATITUDE_MIN_ITEMS = 5;
+// Soft daily goal — NOT enforced (save allows as few as 1 item). Drives the
+// default starter rows, the progress chip, the "done" state, and the dashboard
+// reminder (which nudges until today reaches this many items).
+export const GRATITUDE_TARGET = 5;
 
 // Soft cap to keep payload + UI sane.
 export const GRATITUDE_MAX_ITEMS = 20;

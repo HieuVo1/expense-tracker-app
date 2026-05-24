@@ -10,8 +10,7 @@ import { paths } from 'src/routes/paths';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
-import { gratitudeUpsertSchema } from '../schemas';
-import { GRATITUDE_MIN_ITEMS } from '../constants/gratitude';
+import { gratitudeUpsertSchema, gratitudeUpdateSchema } from '../schemas';
 
 // ----------------------------------------------------------------------
 
@@ -61,7 +60,7 @@ export async function listGratitude(limit = 60): Promise<GratitudeEntryRow[]> {
   return rows.map(toRow);
 }
 
-// Upsert today's entry. Hard min of GRATITUDE_MIN_ITEMS enforced via Zod.
+// Upsert today's entry. At least 1 item enforced via Zod.
 export async function upsertTodayGratitude(items: string[]): Promise<void> {
   const user = await requireUser();
   const { items: clean } = gratitudeUpsertSchema.parse({ items });
@@ -77,14 +76,39 @@ export async function upsertTodayGratitude(items: string[]): Promise<void> {
   revalidatePath(paths.dashboard.root);
 }
 
-// Lightweight check for the dashboard reminder: is today's practice complete?
-export async function isGratitudeDoneToday(): Promise<boolean> {
+// Edit a past (or any) entry: change its date and/or items. Requires at least
+// 1 item, and rejects moving an entry onto a date that already has one.
+export async function updateGratitude(input: {
+  id: string;
+  date: string;
+  items: string[];
+}): Promise<void> {
   const user = await requireUser();
+  const { id, date, items } = gratitudeUpdateSchema.parse(input);
+  const dateObj = new Date(date);
 
-  const row = await prisma.gratitudeEntry.findUnique({
-    where: { userId_date: { userId: user.id, date: todayDate() } },
-    select: { items: true },
+  const clash = await prisma.gratitudeEntry.findUnique({
+    where: { userId_date: { userId: user.id, date: dateObj } },
+    select: { id: true },
+  });
+  if (clash && clash.id !== id) {
+    throw new Error('Đã có mục lòng biết ơn cho ngày này.');
+  }
+
+  await prisma.gratitudeEntry.update({
+    where: { id, userId: user.id },
+    data: { date: dateObj, items },
   });
 
-  return (row?.items.length ?? 0) >= GRATITUDE_MIN_ITEMS;
+  revalidatePath(paths.dashboard.gratitude);
+  revalidatePath(paths.dashboard.root);
+}
+
+export async function deleteGratitude(id: string): Promise<void> {
+  const user = await requireUser();
+
+  await prisma.gratitudeEntry.delete({ where: { id, userId: user.id } });
+
+  revalidatePath(paths.dashboard.gratitude);
+  revalidatePath(paths.dashboard.root);
 }

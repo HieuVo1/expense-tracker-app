@@ -78,7 +78,10 @@ export function HorizontalScrollStrip({
         sx={{
           display: 'flex',
           overflowX: 'auto',
-          touchAction: 'pan-x',
+          // Only lock to horizontal panning when the strip actually overflows
+          // horizontally. Otherwise (e.g. caller stacks items in a column on
+          // mobile) leave it 'auto' so vertical page scroll isn't blocked.
+          touchAction: canLeft || canRight ? 'pan-x' : 'auto',
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           '&::-webkit-scrollbar': { display: 'none' },

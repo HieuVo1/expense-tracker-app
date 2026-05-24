@@ -3,6 +3,8 @@
 import type { NoteType } from '@prisma/client';
 import type { CompanionCorpusEntry } from 'src/lib/ai/types';
 
+import dayjs from 'dayjs';
+
 import { paths } from 'src/routes/paths';
 
 import { prisma } from 'src/lib/prisma';
@@ -20,6 +22,12 @@ const CORPUS_TYPES: NoteType[] = [...ABOUT_ME_TYPE_VALUES, 'daily'];
 const MAX_ENTRIES = 400;
 const MAX_CONTENT_CHARS = 600;
 
+// Gratitude lives in its own table; pull recent days into the corpus too.
+// Prefix its ids so model-returned ids route back to the right lookup + page.
+const MAX_GRATITUDE = 60;
+const GRATITUDE_ID_PREFIX = 'gratitude:';
+const GRATITUDE_LABEL = 'Lòng biết ơn';
+
 const PROBLEM_MIN = 5;
 const PROBLEM_MAX = 2000;
 
@@ -32,7 +40,7 @@ const TYPE_LABELS: Record<NoteType, string> = {
 
 export type CompanionRelatedEntry = {
   id: string;
-  type: NoteType;
+  type: NoteType | 'gratitude';
   typeLabel: string;
   title: string;
   content: string;
@@ -96,13 +104,20 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
   }
   const safeProblem = trimmed.slice(0, PROBLEM_MAX);
 
-  const rows = await prisma.note.findMany({
-    where: { userId: user.id, type: { in: CORPUS_TYPES } },
-    orderBy: { updatedAt: 'desc' },
-    take: MAX_ENTRIES,
-  });
+  const [rows, gratitudeRows] = await Promise.all([
+    prisma.note.findMany({
+      where: { userId: user.id, type: { in: CORPUS_TYPES } },
+      orderBy: { updatedAt: 'desc' },
+      take: MAX_ENTRIES,
+    }),
+    prisma.gratitudeEntry.findMany({
+      where: { userId: user.id },
+      orderBy: { date: 'desc' },
+      take: MAX_GRATITUDE,
+    }),
+  ]);
 
-  if (rows.length === 0) {
+  if (rows.length === 0 && gratitudeRows.length === 0) {
     return {
       hasCorpus: false,
       acknowledgment:
@@ -115,7 +130,7 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
     };
   }
 
-  const corpus: CompanionCorpusEntry[] = rows.map((r) => ({
+  const noteCorpus: CompanionCorpusEntry[] = rows.map((r) => ({
     id: r.id,
     typeLabel: TYPE_LABELS[r.type] ?? r.type,
     title: r.title,
@@ -123,20 +138,47 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
     meta: metaHint(r.type, r.metadata),
   }));
 
-  const result = await requestCompanionSuggestion(safeProblem, corpus);
+  const gratitudeCorpus: CompanionCorpusEntry[] = gratitudeRows.map((g) => ({
+    id: `${GRATITUDE_ID_PREFIX}${g.id}`,
+    typeLabel: GRATITUDE_LABEL,
+    title: `Biết ơn ${dayjs(g.date).format('DD/MM/YYYY')}`,
+    content: clamp(g.items.map((it) => `• ${it}`).join('\n')),
+  }));
 
-  const byId = new Map(rows.map((r) => [r.id, r]));
+  const result = await requestCompanionSuggestion(safeProblem, [
+    ...noteCorpus,
+    ...gratitudeCorpus,
+  ]);
+
+  const noteById = new Map(rows.map((r) => [r.id, r]));
+  const gratitudeById = new Map(gratitudeRows.map((g) => [g.id, g]));
+
   const relatedEntries: CompanionRelatedEntry[] = result.relatedEntryIds
-    .map((id) => byId.get(id))
-    .filter((r): r is NonNullable<typeof r> => r != null)
-    .map((r) => ({
-      id: r.id,
-      type: r.type,
-      typeLabel: TYPE_LABELS[r.type] ?? r.type,
-      title: r.title,
-      content: clamp(r.content),
-      href: hrefFor(r.type),
-    }));
+    .map((id): CompanionRelatedEntry | null => {
+      if (id.startsWith(GRATITUDE_ID_PREFIX)) {
+        const g = gratitudeById.get(id.slice(GRATITUDE_ID_PREFIX.length));
+        if (!g) return null;
+        return {
+          id: g.id,
+          type: 'gratitude',
+          typeLabel: GRATITUDE_LABEL,
+          title: `Biết ơn ${dayjs(g.date).format('DD/MM/YYYY')}`,
+          content: clamp(g.items.join(' · ')),
+          href: paths.dashboard.gratitude,
+        };
+      }
+      const r = noteById.get(id);
+      if (!r) return null;
+      return {
+        id: r.id,
+        type: r.type,
+        typeLabel: TYPE_LABELS[r.type] ?? r.type,
+        title: r.title,
+        content: clamp(r.content),
+        href: hrefFor(r.type),
+      };
+    })
+    .filter((e): e is CompanionRelatedEntry => e != null);
 
   return {
     hasCorpus: true,

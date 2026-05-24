@@ -2,7 +2,8 @@
 
 import type { NoteRow } from '../types';
 
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -72,6 +73,15 @@ export function NoteListClient({ initial }: NoteListClientProps) {
   }, [initial, query, selectedTags]);
 
   const isFiltered = query.trim() !== '' || selectedTags.length > 0;
+
+  // Deep-link from the gallery: `?open=<id>` auto-opens that note's detail.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const openId = searchParams.get('open');
+    if (!openId) return;
+    const found = initial.find((n) => n.id === openId);
+    if (found) setViewNote(found);
+  }, [searchParams, initial]);
 
   const handleDelete = useCallback(async (note: NoteRow) => {
     try {

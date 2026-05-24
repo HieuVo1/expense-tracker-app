@@ -26,6 +26,7 @@ export const paths = {
     assets: `${ROOTS.DASHBOARD}/assets`,
     notes: `${ROOTS.DASHBOARD}/notes`,
     gratitude: `${ROOTS.DASHBOARD}/gratitude`,
+    gallery: `${ROOTS.DASHBOARD}/gallery`,
     plans: `${ROOTS.DASHBOARD}/plans`,
     planDetail: (id: string) => `${ROOTS.DASHBOARD}/plans/${id}`,
     subscriptions: `${ROOTS.DASHBOARD}/subscriptions`,

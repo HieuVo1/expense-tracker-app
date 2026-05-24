@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { NOTE_IMAGE_MAX } from 'src/lib/storage/note-images';
+
 import { NOTE_TYPE_VALUES } from './constants/note-types';
 
 // ----------------------------------------------------------------------
@@ -25,6 +27,9 @@ export const noteFormSchema = z.object({
     .min(1, 'Nội dung không được trống')
     .max(10000, 'Nội dung tối đa 10000 ký tự'),
   tags: z.array(tagSchema).max(12, 'Tối đa 12 thẻ'),
+  // Storage paths of attached images (private `note-images` bucket). No default
+  // here so the RHF form value type stays a required string[] (matches `tags`).
+  images: z.array(z.string().trim().min(1).max(300)).max(NOTE_IMAGE_MAX),
 });
 
 export type NoteFormValues = z.infer<typeof noteFormSchema>;

@@ -10,6 +10,7 @@ import { paths } from 'src/routes/paths';
 
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
+import { signNoteImages, deleteNoteImages } from 'src/lib/storage/note-images-server';
 
 import { ABOUT_ME_TYPE_VALUES } from '../constants/about-me-types';
 import { aboutMeFormSchema, aboutMeUpdateSchema } from '../schemas';
@@ -21,22 +22,28 @@ import { aboutMeFormSchema, aboutMeUpdateSchema } from '../schemas';
 // migrated to their UPPERCASE equivalents in migration 20260510084453.
 type NoteTypeUnion = 'GOAL' | 'THOUGHT' | 'LESSON' | 'SIGNAL' | 'PRINCIPLE' | 'TRAIT' | 'ACTION' | 'daily';
 
-function mapRow(r: {
-  id: string;
-  type: NoteTypeUnion;
-  title: string;
-  content: string;
-  tags: string[];
-  metadata: unknown;
-  createdAt: Date;
-  updatedAt: Date;
-}): AboutMeRow {
+function mapRow(
+  r: {
+    id: string;
+    type: NoteTypeUnion;
+    title: string;
+    content: string;
+    tags: string[];
+    images: string[];
+    metadata: unknown;
+    createdAt: Date;
+    updatedAt: Date;
+  },
+  urlMap: Map<string, string>
+): AboutMeRow {
   return {
     id: r.id,
     type: r.type as AboutMeType,
     title: r.title,
     content: r.content,
     tags: r.tags,
+    images: r.images,
+    imageUrls: r.images.map((p) => urlMap.get(p) ?? ''),
     metadata:
       r.metadata !== null && typeof r.metadata === 'object'
         ? (r.metadata as Record<string, unknown>)
@@ -89,7 +96,8 @@ export async function listAboutMe(type?: AboutMeType): Promise<AboutMeRow[]> {
     orderBy: { updatedAt: 'desc' },
   });
 
-  return rows.map(mapRow);
+  const urlMap = await signNoteImages(rows.flatMap((r) => r.images));
+  return rows.map((r) => mapRow(r, urlMap));
 }
 
 export async function getAboutMe(id: string): Promise<AboutMeRow | null> {
@@ -103,7 +111,9 @@ export async function getAboutMe(id: string): Promise<AboutMeRow | null> {
     },
   });
 
-  return row ? mapRow(row) : null;
+  if (!row) return null;
+  const urlMap = await signNoteImages(row.images);
+  return mapRow(row, urlMap);
 }
 
 export async function createAboutMe(
@@ -119,12 +129,14 @@ export async function createAboutMe(
       title: resolveTitle(data.type, data.title),
       content: data.content ?? '',
       tags: normalizeTags(data.tags ?? []),
+      images: data.images ?? [],
       metadata: data.metadata as Prisma.InputJsonValue,
     },
   });
 
   revalidateAboutMe(data.type);
-  return mapRow(row);
+  const urlMap = await signNoteImages(row.images);
+  return mapRow(row, urlMap);
 }
 
 export async function updateAboutMe(
@@ -142,13 +154,14 @@ export async function updateAboutMe(
       userId: user.id,
       type: { in: ABOUT_ME_TYPE_VALUES as NoteTypeUnion[] },
     },
-    select: { id: true },
+    select: { id: true, images: true },
   });
 
   if (!existing) {
     throw new Error(`About-me row ${data.id} not found, not owned, or not an about-me type`);
   }
 
+  const nextImages = data.images ?? [];
   const row = await prisma.note.update({
     where: {
       id: data.id,
@@ -159,12 +172,17 @@ export async function updateAboutMe(
       title: resolveTitle(data.type, data.title),
       content: data.content ?? '',
       tags: normalizeTags(data.tags ?? []),
+      images: nextImages,
       metadata: data.metadata as Prisma.InputJsonValue,
     },
   });
 
+  // Purge images the user removed in this edit (orphan cleanup).
+  await deleteNoteImages(existing.images.filter((p) => !nextImages.includes(p)));
+
   revalidateAboutMe(data.type);
-  return mapRow(row);
+  const urlMap = await signNoteImages(row.images);
+  return mapRow(row, urlMap);
 }
 
 export async function deleteAboutMe(id: string): Promise<void> {
@@ -176,12 +194,15 @@ export async function deleteAboutMe(id: string): Promise<void> {
       userId: user.id,
       type: { in: ABOUT_ME_TYPE_VALUES as NoteTypeUnion[] },
     },
-    select: { type: true },
+    select: { type: true, images: true },
   });
 
   if (!row) return; // already deleted or not owned
 
   await prisma.note.delete({ where: { id, userId: user.id } });
+
+  // Remove the row's images from Storage so nothing is left orphaned.
+  await deleteNoteImages(row.images);
 
   revalidateAboutMe(row.type as AboutMeType);
 }

@@ -14,25 +14,31 @@ import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
 
+import { GRATITUDE_ACCENT } from 'src/sections/gratitude/constants/gratitude';
+
 import { ABOUT_ME_TYPE_ICONS, ABOUT_ME_TYPE_COLORS } from '../constants/about-me-types';
 
 // ----------------------------------------------------------------------
 
-// daily isn't an About-me type, so it has no entry in the About-me maps —
-// supply its chip color + icon locally to keep this card self-contained.
+type EntryType = NoteType | 'gratitude';
+
+// daily + gratitude aren't About-me types, so they have no entry in the
+// About-me maps — supply their chip color + icon locally to keep this card
+// self-contained.
 const DAILY_COLOR = '#5d737e';
 const DAILY_ICON: IconifyName = 'solar:calendar-date-bold';
+const GRATITUDE_ICON: IconifyName = 'solar:hand-heart-bold';
 
-function chipColor(type: NoteType): string {
-  return type === 'daily'
-    ? DAILY_COLOR
-    : ABOUT_ME_TYPE_COLORS[type as keyof typeof ABOUT_ME_TYPE_COLORS];
+function chipColor(type: EntryType): string {
+  if (type === 'daily') return DAILY_COLOR;
+  if (type === 'gratitude') return GRATITUDE_ACCENT;
+  return ABOUT_ME_TYPE_COLORS[type as keyof typeof ABOUT_ME_TYPE_COLORS];
 }
 
-function chipIcon(type: NoteType): IconifyName {
-  return type === 'daily'
-    ? DAILY_ICON
-    : ABOUT_ME_TYPE_ICONS[type as keyof typeof ABOUT_ME_TYPE_ICONS];
+function chipIcon(type: EntryType): IconifyName {
+  if (type === 'daily') return DAILY_ICON;
+  if (type === 'gratitude') return GRATITUDE_ICON;
+  return ABOUT_ME_TYPE_ICONS[type as keyof typeof ABOUT_ME_TYPE_ICONS];
 }
 
 // ----------------------------------------------------------------------
