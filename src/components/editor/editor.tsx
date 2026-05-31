@@ -160,13 +160,19 @@ export function Editor({
         >
           {editor && !editor.isDestroyed && (
             <>
-              <Toolbar
-                editor={editor}
-                fullItem={fullItem}
-                fullscreen={fullscreen}
-                onToggleFullscreen={handleToggleFullscreen}
-              />
-              <BubbleToolbar editor={editor} />
+              {/* View mode (editable=false): no toolbar / bubble menu — content
+                  renders as static HTML inside the editor styles. */}
+              {editable && (
+                <>
+                  <Toolbar
+                    editor={editor}
+                    fullItem={fullItem}
+                    fullscreen={fullscreen}
+                    onToggleFullscreen={handleToggleFullscreen}
+                  />
+                  <BubbleToolbar editor={editor} />
+                </>
+              )}
               <EditorContent
                 ref={contentRef}
                 spellCheck={false}

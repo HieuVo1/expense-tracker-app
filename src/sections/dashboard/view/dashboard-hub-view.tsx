@@ -17,10 +17,12 @@ import { getAboutMeStats } from 'src/sections/about-me/actions/about-me-stats';
 import { computeSubscriptionTotals } from 'src/sections/subscription/utils/summary';
 import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { getDailyReflection } from 'src/sections/about-me/actions/about-me-reflection';
+import { getDailyVerse } from 'src/sections/bible/actions/bible-daily-verse';
 import { listSubscriptions } from 'src/sections/subscription/actions/subscription-actions';
 import { SubscriptionDashboardCard } from 'src/sections/subscription/components/subscription-dashboard-card';
 
 import { HubDomainCard } from '../components/hub-domain-card';
+import { DailyVerseCard } from '../components/daily-verse-card';
 import { getDashboardData } from '../actions/dashboard-actions';
 import { getDashboardReminders } from '../actions/dashboard-reminders';
 import { DailyReflectionCard } from '../components/daily-reflection-card';
@@ -43,6 +45,7 @@ export async function DashboardHubView() {
     subs,
     reminders,
     reflection,
+    dailyVerse,
   ] = await Promise.all([
     getAboutMeStats(),
     getDashboardData(),
@@ -52,6 +55,7 @@ export async function DashboardHubView() {
     listSubscriptions(),
     getDashboardReminders(),
     getDailyReflection(),
+    getDailyVerse(),
   ]);
 
   // --- Asset summary ---
@@ -152,6 +156,9 @@ export async function DashboardHubView() {
 
         {/* Daily reflection — random self-note shown on app open. */}
         <DailyReflectionCard reflection={reflection} />
+
+        {/* Daily verse — one OK verse from the user's lessons, stable per day. */}
+        <DailyVerseCard verse={dailyVerse} />
 
         {/* Reminders — cross-domain pending items. */}
         <DashboardRemindersCard reminders={reminders} />

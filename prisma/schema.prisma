@@ -18,15 +18,19 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  transactions  Transaction[]
-  categories    Category[]
-  budgets       Budget[]
-  merchants     MerchantMemory[]
-  assets        Asset[]
-  notes         Note[]
-  plans         Plan[]
-  subscriptions Subscription[]
-  gratitudes    GratitudeEntry[]
+  transactions      Transaction[]
+  categories        Category[]
+  budgets           Budget[]
+  merchants         MerchantMemory[]
+  assets            Asset[]
+  notes             Note[]
+  plans             Plan[]
+  subscriptions     Subscription[]
+  gratitudes        GratitudeEntry[]
+  bibleLessons      BibleLesson[]
+  bibleVerses       BibleVerse[]
+  bibleThemes       BibleTheme[]
+  bibleReviewStates BibleReviewState[]
 
   @@map("users")
 }
@@ -162,10 +166,10 @@ enum PlanStatus {
 // Eisenhower Matrix quadrants — required on every PlanTask, no default.
 // Future: an `aiSuggestedPriority` field may be added without migration pain.
 enum TaskPriority {
-  do_first   // Q1: urgent + important — Khẩn cấp & Quan trọng
-  schedule   // Q2: important, not urgent — Quan trọng
-  delegate   // Q3: urgent, not important — Khẩn cấp
-  eliminate  // Q4: neither — Không quan trọng
+  do_first // Q1: urgent + important — Khẩn cấp & Quan trọng
+  schedule // Q2: important, not urgent — Quan trọng
+  delegate // Q3: urgent, not important — Khẩn cấp
+  eliminate // Q4: neither — Không quan trọng
 }
 
 model Note {
@@ -289,4 +293,119 @@ model OcrLog {
 
   @@index([provider, createdAt])
   @@map("ocr_logs")
+}
+
+// Bible Study Tracker — Phase 01.
+// User uploads a daily Obsidian markdown lesson (template "bible-lesson-v1").
+// rawMarkdown lets us re-parse if the parser improves; parsedSections is the
+// derived cache the UI reads directly.
+model BibleLesson {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id") @db.Uuid
+  title          String
+  date           DateTime @db.Date
+  sourceFilename String?  @map("source_filename")
+  bibleVersion   String   @default("VIE2010") @map("bible_version")
+  rawMarkdown    String   @map("raw_markdown") @db.Text
+  parsedSections Json     @map("parsed_sections")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verses BibleLessonVerse[]
+
+  @@index([userId, date(sort: Desc)])
+  @@map("bible_lessons")
+}
+
+// Per-(user, range) verse cache. Same range across lessons → single row.
+// endVerse == startVerse for single-verse refs. fetchStatus tracks
+// ok | failed | ambiguous so the UI can offer "Tải lại" / book picker.
+model BibleVerse {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id") @db.Uuid
+  bookCode    String   @map("book_code")
+  bookName    String   @map("book_name")
+  chapter     Int
+  startVerse  Int      @map("start_verse")
+  endVerse    Int      @map("end_verse")
+  text        String   @db.Text
+  version     String   @default("VIE2010")
+  fetchStatus String   @default("ok") @map("fetch_status")
+  fetchedAt   DateTime @default(now()) @map("fetched_at")
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessons BibleLessonVerse[]
+  themes  BibleVerseTheme[]
+  review  BibleReviewState?
+
+  @@unique([userId, bookCode, chapter, startVerse, endVerse, version])
+  @@index([userId, bookCode, chapter])
+  @@map("bible_verses")
+}
+
+model BibleLessonVerse {
+  lessonId String @map("lesson_id")
+  verseId  String @map("verse_id")
+  order    Int    @default(0)
+
+  lesson BibleLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  verse  BibleVerse  @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, verseId])
+  @@index([verseId])
+  @@map("bible_lesson_verses")
+}
+
+model BibleTheme {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id") @db.Uuid
+  name        String
+  color       String   @default("#00A76F")
+  description String?  @db.Text
+  order       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verses BibleVerseTheme[]
+
+  @@unique([userId, name])
+  @@index([userId, order])
+  @@map("bible_themes")
+}
+
+model BibleVerseTheme {
+  verseId String   @map("verse_id")
+  themeId String   @map("theme_id")
+  addedAt DateTime @default(now()) @map("added_at")
+
+  verse BibleVerse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+  theme BibleTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([verseId, themeId])
+  @@index([themeId])
+  @@map("bible_verse_themes")
+}
+
+// SM-2 lite spaced-repetition state per (user, verse). Row created lazily on
+// first review. nextReviewDate stored as DATE (naive UTC midnight; helpers in
+// src/utils/format-time.ts produce these from VN wall-clock).
+model BibleReviewState {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id") @db.Uuid
+  verseId        String    @unique @map("verse_id")
+  easiness       Float     @default(2.5)
+  interval       Int       @default(0)
+  repetitions    Int       @default(0)
+  nextReviewDate DateTime  @map("next_review_date") @db.Date
+  lastReviewedAt DateTime? @map("last_reviewed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verse BibleVerse @relation(fields: [verseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, nextReviewDate])
+  @@map("bible_review_states")
 }

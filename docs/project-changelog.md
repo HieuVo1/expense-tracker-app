@@ -3,6 +3,19 @@
 > Format: ngày + scope. Mọi phase / feature / fix lớn cập nhật vào đây.
 > Không log mỗi commit — gom theo feature.
 
+## 2026-05-31 — Bible Study Tracker + VN-tz dashboard reminder fix
+
+**Plan:** [`plans/260531-0758-bible-study-tracker/`](../plans/260531-0758-bible-study-tracker/)
+
+- feat: NEW module Kinh thánh (`/dashboard/bible`) — upload `.md` lesson theo template `bible-lesson-v1`, parse section "## 2. Câu kinh trong bài", fetch nội dung VIE2010 từ bible.com (chapter scrape via `__NEXT_DATA__.chapterInfo.content`), cache per (book, chapter, range) trong `BibleVerse`, Gemini fallback
+- feat: User-managed themes (`BibleTheme` + `BibleVerseTheme` m2m), AI gợi ý chủ đề (Gemini, hallucinated-name whitelist) khi gắn câu kinh, manual confirm
+- feat: SM-2 lite spaced-repetition review — 4 nút Quên/Khó/OK/Dễ, `BibleReviewState` row per (user, verse), nextReviewDate VN-anchored
+- feat: 4 routes mới — hub (lessons list + stats + import button + "Ôn tập (N)"), lesson detail (verses inline + theme picker + TipTap read-only render), themes list + detail, review flashcard
+- feat: ambiguous reference resolver — refs như "Cô-rinh-tô 4:16" (không có 1/2 prefix) tạo stub row, UI book picker để user resolve
+- DB: 6 models mới + 4 User relations, migration `20260531081900_add_bible_study_models` (13 migrations total). RLS appended ở `prisma/rls.sql` (cần paste vào Supabase SQL Editor)
+- Source provider abstraction tại `src/lib/bible/` (mirror OCR pattern), env `BIBLE_SOURCE`: `auto` (default, bible-com → gemini) | `bible-com` | `gemini`
+- fix: dashboard reminders + gratitude date — chuyển từ `dayjs().format('YYYY-MM-DD')` (UTC server) sang `fTodayVN()` (UTC+7). Reminder + gratitude entry giờ rollover lúc 00:00 VN thay vì 07:00 VN. Helper mới `fTodayVN()` / `fTodayVNDate()` trong `src/utils/format-time.ts`. Fix 4 file server-side: `dashboard-reminders.ts`, `gratitude-actions.ts`, `gratitude-view.tsx` (RSC), `plan-dates.ts` (`isPlanCurrent`)
+
 ## 2026-05-24 — Gratitude, Note images, Gallery page
 
 - feat: NEW module Lòng biết ơn (daily gratitude) — `GratitudeEntry` model (1/user/day, items array, unique index), `/dashboard/gratitude`, soft target 5 items, dashboard reminder when incomplete

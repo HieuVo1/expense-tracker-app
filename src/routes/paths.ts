@@ -34,5 +34,12 @@ export const paths = {
     aboutMe: `${ROOTS.DASHBOARD}/about-me`,
     aboutMeCompanion: `${ROOTS.DASHBOARD}/about-me/companion`,
     aboutMeType: (type: string) => `${ROOTS.DASHBOARD}/about-me/${type.toLowerCase()}`,
+    bible: {
+      root: `${ROOTS.DASHBOARD}/bible`,
+      lessonDetail: (id: string) => `${ROOTS.DASHBOARD}/bible/lessons/${id}`,
+      themes: `${ROOTS.DASHBOARD}/bible/themes`,
+      themeDetail: (id: string) => `${ROOTS.DASHBOARD}/bible/themes/${id}`,
+      review: `${ROOTS.DASHBOARD}/bible/review`,
+    },
   },
 };

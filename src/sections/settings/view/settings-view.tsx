@@ -146,6 +146,13 @@ export async function SettingsView() {
             actionLabel="Mở"
           />
           <SettingsRow
+            icon="solar:book-bookmark-bold"
+            title="Học tập"
+            description="Bài học Kinh thánh, chủ đề và ôn tập SM-2"
+            actionHref={paths.dashboard.bible.root}
+            actionLabel="Mở"
+          />
+          <SettingsRow
             icon="solar:lock-password-bold-duotone"
             title="Đổi mật khẩu"
             description="Đặt lại mật khẩu đăng nhập"

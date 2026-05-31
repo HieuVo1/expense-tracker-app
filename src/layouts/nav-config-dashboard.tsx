@@ -19,6 +19,7 @@ const icon = (
     | 'about-me'
     | 'gratitude'
     | 'gallery'
+    | 'bible'
 ) => {
   const map = {
     home: 'solar:home-angle-bold-duotone',
@@ -34,6 +35,7 @@ const icon = (
     'about-me': 'solar:user-rounded-bold',
     gratitude: 'solar:hand-heart-bold',
     gallery: 'solar:gallery-wide-bold',
+    bible: 'solar:book-bookmark-bold',
   } as const;
   return <Iconify icon={map[name]} width={24} />;
 };
@@ -66,6 +68,8 @@ export const navData: NavSectionProps['data'] = [
       { title: 'Thư viện ảnh', path: paths.dashboard.gallery, icon: icon('gallery') },
       // deepMatch so /dashboard/plans/[id] still highlights "Kế hoạch".
       { title: 'Kế hoạch', path: paths.dashboard.plans, icon: icon('plans'), deepMatch: true },
+      // deepMatch for /dashboard/bible/lessons/[id], /themes, /review.
+      { title: 'Học tập', path: paths.dashboard.bible.root, icon: icon('bible'), deepMatch: true },
     ],
   },
   {

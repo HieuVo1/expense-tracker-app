@@ -2,7 +2,7 @@
 
 > Tài liệu sống — cập nhật mỗi khi feature đổi trạng thái hoặc roadmap dịch chuyển.
 
-**Cập nhật gần nhất:** 2026-05-24
+**Cập nhật gần nhất:** 2026-05-31
 
 ## Trạng thái tổng
 
@@ -23,6 +23,7 @@
 | B.2 | Dashboard reminders (overdue/today tasks + expired plans) | ✅ DONE |
 | C | About me module (7 entry types: GOAL/THOUGHT/LESSON/SIGNAL/PRINCIPLE/TRAIT/ACTION) | ✅ DONE |
 | D | Gratitude + AI Companion corpus + Note images + Gallery | ✅ DONE |
+| E | Bible Study Tracker (import .md lesson + bible.com fetch + themes + SM-2 review) | ✅ DONE |
 | 7.5 | Receipt cleanup cron (60-day auto-delete) | ⏳ PENDING |
 | 8 | Vercel deploy (region `sin1`) | ✅ DONE |
 
