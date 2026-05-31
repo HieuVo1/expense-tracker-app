@@ -11,14 +11,29 @@ dayjs.extend(isoWeek);
 // ----------------------------------------------------------------------
 
 /**
- * Returns suggested start/end dates for the given scope (current week or month).
- * Week starts Monday per VN convention (ISO week).
+ * Returns suggested start/end dates for the given scope.
+ * - weekly: current ISO week (Mon–Sun per VN convention)
+ * - monthly: current calendar month
+ * - yearly: current calendar year
+ * - backlog: null/null (no period)
  */
-export function suggestRange(scope: PlanScope, base = dayjs()): { startDate: string; endDate: string } {
+export function suggestRange(
+  scope: PlanScope,
+  base = dayjs()
+): { startDate: string | null; endDate: string | null } {
+  if (scope === 'backlog') {
+    return { startDate: null, endDate: null };
+  }
   if (scope === 'weekly') {
     return {
       startDate: base.startOf('isoWeek').format('YYYY-MM-DD'),
       endDate: base.endOf('isoWeek').format('YYYY-MM-DD'),
+    };
+  }
+  if (scope === 'yearly') {
+    return {
+      startDate: base.startOf('year').format('YYYY-MM-DD'),
+      endDate: base.endOf('year').format('YYYY-MM-DD'),
     };
   }
   return {
@@ -31,14 +46,17 @@ export function suggestRange(scope: PlanScope, base = dayjs()): { startDate: str
 
 /**
  * Returns true when today falls between startDate and endDate (inclusive)
- * and status is active.
+ * and status is active. Backlog plans are never "current" — they have no period.
  */
 export function isPlanCurrent(row: {
-  startDate: string;
-  endDate: string;
+  scope: PlanScope;
+  startDate: string | null;
+  endDate: string | null;
   status: PlanStatus;
 }): boolean {
   if (row.status !== 'active') return false;
+  if (row.scope === 'backlog') return false;
+  if (!row.startDate || !row.endDate) return false;
   const today = fTodayVN();
   return today >= row.startDate && today <= row.endDate;
 }
@@ -47,13 +65,16 @@ export function isPlanCurrent(row: {
 
 /**
  * Computes the next-period range starting the day after `currentEndDate`.
- * - weekly: 7-day window (next Mon–Sun if current ends Sunday)
+ * - weekly: 7-day window
  * - monthly: full following calendar month
+ * - yearly: next calendar year
+ * - backlog: throws — no period to roll
  */
 export function nextRange(
   scope: PlanScope,
   currentEndDate: string
 ): { startDate: string; endDate: string } {
+  if (scope === 'backlog') throw new Error('ROLLOVER_NOT_SUPPORTED');
   const start = dayjs(currentEndDate).add(1, 'day');
   if (scope === 'weekly') {
     return {
@@ -61,8 +82,43 @@ export function nextRange(
       endDate: start.add(6, 'day').format('YYYY-MM-DD'),
     };
   }
+  if (scope === 'yearly') {
+    return {
+      startDate: start.format('YYYY-MM-DD'),
+      endDate: start.endOf('year').format('YYYY-MM-DD'),
+    };
+  }
   return {
     startDate: start.format('YYYY-MM-DD'),
     endDate: start.endOf('month').format('YYYY-MM-DD'),
   };
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * True when range exactly matches a full calendar year (01/01 – 31/12).
+ * Used to render "Năm 2026" instead of the verbose range.
+ */
+export function isFullYear(startDate: string | null, endDate: string | null): boolean {
+  if (!startDate || !endDate) return false;
+  const s = dayjs(startDate);
+  const e = dayjs(endDate);
+  return (
+    s.year() === e.year() &&
+    s.month() === 0 &&
+    s.date() === 1 &&
+    e.month() === 11 &&
+    e.date() === 31
+  );
+}
+
+// ----------------------------------------------------------------------
+
+/** Rollover button label adapts to scope. */
+export function rolloverLabel(scope: PlanScope): string {
+  if (scope === 'yearly') return 'Cuộn sang năm sau';
+  if (scope === 'monthly') return 'Cuộn sang tháng sau';
+  if (scope === 'weekly') return 'Cuộn sang tuần sau';
+  return '';
 }

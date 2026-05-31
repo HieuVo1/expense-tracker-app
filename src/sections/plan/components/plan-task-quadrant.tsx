@@ -1,6 +1,6 @@
 'use client';
 
-import type { TaskPriority } from '@prisma/client';
+import type { LifeArea, TaskPriority } from '@prisma/client';
 import type { PlanTaskRow } from '../types';
 
 import Box from '@mui/material/Box';
@@ -25,7 +25,9 @@ type Props = {
   onToggle: (id: string, isDone: boolean) => void;
   onRename: (id: string, title: string) => void;
   onChangePriority: (id: string, priority: TaskPriority) => void;
+  onChangeLifeArea?: (id: string, area: LifeArea | null) => void;
   onDelete: (id: string) => void;
+  onRequestMove?: (taskId: string) => void;
 };
 
 export function PlanTaskQuadrant({
@@ -34,7 +36,9 @@ export function PlanTaskQuadrant({
   onToggle,
   onRename,
   onChangePriority,
+  onChangeLifeArea,
   onDelete,
+  onRequestMove,
 }: Props) {
   const theme = useTheme();
   const colorKey = TASK_PRIORITY_COLOR[priority];
@@ -51,7 +55,6 @@ export function PlanTaskQuadrant({
         bgcolor: 'background.paper',
       }}
     >
-      {/* Quadrant header */}
       <Box
         sx={{
           display: 'flex',
@@ -81,7 +84,6 @@ export function PlanTaskQuadrant({
         </Box>
       </Box>
 
-      {/* Task list */}
       <Stack sx={{ px: 1.5, py: 1, minHeight: 64 }}>
         {tasks.length === 0 ? (
           <Typography
@@ -99,7 +101,9 @@ export function PlanTaskQuadrant({
               onToggle={onToggle}
               onRename={onRename}
               onChangePriority={onChangePriority}
+              onChangeLifeArea={onChangeLifeArea}
               onDelete={onDelete}
+              onRequestMove={onRequestMove}
             />
           ))
         )}

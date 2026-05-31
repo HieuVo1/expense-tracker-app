@@ -2,8 +2,8 @@
 
 import type { LessonSectionKey } from '../types';
 
-import dynamic from 'next/dynamic';
 import { toast } from 'sonner';
+import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 
 import Stack from '@mui/material/Stack';

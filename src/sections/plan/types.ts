@@ -1,4 +1,4 @@
-import type { PlanScope, PlanStatus, TaskPriority } from '@prisma/client';
+import type { LifeArea, TimeSlot, PlanScope, PlanStatus, TaskPriority } from '@prisma/client';
 
 // ----------------------------------------------------------------------
 
@@ -7,8 +7,9 @@ export type PlanRow = {
   scope: PlanScope;
   title: string;
   description: string | null;
-  startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
+  // Null for backlog plans (no period).
+  startDate: string | null; // YYYY-MM-DD
+  endDate: string | null; // YYYY-MM-DD
   status: PlanStatus;
   doneCount: number;
   totalCount: number;
@@ -26,7 +27,10 @@ export type PlanTaskRow = {
   title: string;
   isDone: boolean;
   priority: TaskPriority;
+  lifeArea: LifeArea | null;
   dueDate: string | null; // YYYY-MM-DD
+  scheduledDate: string | null; // YYYY-MM-DD
+  scheduledSlot: TimeSlot | null;
   order: number;
   createdAt: string; // ISO
 };
@@ -35,4 +39,13 @@ export type PlanTaskRow = {
 
 export type PlanDetail = PlanRow & {
   tasks: PlanTaskRow[];
+};
+
+// ----------------------------------------------------------------------
+
+/** Lightweight target row used by the "Move task to plan" picker. */
+export type PlanMoveTarget = {
+  id: string;
+  scope: PlanScope;
+  title: string;
 };

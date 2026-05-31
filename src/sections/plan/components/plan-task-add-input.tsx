@@ -1,6 +1,6 @@
 'use client';
 
-import type { TaskPriority } from '@prisma/client';
+import type { LifeArea, TaskPriority } from '@prisma/client';
 
 import { toast } from 'sonner';
 import { memo, useState, useTransition } from 'react';
@@ -22,6 +22,12 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { Iconify } from 'src/components/iconify';
 
 import { addTask } from '../actions/plan-task-actions';
+import { PlanTaskLifeAreaMenu } from './plan-task-life-area-menu';
+import {
+  LIFE_AREA_ICON,
+  LIFE_AREA_LABEL,
+  LIFE_AREA_COLOR,
+} from '../constants/life-area';
 import {
   TASK_PRIORITY_ICON,
   TASK_PRIORITY_ORDER,
@@ -32,8 +38,6 @@ import {
 // ----------------------------------------------------------------------
 
 // Memoized priority row — only re-renders when `value` or `disabled` changes.
-// Prevents the 4 ToggleButtons + tooltips from re-evaluating their sx callbacks
-// on every keystroke in the title field, which caused perceived typing lag.
 const PriorityRow = memo(function PriorityRow({
   value,
   onChange,
@@ -95,6 +99,8 @@ export function PlanTaskAddInput({ planId }: Props) {
   const [isPending, startTransition] = useTransition();
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<TaskPriority | null>(null);
+  const [lifeArea, setLifeArea] = useState<LifeArea | null>(null);
+  const [areaAnchor, setAreaAnchor] = useState<HTMLElement | null>(null);
 
   const trimmedLen = title.trim().length;
   const canSubmit = trimmedLen > 0 && priority !== null && !isPending;
@@ -105,9 +111,10 @@ export function PlanTaskAddInput({ planId }: Props) {
     const trimmedTitle = title.trim();
     startTransition(async () => {
       try {
-        await addTask(planId, { title: trimmedTitle, priority });
+        await addTask(planId, { title: trimmedTitle, priority, lifeArea });
         setTitle('');
         setPriority(null);
+        setLifeArea(null);
       } catch {
         toast.error('Không thể thêm việc. Vui lòng thử lại.');
       }
@@ -120,6 +127,10 @@ export function PlanTaskAddInput({ planId }: Props) {
       handleSubmit();
     }
   };
+
+  const areaColor = lifeArea ? theme.palette[LIFE_AREA_COLOR[lifeArea]].main : theme.palette.text.disabled;
+  const areaIcon = lifeArea ? LIFE_AREA_ICON[lifeArea] : 'solar:suitcase-tag-bold';
+  const areaText = lifeArea ? LIFE_AREA_LABEL[lifeArea] : 'Khía cạnh (tùy chọn)';
 
   return (
     <Box
@@ -146,9 +157,37 @@ export function PlanTaskAddInput({ planId }: Props) {
           slotProps={{ htmlInput: { maxLength: 200 } }}
         />
 
-        {/* Priority picker + submit row */}
+        {/* Priority + life-area + submit row */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <PriorityRow value={priority} onChange={setPriority} disabled={isPending} />
+
+          {/* Life area picker (optional) */}
+          <Tooltip title="Khía cạnh cuộc sống (tuỳ chọn)">
+            <ToggleButton
+              value="life-area"
+              selected={lifeArea !== null}
+              size="small"
+              onClick={(e) => setAreaAnchor(e.currentTarget)}
+              disabled={isPending}
+              sx={{
+                gap: 0.5,
+                border: `1px solid ${theme.palette.divider}`,
+                textTransform: 'none',
+                '&.Mui-selected': {
+                  bgcolor: `${areaColor}18`,
+                  borderColor: areaColor,
+                  color: areaColor,
+                },
+              }}
+            >
+              <Iconify icon={areaIcon} width={16} sx={{ color: areaColor }} />
+              <Typography variant="caption" sx={{ color: 'inherit' }}>
+                {areaText}
+              </Typography>
+            </ToggleButton>
+          </Tooltip>
+
+          <Box sx={{ flex: 1 }} />
 
           <Tooltip title={!canSubmit ? 'Nhập tên và chọn độ ưu tiên' : 'Thêm việc'}>
             <span>
@@ -177,6 +216,13 @@ export function PlanTaskAddInput({ planId }: Props) {
           {priority === null && trimmedLen > 0 ? 'Vui lòng chọn độ ưu tiên trước khi thêm' : ''}
         </Typography>
       </Stack>
+
+      <PlanTaskLifeAreaMenu
+        anchorEl={areaAnchor}
+        current={lifeArea}
+        onSelect={setLifeArea}
+        onClose={() => setAreaAnchor(null)}
+      />
     </Box>
   );
 }

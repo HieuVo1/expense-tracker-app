@@ -27,7 +27,7 @@ import { Form, Field } from 'src/components/hook-form';
 import { planFormSchema } from '../schemas';
 import { suggestRange } from '../utils/plan-dates';
 import { updatePlan } from '../actions/plan-actions';
-import { PLAN_SCOPE_LABELS } from '../constants/plan-meta';
+import { PLAN_SCOPE_LABELS, PLAN_SCOPE_VALUES } from '../constants/plan-meta';
 
 // ----------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ export function PlanEditDialog({ plan, open, onClose }: PlanEditDialogProps) {
     }
   }, [open, plan, reset]);
 
-  // Auto-update dates when scope changes — only if dates not manually edited
+  // Auto-update dates when scope changes — only if dates not manually edited.
   useEffect(() => {
     const range = suggestRange(scope);
     if (!dirtyFields.startDate) setValue('startDate', range.startDate);
@@ -98,13 +98,18 @@ export function PlanEditDialog({ plan, open, onClose }: PlanEditDialogProps) {
         <DialogContent sx={{ px: 3, py: 2.5 }}>
           <Stack spacing={3}>
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Loại kế hoạch</Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Loại kế hoạch
+              </Typography>
               <Tabs
                 value={scope}
                 onChange={(_, v: PlanScope) => setValue('scope', v, { shouldDirty: false })}
+                variant="scrollable"
+                scrollButtons="auto"
               >
-                <Tab label={PLAN_SCOPE_LABELS.weekly} value="weekly" />
-                <Tab label={PLAN_SCOPE_LABELS.monthly} value="monthly" />
+                {PLAN_SCOPE_VALUES.map((s) => (
+                  <Tab key={s} label={PLAN_SCOPE_LABELS[s]} value={s} />
+                ))}
               </Tabs>
             </Box>
 
@@ -124,23 +129,25 @@ export function PlanEditDialog({ plan, open, onClose }: PlanEditDialogProps) {
               slotProps={{ htmlInput: { maxLength: 500 } }}
             />
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Field.DatePicker
-                name="startDate"
-                label="Ngày bắt đầu"
-                format="DD/MM/YYYY"
-              />
-              <Field.DatePicker
-                name="endDate"
-                label="Ngày kết thúc"
-                format="DD/MM/YYYY"
-              />
-            </Stack>
+            {scope !== 'backlog' && (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Field.DatePicker name="startDate" label="Ngày bắt đầu" format="DD/MM/YYYY" />
+                <Field.DatePicker name="endDate" label="Ngày kết thúc" format="DD/MM/YYYY" />
+              </Stack>
+            )}
+
+            {scope === 'backlog' && (
+              <Typography variant="caption" color="text.secondary">
+                Backlog không có thời hạn.
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <Divider />
         <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button onClick={onClose} color="inherit" disabled={isSubmitting}>Huỷ</Button>
+          <Button onClick={onClose} color="inherit" disabled={isSubmitting}>
+            Huỷ
+          </Button>
           <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
             Lưu thay đổi
           </LoadingButton>

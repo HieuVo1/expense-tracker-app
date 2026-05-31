@@ -3,11 +3,16 @@
 import type { AboutMeRow, AboutMeType } from '../types';
 import type { SignalPatternsResult } from '../actions/about-me-signal-patterns';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-import Grid from '@mui/material/Grid';
+import Tab from '@mui/material/Tab';
+import Box from '@mui/material/Box';
+import Tabs from '@mui/material/Tabs';
+import Badge from '@mui/material/Badge';
 
 import { paths } from 'src/routes/paths';
+
+import { Iconify } from 'src/components/iconify';
 
 import { ABOUT_ME_EMPTY_STATES } from '../constants/about-me-copy';
 import { AboutMeCardShell } from '../components/about-me-card-shell';
@@ -20,9 +25,18 @@ import { AboutMeCardActionBody } from '../components/about-me-card-action';
 import { AboutMeCardThoughtBody } from '../components/about-me-card-thought';
 import { AboutMeCardPrincipleBody } from '../components/about-me-card-principle';
 import { AboutMeQuickCaptureFab } from '../components/about-me-quick-capture-fab';
-import { GOAL_ICON_GRADIENT, ABOUT_ME_TYPE_ICONS, ABOUT_ME_TYPE_COLORS, ABOUT_ME_TYPE_LABELS, ABOUT_ME_TYPE_SUBTITLES } from '../constants/about-me-types';
+import {
+  GOAL_ICON_GRADIENT,
+  ABOUT_ME_TYPE_ICONS,
+  ABOUT_ME_TYPE_COLORS,
+  ABOUT_ME_TYPE_LABELS,
+  ABOUT_ME_TYPE_VALUES,
+  ABOUT_ME_TYPE_SUBTITLES,
+} from '../constants/about-me-types';
 
 // ----------------------------------------------------------------------
+
+const LS_KEY = 'about-me-hub.active-tab';
 
 type CardData = {
   GOAL: { rows: AboutMeRow[]; activeGoalCount: number };
@@ -39,27 +53,105 @@ type Props = {
   cardData: CardData;
 };
 
-// Dialog state: undefined = closed, null = create (need type picker), or AboutMeRow = edit
 type DialogState = { type: AboutMeType; row?: AboutMeRow } | null;
+
+// ----------------------------------------------------------------------
+// Tab count badge per type — uses active goal count for GOAL, length for others,
+// signal pattern count for SIGNAL.
+
+function countForType(type: AboutMeType, data: CardData, patterns: SignalPatternsResult): number {
+  switch (type) {
+    case 'GOAL':
+      return data.GOAL.activeGoalCount;
+    case 'SIGNAL':
+      return patterns.negative.length + patterns.positive.length;
+    default:
+      return data[type].rows.length;
+  }
+}
+
+// ----------------------------------------------------------------------
 
 export function AboutMeHubClient({ patterns, cardData }: Props) {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<AboutMeType>('GOAL');
+
+  // Restore last selected tab from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LS_KEY);
+      if (stored && ABOUT_ME_TYPE_VALUES.includes(stored as AboutMeType)) {
+        setActiveTab(stored as AboutMeType);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleTabChange = (_: React.SyntheticEvent, v: AboutMeType) => {
+    setActiveTab(v);
+    try {
+      localStorage.setItem(LS_KEY, v);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const openCreate = (type: AboutMeType) => {
     setDialog({ type });
     setDialogOpen(true);
   };
 
-  const closeDialog = () => {
-    setDialogOpen(false);
-  };
+  const closeDialog = () => setDialogOpen(false);
 
   return (
     <>
-      <Grid container spacing={2}>
-        {/* GOAL — top-left, first */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+      <Box sx={{ mt: 3 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+        >
+          {ABOUT_ME_TYPE_VALUES.map((type) => {
+            const count = countForType(type, cardData, patterns);
+            return (
+              <Tab
+                key={type}
+                value={type}
+                icon={<Iconify icon={ABOUT_ME_TYPE_ICONS[type]} width={20} />}
+                iconPosition="start"
+                label={
+                  count > 0 ? (
+                    <Badge
+                      badgeContent={count}
+                      color="primary"
+                      sx={{
+                        '& .MuiBadge-badge': {
+                          right: -16,
+                          top: 4,
+                          fontSize: '0.65rem',
+                          height: 16,
+                          minWidth: 16,
+                        },
+                      }}
+                    >
+                      {ABOUT_ME_TYPE_LABELS[type]}
+                    </Badge>
+                  ) : (
+                    ABOUT_ME_TYPE_LABELS[type]
+                  )
+                }
+                sx={{ minHeight: 48, textTransform: 'none', pr: count > 0 ? 3 : 2 }}
+              />
+            );
+          })}
+        </Tabs>
+
+        {/* Active tab panel — single card body */}
+        {activeTab === 'GOAL' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.GOAL}
             title={ABOUT_ME_TYPE_LABELS.GOAL}
@@ -74,10 +166,9 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardGoalBody rows={cardData.GOAL.rows} />
           </AboutMeCardShell>
-        </Grid>
+        )}
 
-        {/* THOUGHT */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        {activeTab === 'THOUGHT' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.THOUGHT}
             title={ABOUT_ME_TYPE_LABELS.THOUGHT}
@@ -91,10 +182,9 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardThoughtBody rows={cardData.THOUGHT.rows} />
           </AboutMeCardShell>
-        </Grid>
+        )}
 
-        {/* LESSON */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        {activeTab === 'LESSON' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.LESSON}
             title={ABOUT_ME_TYPE_LABELS.LESSON}
@@ -108,10 +198,9 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardLessonBody rows={cardData.LESSON.rows} />
           </AboutMeCardShell>
-        </Grid>
+        )}
 
-        {/* SIGNAL */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        {activeTab === 'SIGNAL' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.SIGNAL}
             title={ABOUT_ME_TYPE_LABELS.SIGNAL}
@@ -125,10 +214,9 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardSignalBody patterns={patterns} />
           </AboutMeCardShell>
-        </Grid>
+        )}
 
-        {/* PRINCIPLE */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        {activeTab === 'PRINCIPLE' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.PRINCIPLE}
             title={ABOUT_ME_TYPE_LABELS.PRINCIPLE}
@@ -142,10 +230,9 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardPrincipleBody rows={cardData.PRINCIPLE.rows} />
           </AboutMeCardShell>
-        </Grid>
+        )}
 
-        {/* TRAIT */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        {activeTab === 'TRAIT' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.TRAIT}
             title={ABOUT_ME_TYPE_LABELS.TRAIT}
@@ -159,10 +246,9 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardTraitBody rows={cardData.TRAIT.rows} />
           </AboutMeCardShell>
-        </Grid>
+        )}
 
-        {/* ACTION — row 3, col 1 only (remaining 2 cols intentionally empty) */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        {activeTab === 'ACTION' && (
           <AboutMeCardShell
             icon={ABOUT_ME_TYPE_ICONS.ACTION}
             title={ABOUT_ME_TYPE_LABELS.ACTION}
@@ -176,13 +262,11 @@ export function AboutMeHubClient({ patterns, cardData }: Props) {
           >
             <AboutMeCardActionBody rows={cardData.ACTION.rows} />
           </AboutMeCardShell>
-        </Grid>
-      </Grid>
+        )}
+      </Box>
 
-      {/* FAB */}
       <AboutMeQuickCaptureFab onSelect={openCreate} />
 
-      {/* Single edit dialog instance */}
       {dialog && (
         <AboutMeEditDialog
           open={dialogOpen}

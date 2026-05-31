@@ -6,8 +6,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
-import { alpha } from '@mui/material/styles';
 import Tooltip from '@mui/material/Tooltip';
+import { alpha } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
 import { youVersionUrl } from 'src/lib/bible';

@@ -29,24 +29,25 @@ import { Form, Field } from 'src/components/hook-form';
 import { planFormSchema } from '../schemas';
 import { suggestRange } from '../utils/plan-dates';
 import { createPlan } from '../actions/plan-actions';
-import { PLAN_SCOPE_LABELS } from '../constants/plan-meta';
+import { PLAN_SCOPE_LABELS, PLAN_SCOPE_VALUES } from '../constants/plan-meta';
 
 // ----------------------------------------------------------------------
 
 type PlanCreateDialogProps = {
   open: boolean;
   onClose: () => void;
+  defaultScope?: PlanScope;
 };
 
-export function PlanCreateDialog({ open, onClose }: PlanCreateDialogProps) {
+export function PlanCreateDialog({ open, onClose, defaultScope = 'weekly' }: PlanCreateDialogProps) {
   const router = useRouter();
 
-  const defaultRange = suggestRange('weekly');
+  const defaultRange = suggestRange(defaultScope);
 
   const methods = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema),
     defaultValues: {
-      scope: 'weekly',
+      scope: defaultScope,
       title: '',
       description: '',
       startDate: defaultRange.startDate,
@@ -64,30 +65,26 @@ export function PlanCreateDialog({ open, onClose }: PlanCreateDialogProps) {
 
   const scope = watch('scope') as PlanScope;
 
-  // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      const range = suggestRange('weekly');
+      const range = suggestRange(defaultScope);
       reset({
-        scope: 'weekly',
+        scope: defaultScope,
         title: '',
         description: '',
         startDate: range.startDate,
         endDate: range.endDate,
       });
     }
-  }, [open, reset]);
+  }, [open, defaultScope, reset]);
 
-  // Auto-update dates when scope changes — only if dates not manually edited
+  // Auto-update dates when scope changes — only if dates not manually edited.
+  // Backlog scope clears dates.
   useEffect(() => {
     const range = suggestRange(scope);
-    if (!dirtyFields.startDate) {
-      setValue('startDate', range.startDate);
-    }
-    if (!dirtyFields.endDate) {
-      setValue('endDate', range.endDate);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!dirtyFields.startDate) setValue('startDate', range.startDate);
+    if (!dirtyFields.endDate) setValue('endDate', range.endDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope]);
 
   const onSubmit = handleSubmit(async (data) => {
@@ -118,13 +115,15 @@ export function PlanCreateDialog({ open, onClose }: PlanCreateDialogProps) {
               <Tabs
                 value={scope}
                 onChange={(_, v: PlanScope) => setValue('scope', v, { shouldDirty: false })}
+                variant="scrollable"
+                scrollButtons="auto"
               >
-                <Tab label={PLAN_SCOPE_LABELS.weekly} value="weekly" />
-                <Tab label={PLAN_SCOPE_LABELS.monthly} value="monthly" />
+                {PLAN_SCOPE_VALUES.map((s) => (
+                  <Tab key={s} label={PLAN_SCOPE_LABELS[s]} value={s} />
+                ))}
               </Tabs>
             </Box>
 
-            {/* Title */}
             <Field.Text
               name="title"
               label="Tiêu đề"
@@ -132,7 +131,6 @@ export function PlanCreateDialog({ open, onClose }: PlanCreateDialogProps) {
               slotProps={{ htmlInput: { maxLength: 120 } }}
             />
 
-            {/* Description */}
             <Field.Text
               name="description"
               label="Mô tả (tuỳ chọn)"
@@ -142,19 +140,23 @@ export function PlanCreateDialog({ open, onClose }: PlanCreateDialogProps) {
               slotProps={{ htmlInput: { maxLength: 500 } }}
             />
 
-            {/* Date range */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <Field.DatePicker
-                name="startDate"
-                label="Ngày bắt đầu"
-                format="DD/MM/YYYY"
-              />
-              <Field.DatePicker
-                name="endDate"
-                label="Ngày kết thúc"
-                format="DD/MM/YYYY"
-              />
-            </Stack>
+            {/* Date range — hidden for backlog */}
+            {scope !== 'backlog' && (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Field.DatePicker
+                  name="startDate"
+                  label="Ngày bắt đầu"
+                  format="DD/MM/YYYY"
+                />
+                <Field.DatePicker name="endDate" label="Ngày kết thúc" format="DD/MM/YYYY" />
+              </Stack>
+            )}
+
+            {scope === 'backlog' && (
+              <Typography variant="caption" color="text.secondary">
+                Backlog không có thời hạn. Bạn có thể chuyển task sang kế hoạch tuần / tháng / năm sau.
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
 

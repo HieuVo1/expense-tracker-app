@@ -1,6 +1,6 @@
 'use client';
 
-import type { TaskPriority } from '@prisma/client';
+import type { LifeArea, TaskPriority } from '@prisma/client';
 import type { PlanTaskRow } from '../types';
 
 import Stack from '@mui/material/Stack';
@@ -16,10 +16,20 @@ type Props = {
   onToggle: (id: string, isDone: boolean) => void;
   onRename: (id: string, title: string) => void;
   onChangePriority: (id: string, priority: TaskPriority) => void;
+  onChangeLifeArea?: (id: string, area: LifeArea | null) => void;
   onDelete: (id: string) => void;
+  onRequestMove?: (taskId: string) => void;
 };
 
-export function PlanTaskList({ tasks, onToggle, onRename, onChangePriority, onDelete }: Props) {
+export function PlanTaskList({
+  tasks,
+  onToggle,
+  onRename,
+  onChangePriority,
+  onChangeLifeArea,
+  onDelete,
+  onRequestMove,
+}: Props) {
   if (tasks.length === 0) {
     return (
       <Typography variant="body2" color="text.disabled" sx={{ py: 3, textAlign: 'center' }}>
@@ -37,7 +47,9 @@ export function PlanTaskList({ tasks, onToggle, onRename, onChangePriority, onDe
           onToggle={onToggle}
           onRename={onRename}
           onChangePriority={onChangePriority}
+          onChangeLifeArea={onChangeLifeArea}
           onDelete={onDelete}
+          onRequestMove={onRequestMove}
         />
       ))}
     </Stack>

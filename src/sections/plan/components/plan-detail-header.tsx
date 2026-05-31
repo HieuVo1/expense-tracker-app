@@ -3,6 +3,7 @@
 import type { PlanStatus } from '@prisma/client';
 import type { PlanDetail } from '../types';
 
+import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -30,6 +31,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { PlanEditDialog } from './plan-edit-dialog';
 import { PlanProgressBar } from './plan-progress-bar';
+import { isFullYear, rolloverLabel } from '../utils/plan-dates';
 import { PLAN_SCOPE_LABELS, PLAN_STATUS_LABELS } from '../constants/plan-meta';
 import { deletePlan, rolloverPlan, setPlanStatus } from '../actions/plan-actions';
 
@@ -38,6 +40,17 @@ import { deletePlan, rolloverPlan, setPlanStatus } from '../actions/plan-actions
 type Props = {
   plan: PlanDetail;
 };
+
+function renderDateText(
+  scope: PlanDetail['scope'],
+  startDate: string | null,
+  endDate: string | null
+): string {
+  if (scope === 'backlog') return 'Backlog — không có thời hạn';
+  if (!startDate || !endDate) return '—';
+  if (isFullYear(startDate, endDate)) return `Năm ${dayjs(startDate).year()}`;
+  return `${fDate(startDate, 'DD/MM/YYYY')} – ${fDate(endDate, 'DD/MM/YYYY')}`;
+}
 
 export function PlanDetailHeader({ plan }: Props) {
   const router = useRouter();
@@ -74,10 +87,12 @@ export function PlanDetailHeader({ plan }: Props) {
       try {
         const { id } = await rolloverPlan(plan.id);
         const remaining = plan.tasks.filter((t) => !t.isDone).length;
+        const periodLabel =
+          plan.scope === 'weekly' ? 'tuần' : plan.scope === 'monthly' ? 'tháng' : 'năm';
         toast.success(
           remaining > 0
-            ? `Đã chuyển ${remaining} việc chưa xong sang ${plan.scope === 'weekly' ? 'tuần' : 'tháng'} mới`
-            : `Đã tạo kế hoạch ${plan.scope === 'weekly' ? 'tuần' : 'tháng'} mới`
+            ? `Đã chuyển ${remaining} việc chưa xong sang ${periodLabel} mới`
+            : `Đã tạo kế hoạch ${periodLabel} mới`
         );
         router.push(paths.dashboard.planDetail(id));
       } catch {
@@ -86,12 +101,11 @@ export function PlanDetailHeader({ plan }: Props) {
     });
   };
 
-  const rolloverLabel = plan.scope === 'weekly' ? 'Chuyển sang tuần sau' : 'Chuyển sang tháng sau';
+  const canRollover = plan.scope !== 'backlog';
 
   return (
     <>
       <Stack spacing={2} sx={{ mb: 3 }}>
-        {/* Title row */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
@@ -106,11 +120,10 @@ export function PlanDetailHeader({ plan }: Props) {
               />
             </Box>
             <Typography variant="body2" color="text.secondary">
-              {fDate(plan.startDate, 'DD/MM/YYYY')} – {fDate(plan.endDate, 'DD/MM/YYYY')}
+              {renderDateText(plan.scope, plan.startDate, plan.endDate)}
             </Typography>
           </Box>
 
-          {/* Kebab menu */}
           <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} size="small">
             <Iconify icon="solar:menu-dots-bold-duotone" />
           </IconButton>
@@ -128,14 +141,16 @@ export function PlanDetailHeader({ plan }: Props) {
               <Iconify icon="solar:pen-bold" width={18} sx={{ mr: 1, color: 'text.secondary' }} />
               Sửa
             </MenuItem>
-            <MenuItem onClick={handleRollover} disabled={isPending}>
-              <Iconify
-                icon="solar:double-alt-arrow-right-bold-duotone"
-                width={18}
-                sx={{ mr: 1, color: 'text.secondary' }}
-              />
-              {rolloverLabel}
-            </MenuItem>
+            {canRollover && (
+              <MenuItem onClick={handleRollover} disabled={isPending}>
+                <Iconify
+                  icon="solar:double-alt-arrow-right-bold-duotone"
+                  width={18}
+                  sx={{ mr: 1, color: 'text.secondary' }}
+                />
+                {rolloverLabel(plan.scope)}
+              </MenuItem>
+            )}
             <MenuItem
               onClick={() => {
                 setMenuAnchor(null);
@@ -149,7 +164,6 @@ export function PlanDetailHeader({ plan }: Props) {
           </Menu>
         </Box>
 
-        {/* Status select */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
             Trạng thái:
@@ -169,7 +183,6 @@ export function PlanDetailHeader({ plan }: Props) {
           </Select>
         </Box>
 
-        {/* Progress bar */}
         <PlanProgressBar
           doneCount={plan.doneCount}
           totalCount={plan.totalCount}
@@ -177,10 +190,8 @@ export function PlanDetailHeader({ plan }: Props) {
         />
       </Stack>
 
-      {/* Edit dialog */}
       <PlanEditDialog plan={plan} open={editOpen} onClose={() => setEditOpen(false)} />
 
-      {/* Delete confirm dialog */}
       <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Xoá kế hoạch?</DialogTitle>
         <DialogContent>

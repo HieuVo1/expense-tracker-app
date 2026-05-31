@@ -11,6 +11,12 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import { WheelOfLifeCard } from 'src/sections/plan/components/wheel-of-life-card';
+import {
+  getLatestAssessment,
+  listAssessmentHistory,
+} from 'src/sections/plan/actions/wheel-actions';
+
 import { AboutMeHubClient } from './about-me-hub-client';
 import { listAboutMe } from '../actions/about-me-actions';
 import { getAboutMeStats } from '../actions/about-me-stats';
@@ -24,10 +30,12 @@ import { getSignalPatterns } from '../actions/about-me-signal-patterns';
 const SLICE = 3;
 
 export async function AboutMeHubView() {
-  const [allRows, stats, patterns] = await Promise.all([
+  const [allRows, stats, patterns, latestAssessment, wheelHistory] = await Promise.all([
     listAboutMe(),
     getAboutMeStats(),
     getSignalPatterns(),
+    getLatestAssessment(),
+    listAssessmentHistory(2),
   ]);
 
   // Group by type — top 3 most recent each (already ordered by updatedAt desc)
@@ -78,6 +86,11 @@ export async function AboutMeHubView() {
 
       {/* Stats strip */}
       <AboutMeStatsStrip stats={stats} />
+
+      {/* Wheel of Life — holistic 8-area snapshot above the per-type cards */}
+      <Box sx={{ mt: 3 }}>
+        <WheelOfLifeCard initial={latestAssessment} history={wheelHistory} />
+      </Box>
 
       {/* 7-card bento grid — client shell handles dialog state */}
       <AboutMeHubClient

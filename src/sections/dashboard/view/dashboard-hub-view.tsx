@@ -13,11 +13,11 @@ import { HorizontalScrollStrip } from 'src/components/horizontal-scroll-strip';
 import { listAssets } from 'src/sections/asset/actions/asset-actions';
 import { getReportData } from 'src/sections/report/actions/report-actions';
 import { getPlan, listPlans } from 'src/sections/plan/actions/plan-actions';
+import { getDailyVerse } from 'src/sections/bible/actions/bible-daily-verse';
 import { getAboutMeStats } from 'src/sections/about-me/actions/about-me-stats';
 import { computeSubscriptionTotals } from 'src/sections/subscription/utils/summary';
 import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { getDailyReflection } from 'src/sections/about-me/actions/about-me-reflection';
-import { getDailyVerse } from 'src/sections/bible/actions/bible-daily-verse';
 import { listSubscriptions } from 'src/sections/subscription/actions/subscription-actions';
 import { SubscriptionDashboardCard } from 'src/sections/subscription/components/subscription-dashboard-card';
 

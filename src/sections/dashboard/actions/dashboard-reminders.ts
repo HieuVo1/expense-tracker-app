@@ -91,6 +91,9 @@ export async function getDashboardReminders(): Promise<DashboardReminders> {
       userId: user.id,
       status: 'active',
       endDate: { lt: todayDate },
+      // Exclude backlog plans (no endDate) — `lt` filter already does this in
+      // Postgres but adding the explicit guard narrows the TS type.
+      NOT: { endDate: null },
     },
     include: { _count: { select: { tasks: { where: { isDone: false } } } } },
     orderBy: { endDate: 'desc' },
@@ -98,12 +101,12 @@ export async function getDashboardReminders(): Promise<DashboardReminders> {
   });
 
   const expiredPlans: ReminderExpiredPlan[] = expiredCandidates
-    .filter((p) => p._count.tasks > 0)
+    .filter((p) => p._count.tasks > 0 && p.endDate !== null)
     .map((p) => ({
       id: p.id,
       title: p.title,
       scope: p.scope,
-      endDate: p.endDate.toISOString().slice(0, 10),
+      endDate: p.endDate!.toISOString().slice(0, 10),
       incompleteCount: p._count.tasks,
     }));
 

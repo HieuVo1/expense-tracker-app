@@ -18,19 +18,20 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  transactions      Transaction[]
-  categories        Category[]
-  budgets           Budget[]
-  merchants         MerchantMemory[]
-  assets            Asset[]
-  notes             Note[]
-  plans             Plan[]
-  subscriptions     Subscription[]
-  gratitudes        GratitudeEntry[]
-  bibleLessons      BibleLesson[]
-  bibleVerses       BibleVerse[]
-  bibleThemes       BibleTheme[]
-  bibleReviewStates BibleReviewState[]
+  transactions         Transaction[]
+  categories           Category[]
+  budgets              Budget[]
+  merchants            MerchantMemory[]
+  assets               Asset[]
+  notes                Note[]
+  plans                Plan[]
+  subscriptions        Subscription[]
+  gratitudes           GratitudeEntry[]
+  bibleLessons         BibleLesson[]
+  bibleVerses          BibleVerse[]
+  bibleThemes          BibleTheme[]
+  bibleReviewStates    BibleReviewState[]
+  lifeWheelAssessments LifeWheelAssessment[]
 
   @@map("users")
 }
@@ -155,6 +156,31 @@ enum NoteType {
 enum PlanScope {
   weekly
   monthly
+  yearly
+  // Backlog plans have no start/end dates — they're a parking lot for ideas
+  // before they're committed to a weekly/monthly/yearly schedule.
+  backlog
+}
+
+// 3 daily time slots used for the weekly calendar view + AI scheduler.
+// Coarser than hour-level — KISS for personal planning.
+enum TimeSlot {
+  morning
+  afternoon
+  evening
+}
+
+// 8 fixed life dimensions used by the Wheel of Life feature. Optional tag on
+// PlanTask powers AI assessment + balance visualization.
+enum LifeArea {
+  HEALTH
+  CAREER
+  FINANCE
+  GROWTH
+  FAMILY
+  SOCIAL
+  RECREATION
+  SPIRITUALITY
 }
 
 enum PlanStatus {
@@ -219,8 +245,10 @@ model Plan {
   scope       PlanScope
   title       String
   description String?    @db.Text
-  startDate   DateTime   @map("start_date") @db.Date
-  endDate     DateTime   @map("end_date") @db.Date
+  // Nullable to support backlog plans (no period). Validation in action layer
+  // enforces non-null when scope ∈ {weekly, monthly, yearly}.
+  startDate   DateTime?  @map("start_date") @db.Date
+  endDate     DateTime?  @map("end_date") @db.Date
   status      PlanStatus @default(active)
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
@@ -238,7 +266,13 @@ model PlanTask {
   title     String
   isDone    Boolean      @default(false) @map("is_done")
   priority  TaskPriority // REQUIRED, no default — UI forces pick on add
+  // Optional life-area tag. Feeds Wheel of Life aggregation.
+  lifeArea  LifeArea?    @map("life_area")
   dueDate   DateTime?    @map("due_date") @db.Date
+  // Calendar scheduling — separate from dueDate (which is a deadline).
+  // scheduledDate = which day you plan to do it; scheduledSlot = which third of the day.
+  scheduledDate DateTime? @map("scheduled_date") @db.Date
+  scheduledSlot TimeSlot? @map("scheduled_slot")
   order     Int          @default(0)
   createdAt DateTime     @default(now()) @map("created_at")
 
@@ -246,6 +280,8 @@ model PlanTask {
 
   @@index([planId, order, createdAt])
   @@index([planId, priority])
+  @@index([planId, lifeArea])
+  @@index([planId, scheduledDate])
   @@map("plan_tasks")
 }
 
@@ -408,4 +444,27 @@ model BibleReviewState {
 
   @@index([userId, nextReviewDate])
   @@map("bible_review_states")
+}
+
+// AI-driven Wheel of Life assessment.
+// Snapshot computed by Gemini from user signals (tasks, notes, gratitude,
+// transactions, assets, bible study) at the user's request. History kept so
+// the radar chart can overlay the previous score as a trend reference.
+// JSONB columns are validated at the action layer (see wheel-types.ts).
+model LifeWheelAssessment {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id") @db.Uuid
+  computedAt   DateTime @default(now()) @map("computed_at")
+  periodDays   Int      @default(30) @map("period_days")
+  // { HEALTH: 1-10, CAREER: 1-10, ... } — all 8 keys required.
+  scores       Json
+  // [{ area: LifeArea, message: string, recommendedTaskTitle?: string }]
+  suggestions  Json
+  // Raw signal payload for transparency ("AI dựa trên dữ liệu sau...").
+  inputSummary Json     @map("input_summary")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, computedAt(sort: Desc)])
+  @@map("life_wheel_assessments")
 }

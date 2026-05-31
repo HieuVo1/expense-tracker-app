@@ -112,7 +112,15 @@ export function VerseThemePicker({ verseId, assigned, allThemes }: Props) {
         Chủ đề
       </Button>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
-        <Box sx={{ px: 1.5, py: 1, minWidth: 240 }}>
+        {/* Stop keydown propagation so MUI Menu's type-ahead navigation
+            doesn't steal letter keys from the TextField (typing "L" would
+            otherwise jump focus to a MenuItem starting with L). */}
+        <Box
+          sx={{ px: 1.5, py: 1, minWidth: 240 }}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+          }}
+        >
           <TextField
             size="small"
             fullWidth
@@ -133,7 +141,10 @@ export function VerseThemePicker({ verseId, assigned, allThemes }: Props) {
                 <InputAdornment position="end">
                   <IconButton
                     size="small"
-                    onClick={doCreate}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      doCreate();
+                    }}
                     disabled={!newName.trim() || creating}
                     edge="end"
                   >

@@ -1,6 +1,6 @@
 'use client';
 
-import type { TaskPriority } from '@prisma/client';
+import type { LifeArea, TaskPriority } from '@prisma/client';
 import type { PlanTaskRow } from '../types';
 
 import Box from '@mui/material/Box';
@@ -15,10 +15,20 @@ type Props = {
   onToggle: (id: string, isDone: boolean) => void;
   onRename: (id: string, title: string) => void;
   onChangePriority: (id: string, priority: TaskPriority) => void;
+  onChangeLifeArea?: (id: string, area: LifeArea | null) => void;
   onDelete: (id: string) => void;
+  onRequestMove?: (taskId: string) => void;
 };
 
-export function PlanTaskMatrixView({ tasks, onToggle, onRename, onChangePriority, onDelete }: Props) {
+export function PlanTaskMatrixView({
+  tasks,
+  onToggle,
+  onRename,
+  onChangePriority,
+  onChangeLifeArea,
+  onDelete,
+  onRequestMove,
+}: Props) {
   return (
     <Box
       sx={{
@@ -35,7 +45,9 @@ export function PlanTaskMatrixView({ tasks, onToggle, onRename, onChangePriority
           onToggle={onToggle}
           onRename={onRename}
           onChangePriority={onChangePriority}
+          onChangeLifeArea={onChangeLifeArea}
           onDelete={onDelete}
+          onRequestMove={onRequestMove}
         />
       ))}
     </Box>

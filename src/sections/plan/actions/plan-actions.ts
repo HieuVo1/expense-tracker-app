@@ -1,8 +1,8 @@
 'use server';
 
-import type { PlanStatus } from '@prisma/client';
+import type { PlanScope, PlanStatus } from '@prisma/client';
 import type { PlanFormValues } from '../schemas';
-import type { PlanRow, PlanDetail } from '../types';
+import type { PlanRow, PlanDetail, PlanTaskRow, PlanMoveTarget } from '../types';
 
 import dayjs from 'dayjs';
 import { revalidatePath } from 'next/cache';
@@ -51,8 +51,8 @@ export async function listPlans(): Promise<PlanRow[]> {
     const totalCount = p._count.tasks;
     const doneCount = doneMap.get(p.id) ?? 0;
     const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
-    const startDate = toDateString(p.startDate);
-    const endDate = toDateString(p.endDate);
+    const startDate = p.startDate ? toDateString(p.startDate) : null;
+    const endDate = p.endDate ? toDateString(p.endDate) : null;
     const status = p.status;
 
     return {
@@ -66,16 +66,22 @@ export async function listPlans(): Promise<PlanRow[]> {
       doneCount,
       totalCount,
       progress,
-      isCurrent: isPlanCurrent({ startDate, endDate, status }),
+      isCurrent: isPlanCurrent({ scope: p.scope, startDate, endDate, status }),
       createdAt: p.createdAt.toISOString(),
     };
   });
 
-  // Sort: current first, then by startDate desc (already ordered from DB for the rest)
+  // Sort: current first; then non-backlog by startDate desc; backlog by createdAt desc.
   rows.sort((a, b) => {
     if (a.isCurrent && !b.isCurrent) return -1;
     if (!a.isCurrent && b.isCurrent) return 1;
-    return b.startDate.localeCompare(a.startDate);
+    if (a.scope === 'backlog' && b.scope !== 'backlog') return 1;
+    if (a.scope !== 'backlog' && b.scope === 'backlog') return -1;
+    if (a.scope === 'backlog' && b.scope === 'backlog') {
+      return b.createdAt.localeCompare(a.createdAt);
+    }
+    // Both non-backlog: startDate is guaranteed non-null here.
+    return (b.startDate ?? '').localeCompare(a.startDate ?? '');
   });
 
   return rows;
@@ -83,11 +89,10 @@ export async function listPlans(): Promise<PlanRow[]> {
 
 // ----------------------------------------------------------------------
 
-export async function createPlan(
-  input: PlanFormValues
-): Promise<{ id: string }> {
+export async function createPlan(input: PlanFormValues): Promise<{ id: string }> {
   const user = await requireUser();
   const data = planFormSchema.parse(input);
+  const isBacklog = data.scope === 'backlog';
 
   const plan = await prisma.plan.create({
     data: {
@@ -95,9 +100,8 @@ export async function createPlan(
       scope: data.scope,
       title: data.title,
       description: data.description?.trim() || null,
-      // Prisma @db.Date stores date-only; toDateOnlyUtc handles ISO/YYYY-MM-DD inputs
-      startDate: toDateOnlyUtc(data.startDate),
-      endDate: toDateOnlyUtc(data.endDate),
+      startDate: isBacklog ? null : toDateOnlyUtc(data.startDate!),
+      endDate: isBacklog ? null : toDateOnlyUtc(data.endDate!),
       status: 'active',
     },
     select: { id: true },
@@ -126,8 +130,8 @@ export async function getPlan(id: string): Promise<PlanDetail | null> {
   const totalCount = plan.tasks.length;
   const doneCount = plan.tasks.filter((t) => t.isDone).length;
   const progress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
-  const startDate = toDateString(plan.startDate);
-  const endDate = toDateString(plan.endDate);
+  const startDate = plan.startDate ? toDateString(plan.startDate) : null;
+  const endDate = plan.endDate ? toDateString(plan.endDate) : null;
 
   return {
     id: plan.id,
@@ -140,14 +144,17 @@ export async function getPlan(id: string): Promise<PlanDetail | null> {
     doneCount,
     totalCount,
     progress,
-    isCurrent: isPlanCurrent({ startDate, endDate, status: plan.status }),
+    isCurrent: isPlanCurrent({ scope: plan.scope, startDate, endDate, status: plan.status }),
     createdAt: plan.createdAt.toISOString(),
     tasks: plan.tasks.map((t) => ({
       id: t.id,
       title: t.title,
       isDone: t.isDone,
       priority: t.priority,
+      lifeArea: t.lifeArea,
       dueDate: t.dueDate ? toDateString(t.dueDate) : null,
+      scheduledDate: t.scheduledDate ? toDateString(t.scheduledDate) : null,
+      scheduledSlot: t.scheduledSlot,
       order: t.order,
       createdAt: t.createdAt.toISOString(),
     })),
@@ -159,6 +166,7 @@ export async function getPlan(id: string): Promise<PlanDetail | null> {
 export async function updatePlan(id: string, input: PlanFormValues): Promise<void> {
   const user = await requireUser();
   const data = planFormSchema.parse(input);
+  const isBacklog = data.scope === 'backlog';
 
   const existing = await prisma.plan.findFirst({ where: { id, userId: user.id } });
   if (!existing) throw new Error('NOT_FOUND');
@@ -169,8 +177,8 @@ export async function updatePlan(id: string, input: PlanFormValues): Promise<voi
       scope: data.scope,
       title: data.title,
       description: data.description?.trim() || null,
-      startDate: toDateOnlyUtc(data.startDate),
-      endDate: toDateOnlyUtc(data.endDate),
+      startDate: isBacklog ? null : toDateOnlyUtc(data.startDate!),
+      endDate: isBacklog ? null : toDateOnlyUtc(data.endDate!),
     },
   });
 
@@ -208,9 +216,10 @@ export async function setPlanStatus(id: string, status: PlanStatus): Promise<voi
 // ----------------------------------------------------------------------
 
 /**
- * Creates a new plan in the next period (week/month after the source plan's
- * endDate) and copies over only INCOMPLETE tasks. Source plan keeps its
- * status — user manually marks completed/archived after reviewing.
+ * Creates a new plan in the next period (week/month/year after the source
+ * plan's endDate) and copies over only INCOMPLETE tasks. Backlog cannot be
+ * rolled over (no period). Source plan keeps its status — user manually marks
+ * completed/archived after reviewing.
  *
  * Returns the new plan id.
  */
@@ -227,6 +236,8 @@ export async function rolloverPlan(id: string): Promise<{ id: string }> {
     },
   });
   if (!source) throw new Error('NOT_FOUND');
+  if (source.scope === 'backlog') throw new Error('ROLLOVER_NOT_SUPPORTED');
+  if (!source.endDate) throw new Error('ROLLOVER_NOT_SUPPORTED');
 
   const sourceEnd = source.endDate.toISOString().slice(0, 10);
   const range = nextRange(source.scope, sourceEnd);
@@ -250,6 +261,7 @@ export async function rolloverPlan(id: string): Promise<{ id: string }> {
           planId: created.id,
           title: t.title,
           priority: t.priority,
+          lifeArea: t.lifeArea,
           isDone: false,
           dueDate: t.dueDate,
           order: idx, // re-sequence; preserves the priority+order ordering
@@ -265,4 +277,101 @@ export async function rolloverPlan(id: string): Promise<{ id: string }> {
   revalidatePath(paths.dashboard.planDetail(newPlan.id));
 
   return { id: newPlan.id };
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * Returns current ISO week + all schedulable tasks (undone, from any active
+ * plan — weekly/monthly/yearly/backlog). Calendar tab uses this so the user
+ * sees ALL pending work, not just the weekly plan.
+ *
+ * Each task carries its source planId + planTitle for context.
+ */
+export type SchedulableTaskRow = PlanTaskRow & {
+  planId: string;
+  planTitle: string;
+  planScope: PlanScope;
+};
+
+export type WeekSchedulingContext = {
+  weekStart: string; // YYYY-MM-DD (Monday)
+  weekEnd: string; // YYYY-MM-DD (Sunday)
+  weekDays: string[]; // 7 entries
+  tasks: SchedulableTaskRow[];
+};
+
+export async function getWeekSchedulingContext(): Promise<WeekSchedulingContext> {
+  const user = await requireUser();
+
+  // Use ISO week (Mon-Sun) — same convention as suggestRange('weekly').
+  const today = dayjs();
+  const weekStart = today.startOf('isoWeek');
+  const weekEnd = today.endOf('isoWeek');
+  const weekDays: string[] = [];
+  for (let i = 0; i < 7; i += 1) {
+    weekDays.push(weekStart.add(i, 'day').format('YYYY-MM-DD'));
+  }
+
+  // All active plans (any scope). Eagerly pull undone tasks.
+  const plans = await prisma.plan.findMany({
+    where: { userId: user.id, status: 'active' },
+    select: {
+      id: true,
+      title: true,
+      scope: true,
+      tasks: {
+        where: { isDone: false },
+        orderBy: [{ priority: 'asc' }, { order: 'asc' }, { createdAt: 'asc' }],
+      },
+    },
+  });
+
+  const tasks = plans.flatMap((p) =>
+    p.tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      isDone: t.isDone,
+      priority: t.priority,
+      lifeArea: t.lifeArea,
+      dueDate: t.dueDate ? toDateString(t.dueDate) : null,
+      scheduledDate: t.scheduledDate ? toDateString(t.scheduledDate) : null,
+      scheduledSlot: t.scheduledSlot,
+      order: t.order,
+      createdAt: t.createdAt.toISOString(),
+      planId: p.id,
+      planTitle: p.title,
+      planScope: p.scope,
+    }))
+  );
+
+  return {
+    weekStart: weekStart.format('YYYY-MM-DD'),
+    weekEnd: weekEnd.format('YYYY-MM-DD'),
+    weekDays,
+    tasks,
+  };
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * Returns active non-backlog plans the user could move a task into.
+ * Excludes `excludePlanId` (typically the current plan).
+ */
+export async function listMoveTargets(excludePlanId: string): Promise<PlanMoveTarget[]> {
+  const user = await requireUser();
+
+  const targets = await prisma.plan.findMany({
+    where: {
+      userId: user.id,
+      status: 'active',
+      scope: { not: 'backlog' },
+      id: { not: excludePlanId },
+    },
+    select: { id: true, scope: true, title: true, startDate: true },
+    orderBy: [{ scope: 'asc' }, { startDate: 'desc' }],
+  });
+
+  return targets.map((t) => ({ id: t.id, scope: t.scope, title: t.title }));
 }
