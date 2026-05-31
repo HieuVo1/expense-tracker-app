@@ -1,10 +1,10 @@
-import dayjs from 'dayjs';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+
+import { fDate, fTodayVN } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -21,7 +21,7 @@ import { GratitudeTodayEditButton } from '../components/gratitude-today-edit-but
 export async function GratitudeView() {
   const [today, all] = await Promise.all([getTodayGratitude(), listGratitude()]);
 
-  const todayStr = dayjs().format('YYYY-MM-DD');
+  const todayStr = fTodayVN();
   const history = all.filter((e) => e.date !== todayStr);
   const done = (today?.items.length ?? 0) >= GRATITUDE_TARGET;
 
@@ -62,7 +62,7 @@ export async function GratitudeView() {
               color="text.secondary"
               sx={{ ml: 'auto', flexShrink: 0, whiteSpace: 'nowrap' }}
             >
-              {dayjs().format('DD/MM/YYYY')}
+              {fDate(todayStr, 'DD/MM/YYYY')}
             </Typography>
             {/* Only when today already has a saved entry — lets the user re-date
                 it onto a previous day (or edit/delete it) via the edit dialog. */}

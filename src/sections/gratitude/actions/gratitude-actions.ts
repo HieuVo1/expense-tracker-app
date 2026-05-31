@@ -2,10 +2,11 @@
 
 import type { GratitudeEntryRow } from '../types';
 
-import dayjs from 'dayjs';
 import { revalidatePath } from 'next/cache';
 
 import { paths } from 'src/routes/paths';
+
+import { fTodayVNDate } from 'src/utils/format-time';
 
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
@@ -14,10 +15,10 @@ import { gratitudeUpsertSchema, gratitudeUpdateSchema } from '../schemas';
 
 // ----------------------------------------------------------------------
 
-// "Today" as a naive UTC calendar date — matches the rest of the app's
-// timezone-free date handling (see dashboard-reminders.ts).
+// "Today" anchored to VN wall-clock (UTC+7) — needed because Vercel runs in
+// UTC and the upsert key (userId, date) must match the user's calendar day.
 function todayDate(): Date {
-  return new Date(dayjs().format('YYYY-MM-DD'));
+  return fTodayVNDate();
 }
 
 function toRow(r: {

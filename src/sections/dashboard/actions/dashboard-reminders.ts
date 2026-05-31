@@ -2,7 +2,7 @@
 
 import type { PlanScope, TaskPriority } from '@prisma/client';
 
-import dayjs from 'dayjs';
+import { fTodayVN, fTodayVNDate } from 'src/utils/format-time';
 
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
@@ -51,8 +51,8 @@ export type DashboardReminders = {
  */
 export async function getDashboardReminders(): Promise<DashboardReminders> {
   const user = await requireUser();
-  const today = dayjs().format('YYYY-MM-DD');
-  const todayDate = new Date(today);
+  const today = fTodayVN();
+  const todayDate = fTodayVNDate();
 
   // Fetch tasks with a dueDate that is <= today and not done.
   // Server-side filter keeps payload small even with many tasks.

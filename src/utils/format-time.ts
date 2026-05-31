@@ -56,6 +56,25 @@ export function today(template?: string): string {
 
 // ----------------------------------------------------------------------
 
+// VN is UTC+7 with no DST. Vercel runs in UTC, so dayjs() on the server returns
+// UTC time — meaning `dayjs().format('YYYY-MM-DD')` rolls over at 07:00 VN
+// (= 00:00 UTC) instead of midnight VN. Use these helpers anywhere "today"
+// must reflect the user's wall-clock day on the server (reminders, gratitude
+// upsert key, plan-current check, etc.). Client-side code can keep using plain
+// dayjs() because the browser already runs in the user's local timezone.
+
+const VN_OFFSET_HOURS = 7;
+
+export function fTodayVN(): string {
+  return dayjs().add(VN_OFFSET_HOURS, 'hour').format('YYYY-MM-DD');
+}
+
+export function fTodayVNDate(): Date {
+  return new Date(fTodayVN());
+}
+
+// ----------------------------------------------------------------------
+
 /**
  * Formats a date-time string.
  * @returns Formatted date-time string or 'Invalid'.

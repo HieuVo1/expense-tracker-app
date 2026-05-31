@@ -3,6 +3,8 @@ import type { PlanScope, PlanStatus } from '@prisma/client';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
+import { fTodayVN } from 'src/utils/format-time';
+
 // Extend once at module level — safe to call multiple times (dayjs guards duplicates)
 dayjs.extend(isoWeek);
 
@@ -37,7 +39,7 @@ export function isPlanCurrent(row: {
   status: PlanStatus;
 }): boolean {
   if (row.status !== 'active') return false;
-  const today = dayjs().format('YYYY-MM-DD');
+  const today = fTodayVN();
   return today >= row.startDate && today <= row.endDate;
 }
 
