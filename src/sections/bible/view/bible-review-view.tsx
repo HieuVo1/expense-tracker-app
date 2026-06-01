@@ -9,12 +9,17 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import { BibleReviewClient } from './bible-review-client';
+import { listThemes } from '../actions/bible-theme-actions';
 import { listDueVerses } from '../actions/bible-review-actions';
-import { ReviewFlashcard } from '../components/review-flashcard';
+import { getChallengeDeck } from '../actions/bible-challenge-actions';
 
-export async function BibleReviewView() {
-  const cards = await listDueVerses();
+type Props = {
+  mode: 'sm2' | 'challenge';
+  themeId: string | null;
+};
 
+export async function BibleReviewView({ mode, themeId }: Props) {
   return (
     <DashboardContent>
       <Stack spacing={3}>
@@ -29,15 +34,42 @@ export async function BibleReviewView() {
             <Typography variant="body2">Học tập</Typography>
           </Link>
           <Typography variant="h4" sx={{ mt: 0.5 }}>
-            Ôn tập câu kinh
+            Kho vũ khí
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Lật thẻ → đọc lại trong đầu → bấm mức nhớ. Lịch ôn tự điều chỉnh (SM-2).
+            Câu kinh để chiến thắng thử thách
           </Typography>
         </Box>
 
-        <ReviewFlashcard cards={cards} emptyHref={paths.dashboard.bible.root} />
+        <BibleReviewClientLoader mode={mode} themeId={themeId} />
       </Stack>
     </DashboardContent>
   );
+}
+
+// Inner async component that does the data fetch so BibleReviewView stays clean.
+async function BibleReviewClientLoader({
+  mode,
+  themeId,
+}: {
+  mode: 'sm2' | 'challenge';
+  themeId: string | null;
+}) {
+  if (mode === 'challenge') {
+    const [themes, deck] = await Promise.all([
+      listThemes(),
+      getChallengeDeck({ themeId }),
+    ]);
+    return (
+      <BibleReviewClient
+        mode="challenge"
+        themes={themes}
+        deck={deck}
+        selectedThemeId={themeId}
+      />
+    );
+  }
+
+  const sm2Cards = await listDueVerses();
+  return <BibleReviewClient mode="sm2" sm2Cards={sm2Cards} />;
 }

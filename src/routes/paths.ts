@@ -40,6 +40,7 @@ export const paths = {
       themes: `${ROOTS.DASHBOARD}/bible/themes`,
       themeDetail: (id: string) => `${ROOTS.DASHBOARD}/bible/themes/${id}`,
       review: `${ROOTS.DASHBOARD}/bible/review`,
+      search: `${ROOTS.DASHBOARD}/bible/search`,
     },
   },
 };

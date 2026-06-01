@@ -412,9 +412,10 @@ model BibleTheme {
 }
 
 model BibleVerseTheme {
-  verseId String   @map("verse_id")
-  themeId String   @map("theme_id")
-  addedAt DateTime @default(now()) @map("added_at")
+  verseId         String   @map("verse_id")
+  themeId         String   @map("theme_id")
+  addedAt         DateTime @default(now()) @map("added_at")
+  challengePrompt String?  @map("challenge_prompt")
 
   verse BibleVerse @relation(fields: [verseId], references: [id], onDelete: Cascade)
   theme BibleTheme @relation(fields: [themeId], references: [id], onDelete: Cascade)

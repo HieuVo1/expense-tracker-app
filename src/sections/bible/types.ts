@@ -92,3 +92,51 @@ export type ReviewCardRow = {
   interval: number;
   repetitions: number;
 };
+
+// Search result types — used by searchBible action + search UI (phase 04/05).
+
+export type LessonHit = {
+  id: string;
+  title: string;
+  date: string;          // YYYY-MM-DD
+  snippet: string;       // ≤80 chars of surrounding context, plain text
+  matchField: 'title' | 'content';
+};
+
+export type VerseHit = {
+  verseId: string;
+  bookCode: string;
+  bookName: string;
+  chapter: number;
+  startVerse: number;
+  endVerse: number;
+  refLabel: string;      // synthesized, e.g. "Ê-sai 14:12-15"
+  snippet: string;       // ≤80 chars from text
+  matchField: 'text' | 'ref';
+};
+
+export type SearchResult = {
+  q: string;
+  lessons: LessonHit[];
+  verses: VerseHit[];
+  truncated: { lessons: boolean; verses: boolean };
+};
+
+// Challenge flashcard mode — one row per BibleVerseTheme link.
+// verseThemeId is the composite key serialised as "${verseId}:${themeId}" for
+// client convenience (split on first ":" to recover individual IDs).
+export type ChallengeCardRow = {
+  verseThemeId: string;         // `${verseId}:${themeId}`
+  verseId: string;
+  themeId: string;
+  themeName: string;
+  themeColor: string;
+  promptOverride: string | null; // null → UI falls back to themeName
+  bookCode: string;
+  bookName: string;
+  chapter: number;
+  startVerse: number;
+  endVerse: number;
+  text: string;
+  addedAt: string;               // ISO date-time
+};

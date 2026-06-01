@@ -66,3 +66,19 @@ export const reviewRecordSchema = z.object({
 export const suggestThemesSchema = z.object({
   verseId: z.string().min(1),
 });
+
+export const searchQuerySchema = z.object({
+  q: z.string().trim().min(2, 'Tối thiểu 2 ký tự').max(100, 'Tối đa 100 ký tự'),
+});
+
+// Challenge flashcard mode schemas.
+export const challengeDeckQuerySchema = z.object({
+  themeId: z.string().min(1).nullable(),
+});
+
+export const updateChallengePromptSchema = z.object({
+  verseId: z.string().min(1),
+  themeId: z.string().min(1),
+  // nullable() allows explicit null; empty string → treated as null in the action.
+  prompt: z.string().trim().max(200, 'Lời nhắc tối đa 200 ký tự').nullable(),
+});

@@ -18,6 +18,7 @@ import { fDate } from 'src/utils/format-time';
 
 import { Iconify } from 'src/components/iconify';
 
+import { BibleSearchBar } from '../components/bible-search-bar';
 import { ImportLessonDialog } from '../components/import-lesson-dialog';
 
 type Props = {
@@ -30,6 +31,19 @@ export function BibleHubClient({ lessons, dueCount }: Props) {
 
   return (
     <>
+      {/* Sticky search bar — above the action button row */}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          bgcolor: 'background.default',
+          py: 1,
+        }}
+      >
+        <BibleSearchBar />
+      </Box>
+
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
         <Button
           variant="contained"
@@ -51,7 +65,7 @@ export function BibleHubClient({ lessons, dueCount }: Props) {
           startIcon={<Iconify icon="solar:book-bookmark-bold" />}
           href={paths.dashboard.bible.review}
         >
-          Ôn tập {dueCount > 0 ? `(${dueCount})` : ''}
+          Kho vũ khí {dueCount > 0 ? `(${dueCount})` : ''}
         </Button>
       </Stack>
 
