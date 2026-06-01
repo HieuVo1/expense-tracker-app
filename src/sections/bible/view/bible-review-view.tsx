@@ -9,17 +9,24 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
-import { BibleReviewClient } from './bible-review-client';
+import { ChallengeGrid } from '../components/challenge-grid';
 import { listThemes } from '../actions/bible-theme-actions';
-import { listDueVerses } from '../actions/bible-review-actions';
 import { getChallengeDeck } from '../actions/bible-challenge-actions';
 
-type Props = {
-  mode: 'sm2' | 'challenge';
-  themeId: string | null;
-};
+// "Kho vũ khí" page — user's full arsenal of challenge→verse cards.
+// Fetches every theme + the full deck (themeId: null). The client component
+// renders one tab per theme that has at least 1 card, plus a "Tất cả" tab.
+//
+// SM-2 verse memorization (review-flashcard + listDueVerses) is intentionally
+// not surfaced here anymore; the action files remain in the codebase for
+// future re-introduction via a dedicated route if needed.
 
-export async function BibleReviewView({ mode, themeId }: Props) {
+export async function BibleReviewView() {
+  const [themes, deck] = await Promise.all([
+    listThemes(),
+    getChallengeDeck({ themeId: null }),
+  ]);
+
   return (
     <DashboardContent>
       <Stack spacing={3}>
@@ -41,35 +48,8 @@ export async function BibleReviewView({ mode, themeId }: Props) {
           </Typography>
         </Box>
 
-        <BibleReviewClientLoader mode={mode} themeId={themeId} />
+        <ChallengeGrid themes={themes} deck={deck} />
       </Stack>
     </DashboardContent>
   );
-}
-
-// Inner async component that does the data fetch so BibleReviewView stays clean.
-async function BibleReviewClientLoader({
-  mode,
-  themeId,
-}: {
-  mode: 'sm2' | 'challenge';
-  themeId: string | null;
-}) {
-  if (mode === 'challenge') {
-    const [themes, deck] = await Promise.all([
-      listThemes(),
-      getChallengeDeck({ themeId }),
-    ]);
-    return (
-      <BibleReviewClient
-        mode="challenge"
-        themes={themes}
-        deck={deck}
-        selectedThemeId={themeId}
-      />
-    );
-  }
-
-  const sm2Cards = await listDueVerses();
-  return <BibleReviewClient mode="sm2" sm2Cards={sm2Cards} />;
 }
