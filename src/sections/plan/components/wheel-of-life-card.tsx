@@ -257,8 +257,7 @@ export function WheelOfLifeCard({ initial, history }: Props) {
                   0
                 )}{' '}
                 lượt nhắc khía cạnh trong note,{' '}
-                {assessment.inputSummary.gratitudeStats.entryCount} ngày biết ơn,{' '}
-                {assessment.inputSummary.bibleStats.lessonsLogged} bài học Kinh Thánh.
+                {assessment.inputSummary.gratitudeStats.entryCount} ngày biết ơn.
               </Typography>
             </Box>
           )}

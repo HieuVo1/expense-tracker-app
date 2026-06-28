@@ -23,7 +23,7 @@
 | B.2 | Dashboard reminders (overdue/today tasks + expired plans) | ✅ DONE |
 | C | About me module (7 entry types: GOAL/THOUGHT/LESSON/SIGNAL/PRINCIPLE/TRAIT/ACTION) | ✅ DONE |
 | D | Gratitude + AI Companion corpus + Note images + Gallery | ✅ DONE |
-| E | Bible Study Tracker (import .md lesson + bible.com fetch + themes + SM-2 review) | ✅ DONE |
+| E | Bible Study Tracker (import .md lesson + bible.com fetch + themes + SM-2 review) | 🗑️ REMOVED (2026-06-28) |
 | 7.5 | Receipt cleanup cron (60-day auto-delete) | ⏳ PENDING |
 | 8 | Vercel deploy (region `sin1`) | ✅ DONE |
 

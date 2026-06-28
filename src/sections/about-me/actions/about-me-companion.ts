@@ -8,7 +8,6 @@ import dayjs from 'dayjs';
 import { paths } from 'src/routes/paths';
 
 import { prisma } from 'src/lib/prisma';
-import { youVersionUrl } from 'src/lib/bible';
 import { requireUser } from 'src/lib/auth-helpers';
 import { requestCompanionSuggestion } from 'src/lib/ai/companion';
 
@@ -29,12 +28,6 @@ const MAX_GRATITUDE = 60;
 const GRATITUDE_ID_PREFIX = 'gratitude:';
 const GRATITUDE_LABEL = 'Lòng biết ơn';
 
-// Bible verses the user has imported. Themes (if any) get embedded in the
-// meta hint so AI can match by topical theme name as well as verse content.
-const MAX_VERSES = 80;
-const VERSE_ID_PREFIX = 'verse:';
-const VERSE_LABEL = 'Câu Kinh thánh';
-
 const PROBLEM_MIN = 5;
 const PROBLEM_MAX = 2000;
 
@@ -47,14 +40,12 @@ const TYPE_LABELS: Record<NoteType, string> = {
 
 export type CompanionRelatedEntry = {
   id: string;
-  type: NoteType | 'gratitude' | 'verse';
+  type: NoteType | 'gratitude';
   typeLabel: string;
   title: string;
   content: string;
   /** Where the user can go to read this entry in full. */
   href: string;
-  /** Optional external link (currently used for bible.com on verse entries). */
-  externalUrl?: string;
 };
 
 export type CompanionResponse = {
@@ -113,7 +104,7 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
   }
   const safeProblem = trimmed.slice(0, PROBLEM_MAX);
 
-  const [rows, gratitudeRows, verseRows] = await Promise.all([
+  const [rows, gratitudeRows] = await Promise.all([
     prisma.note.findMany({
       where: { userId: user.id, type: { in: CORPUS_TYPES } },
       orderBy: { updatedAt: 'desc' },
@@ -124,26 +115,9 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
       orderBy: { date: 'desc' },
       take: MAX_GRATITUDE,
     }),
-    // Only OK-status verses linked to at least one lesson — avoids orphaned
-    // cache rows and ambiguous/failed fetches the user hasn't resolved.
-    // Also fetch the most-recent lesson per verse so the related-entry card
-    // can deep-link to that lesson page (verses may belong to multiple).
-    prisma.bibleVerse.findMany({
-      where: { userId: user.id, fetchStatus: 'ok', lessons: { some: {} } },
-      include: {
-        themes: { include: { theme: { select: { name: true } } } },
-        lessons: {
-          include: { lesson: { select: { id: true, date: true } } },
-          orderBy: { lesson: { date: 'desc' } },
-          take: 1,
-        },
-      },
-      orderBy: { fetchedAt: 'desc' },
-      take: MAX_VERSES,
-    }),
   ]);
 
-  if (rows.length === 0 && gratitudeRows.length === 0 && verseRows.length === 0) {
+  if (rows.length === 0 && gratitudeRows.length === 0) {
     return {
       hasCorpus: false,
       acknowledgment:
@@ -171,28 +145,13 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
     content: clamp(g.items.map((it) => `• ${it}`).join('\n')),
   }));
 
-  const verseCorpus: CompanionCorpusEntry[] = verseRows.map((v) => {
-    const range =
-      v.startVerse === v.endVerse ? `${v.startVerse}` : `${v.startVerse}-${v.endVerse}`;
-    const themeNames = v.themes.map((t) => t.theme.name).filter(Boolean);
-    return {
-      id: `${VERSE_ID_PREFIX}${v.id}`,
-      typeLabel: VERSE_LABEL,
-      title: `${v.bookName} ${v.chapter}:${range}`,
-      content: clamp(v.text),
-      meta: themeNames.length > 0 ? `chủ đề: ${themeNames.join(', ')}` : undefined,
-    };
-  });
-
   const result = await requestCompanionSuggestion(safeProblem, [
     ...noteCorpus,
     ...gratitudeCorpus,
-    ...verseCorpus,
   ]);
 
   const noteById = new Map(rows.map((r) => [r.id, r]));
   const gratitudeById = new Map(gratitudeRows.map((g) => [g.id, g]));
-  const verseById = new Map(verseRows.map((v) => [v.id, v]));
 
   const relatedEntries: CompanionRelatedEntry[] = result.relatedEntryIds
     .map((id): CompanionRelatedEntry | null => {
@@ -206,34 +165,6 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
           title: `Biết ơn ${dayjs(g.date).format('DD/MM/YYYY')}`,
           content: clamp(g.items.join(' · ')),
           href: paths.dashboard.gratitude,
-        };
-      }
-      if (id.startsWith(VERSE_ID_PREFIX)) {
-        const v = verseById.get(id.slice(VERSE_ID_PREFIX.length));
-        if (!v) return null;
-        const range =
-          v.startVerse === v.endVerse ? `${v.startVerse}` : `${v.startVerse}-${v.endVerse}`;
-        // Deep-link to the most recent lesson where this verse appears (we
-        // ordered by lesson.date desc and took 1). Falls back to hub if the
-        // verse somehow has no lesson — shouldn't happen given the WHERE
-        // filter, but be defensive.
-        const lessonId = v.lessons[0]?.lesson.id;
-        return {
-          id: v.id,
-          type: 'verse',
-          typeLabel: VERSE_LABEL,
-          title: `${v.bookName} ${v.chapter}:${range}`,
-          content: clamp(v.text),
-          href: lessonId
-            ? paths.dashboard.bible.lessonDetail(lessonId)
-            : paths.dashboard.bible.root,
-          externalUrl: youVersionUrl({
-            bookCode: v.bookCode,
-            chapter: v.chapter,
-            startVerse: v.startVerse,
-            endVerse: v.endVerse,
-            version: v.version,
-          }),
         };
       }
       const r = noteById.get(id);

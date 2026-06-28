@@ -24,7 +24,6 @@ export type WheelSignals = {
     expenseByLifeArea: Partial<Record<LifeArea, number>>;
   };
   assetSnapshot: { netWorth: number };
-  bibleStats: { lessonsLogged: number; reviewsDone: number };
   aboutMeStats: { goals: number; lessons: number; principles: number };
   // Keyword hits across user free-form text (notes content, gratitude
   // items, transaction descriptions). Fills the signal gap for HEALTH /

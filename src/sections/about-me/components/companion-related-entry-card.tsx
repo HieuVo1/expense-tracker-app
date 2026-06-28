@@ -7,9 +7,7 @@ import type { CompanionRelatedEntry } from '../actions/about-me-companion';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { RouterLink } from 'src/routes/components';
@@ -22,28 +20,24 @@ import { ABOUT_ME_TYPE_ICONS, ABOUT_ME_TYPE_COLORS } from '../constants/about-me
 
 // ----------------------------------------------------------------------
 
-type EntryType = NoteType | 'gratitude' | 'verse';
+type EntryType = NoteType | 'gratitude';
 
-// daily + gratitude + verse aren't About-me types, so they have no entry in
-// the About-me maps — supply their chip color + icon locally to keep this
-// card self-contained.
+// daily + gratitude aren't About-me types, so they have no entry in the
+// About-me maps — supply their chip color + icon locally to keep this card
+// self-contained.
 const DAILY_COLOR = '#5d737e';
 const DAILY_ICON: IconifyName = 'solar:calendar-date-bold';
 const GRATITUDE_ICON: IconifyName = 'solar:hand-heart-bold';
-const VERSE_COLOR = '#00A76F';
-const VERSE_ICON: IconifyName = 'solar:book-bookmark-bold';
 
 function chipColor(type: EntryType): string {
   if (type === 'daily') return DAILY_COLOR;
   if (type === 'gratitude') return GRATITUDE_ACCENT;
-  if (type === 'verse') return VERSE_COLOR;
   return ABOUT_ME_TYPE_COLORS[type as keyof typeof ABOUT_ME_TYPE_COLORS];
 }
 
 function chipIcon(type: EntryType): IconifyName {
   if (type === 'daily') return DAILY_ICON;
   if (type === 'gratitude') return GRATITUDE_ICON;
-  if (type === 'verse') return VERSE_ICON;
   return ABOUT_ME_TYPE_ICONS[type as keyof typeof ABOUT_ME_TYPE_ICONS];
 }
 
@@ -85,19 +79,6 @@ export function CompanionRelatedEntryCard({ entry }: Props) {
           size="small"
           sx={{ bgcolor: chipColor(entry.type), fontWeight: 600, fontSize: 12 }}
         />
-        {entry.externalUrl && (
-          <Tooltip title="Mở trên bible.com">
-            <Link
-              href={entry.externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              sx={{ ml: 'auto', display: 'inline-flex', color: 'text.secondary', '&:hover': { color: chipColor(entry.type) } }}
-            >
-              <Iconify icon="solar:export-bold" width={14} />
-            </Link>
-          </Tooltip>
-        )}
       </Stack>
 
       <Typography variant="subtitle2" sx={{ mb: 0.5 }} noWrap>

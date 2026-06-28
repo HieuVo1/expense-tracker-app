@@ -33,7 +33,6 @@ GỢI Ý SIGNAL:
 - notesByType: nhật ký (daily), mục tiêu (GOAL), bài học (LESSON), nguyên tắc (PRINCIPLE), đặc điểm (TRAIT)... GOAL/LESSON/PRINCIPLE đặc biệt phản ánh GROWTH.
 - gratitudeStats: nhật ký biết ơn → SPIRITUALITY + tinh thần (HEALTH).
 - txStats.expenseByLifeArea: tổng chi đã map sang khía cạnh dựa trên tên danh mục (vd "Giải trí" → RECREATION, "Ăn uống" → HEALTH).
-- bibleStats: bài học Kinh Thánh + lần ôn → SPIRITUALITY.
 - aboutMeStats: số entry GOAL/LESSON/PRINCIPLE → GROWTH.
 - **textMentions** (QUAN TRỌNG để bù khi user chưa tag task): đếm số lần keyword của từng khía cạnh xuất hiện trong:
   - noteHits: nội dung note + journal hằng ngày

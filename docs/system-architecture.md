@@ -127,13 +127,7 @@ User (id ↔ Supabase auth.uid, uuid)
  ├─ Plan[]                (scope weekly|monthly; status active|completed|archived)
  │   └─ PlanTask[]        (priority do_first|schedule|delegate|eliminate; isDone boolean)
  ├─ Subscription[]        (recurring bills; cycle monthly|quarterly|yearly; nextDueDate; active)
- ├─ BibleLesson[]         (uploaded .md study notes; rawMarkdown + parsedSections JSON; @@index(userId, date desc))
- │   └─ BibleLessonVerse[] (m2m link to BibleVerse with `order`)
- ├─ BibleVerse[]          (per-(book,chapter,range,version) verse cache; @@unique(userId, bookCode, chapter, startVerse, endVerse, version); fetchStatus: ok|failed|ambiguous)
- │   ├─ BibleVerseTheme[] (m2m link to BibleTheme)
- │   └─ BibleReviewState? (SM-2 lite per verse; lazy-created on first review)
- ├─ BibleTheme[]          (user-created topics; @@unique(userId, name); @@index(userId, order))
- └─ BibleReviewState[]    (easiness 1.3..n, interval days, repetitions, nextReviewDate; @@index(userId, nextReviewDate))
+ └─ LifeWheelAssessment[] (AI Wheel of Life snapshots; periodDays; JSONB scores + inputSummary)
 
 OcrLog (no userId FK — orphan-tolerant logs)
 ```
@@ -150,8 +144,6 @@ OcrLog (no userId FK — orphan-tolerant logs)
 - AI Companion corpus: About-me entries (7 types) + Notes (daily journal) + GratitudeEntry (last 60, prefixed `gratitude:`). Retrieval no embeddings — direct LLM. Related card can surface a gratitude day.
 - Plans: weekly/monthly scope, active/completed/archived status. Tasks classified by Eisenhower priority (Q1: do first / Q2: schedule / Q3: delegate / Q4: eliminate). Progress = % tasks isDone, computed server-side. Rollover action copies incomplete tasks to next period.
 - Dashboard reminders: fetched server-side on `/dashboard` load via `getDashboardReminders()` — returns gratitudePending, overdue tasks, today's tasks, and expired plans with incomplete tasks. Card shown above summary when any pending. "Today" anchored to VN wall-clock via `fTodayVN()` (UTC+7) so rollover happens at 00:00 VN, not 07:00 VN (when server UTC ticks).
-- Bible verses: cache per `(userId, bookCode, chapter, startVerse, endVerse, version)` row in `BibleVerse`. Provider abstraction at `src/lib/bible/` (mirror OCR): bible.com chapter scrape primary (parses `__NEXT_DATA__.chapterInfo.content` then slices verse range), Gemini fallback. `fetchStatus`: `ok` | `failed` (network/parse error, "Tải lại" button) | `ambiguous` (book name like "Cô-rinh-tô" matches 1CO+2CO, user resolves via book picker). Per-process LRU cap 32 chapters reduces same-chapter re-fetches during a single import.
-- Bible review SM-2 lite: 4 quality levels (0=Quên/1=Khó/2=OK/3=Dễ) update `easiness` (1.3 floor) + `interval` + `repetitions`. `nextReviewDate` = VN today + interval days. New verses with no review row are eligible immediately (shown after due verses up to 50/session cap).
 
 ## Auth flow
 

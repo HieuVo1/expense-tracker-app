@@ -3,6 +3,14 @@
 > Format: ngày + scope. Mọi phase / feature / fix lớn cập nhật vào đây.
 > Không log mỗi commit — gom theo feature.
 
+## 2026-06-28 — Gỡ bỏ module Kinh thánh (Bible Study Tracker)
+
+- remove: toàn bộ module `/dashboard/bible` — sections `src/sections/bible/`, lib `src/lib/bible/`, routes `src/app/dashboard/bible/`, `src/lib/ai/bible-theme-suggest.ts`, dashboard `DailyVerseCard`
+- remove: 5 model Prisma (`BibleLesson`, `BibleVerse`, `BibleLessonVerse`, `BibleTheme`, `BibleVerseTheme`, `BibleReviewState`) + 4 User relations. Migration `20260628074800_drop_bible_study_models` drop 6 bảng `bible_*` (RLS policies dropped via CASCADE). RLS block tương ứng gỡ khỏi `prisma/rls.sql`
+- change: AI Companion thôi đưa câu Kinh thánh vào corpus (`about-me-companion.ts` + `companion-prompt.ts` + `companion-related-entry-card.tsx` gỡ loại `verse`)
+- change: Wheel of Life gỡ tín hiệu `bibleStats` (signals + types + prompt + card). Khía cạnh SPIRITUALITY giữ nguyên, nay chấm điểm từ keyword notes/gratitude
+- change: gỡ mục nav "Học tập", `paths.dashboard.bible`, hàng "Học tập" trong Cài đặt
+
 ## 2026-05-31 — Bible Study Tracker + VN-tz dashboard reminder fix
 
 **Plan:** [`plans/260531-0758-bible-study-tracker/`](../plans/260531-0758-bible-study-tracker/)

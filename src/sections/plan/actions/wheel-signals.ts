@@ -38,8 +38,6 @@ export async function gatherSignals(userId: string, periodDays: number): Promise
     txExpense,
     txExpenseRows,
     assets,
-    bibleLessons,
-    bibleReviews,
     aboutMeTotals,
   ] = await Promise.all([
     prisma.planTask.groupBy({
@@ -97,10 +95,6 @@ export async function gatherSignals(userId: string, periodDays: number): Promise
     prisma.asset.aggregate({
       where: { userId },
       _sum: { currentValue: true },
-    }),
-    prisma.bibleLesson.count({ where: { userId, date: { gte: since } } }),
-    prisma.bibleReviewState.count({
-      where: { userId, lastReviewedAt: { gte: since } },
     }),
     prisma.note.groupBy({
       by: ['type'],
@@ -219,7 +213,6 @@ export async function gatherSignals(userId: string, periodDays: number): Promise
     gratitudeStats,
     txStats,
     assetSnapshot: { netWorth: Number(assets._sum.currentValue ?? 0) },
-    bibleStats: { lessonsLogged: bibleLessons, reviewsDone: bibleReviews },
     aboutMeStats,
     textMentions,
   };
