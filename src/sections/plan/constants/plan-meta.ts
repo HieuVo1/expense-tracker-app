@@ -16,7 +16,8 @@ export const PLAN_STATUS_LABELS: Record<PlanStatus, string> = {
 };
 
 export const PLAN_STATUS_COLORS: Record<PlanStatus, string> = {
-  active: '#00A76F',
+  // Semantic success green (theme success.main) — not the brand primary.
+  active: '#22C55E',
   completed: '#1976D2',
   archived: '#637381',
 };

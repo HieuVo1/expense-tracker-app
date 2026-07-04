@@ -3,7 +3,7 @@
        bars docked at the bottom as a smaller chart accent. The $ is the
        primary symbol, the bars supply the "expense tracker" context.
        Single colour, all paths — no font dependency. -->
-  <g fill="#00A76F">
+  <g fill="#FDA92D">
     <!-- Bars: bottom-aligned, shorter so they don't crowd the $ glyph.
          Heights ascend left → right (84 / 132 / 188). -->
     <rect x="64"  y="380" width="96" height="84"  rx="14"/>

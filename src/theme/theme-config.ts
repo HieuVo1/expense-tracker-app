@@ -44,16 +44,18 @@ export const themeConfig: ThemeConfig = {
     secondary: 'Inter Variable',
   },
   /** **************************************
-   * Palette — TEMPLATE DEFAULT (Minimal UI Kit Pro)
+   * Palette — Minimal UI Kit Pro "orange" preset (primary);
+   * remaining colors keep template defaults.
    *************************************** */
   palette: {
     primary: {
-      lighter: '#C8FAD6',
-      light: '#5BE49B',
-      main: '#00A76F',
-      dark: '#007867',
-      darker: '#004B50',
-      contrastText: '#FFFFFF',
+      lighter: '#FEF4D4',
+      light: '#FED680',
+      main: '#FDA92D',
+      dark: '#B66816',
+      darker: '#793908',
+      // Orange main is light — dark text meets WCAG contrast (same as warning).
+      contrastText: '#1C252E',
     },
     secondary: {
       lighter: '#EFD6FF',
