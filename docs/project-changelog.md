@@ -3,6 +3,11 @@
 > Format: ngày + scope. Mọi phase / feature / fix lớn cập nhật vào đây.
 > Không log mỗi commit — gom theo feature.
 
+## 2026-07-04 — Wheel of Life: gợi ý 3 mức + dọn dashboard
+
+- feat: gợi ý "Khía cạnh cần chú tâm" phong phú hơn — mỗi khía cạnh nay có `reason` (dẫn chứng số liệu từ signals) + `recommendedTasks` (đúng 3 task theo 3 mức: hôm nay <15' / thói quen tuần / dài hạn), mỗi task có nút thêm riêng. Prompt yêu cầu cá nhân hoá theo dữ liệu user. Schema Gemini siết `recommendedTasks` 1-3 mục; assessment cũ vẫn render qua fallback `recommendedTaskTitle`. `createTaskFromSuggestion(suggestion, taskTitle?)` nhận task được chọn
+- change: sắp xếp lại `/dashboard` — bỏ card "Kế hoạch tuần này" (`current-week-plan-card.tsx` xóa) và "Hoá đơn định kỳ" (`subscription-dashboard-card.tsx` xóa; domain card Hóa đơn trong strip giữ nguyên), chuyển `WheelOfLifeCard` từ `/dashboard/about-me` về dashboard hub (giữa domain strip và trend chart). `runAssessment` revalidate `paths.dashboard.root`
+
 ## 2026-07-04 — Plans: bỏ tab Lịch tuần + auto date-range trong title; đổi bộ màu cam
 
 - remove: tab "Lịch tuần" khỏi `/dashboard/plans` + toàn bộ hạ tầng xếp lịch tuần — 5 component `plan-calendar-*`, `week-schedule-actions.ts` (AI xếp lịch), `src/lib/ai/week-schedule.ts`, `constants/time-slot.ts`, action `getWeekSchedulingContext`, `scheduleTask`/`unscheduleTask`, field `scheduledDate`/`scheduledSlot` khỏi `PlanTaskRow` (cột DB giữ nguyên, không migration). `@dnd-kit` giữ lại (Categories còn dùng)

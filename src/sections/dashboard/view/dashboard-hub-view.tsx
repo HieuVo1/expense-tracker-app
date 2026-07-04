@@ -14,17 +14,20 @@ import { listAssets } from 'src/sections/asset/actions/asset-actions';
 import { getReportData } from 'src/sections/report/actions/report-actions';
 import { getPlan, listPlans } from 'src/sections/plan/actions/plan-actions';
 import { getAboutMeStats } from 'src/sections/about-me/actions/about-me-stats';
+import { WheelOfLifeCard } from 'src/sections/plan/components/wheel-of-life-card';
 import { computeSubscriptionTotals } from 'src/sections/subscription/utils/summary';
 import { MonthlyTrendChart } from 'src/sections/report/components/monthly-trend-chart';
 import { getDailyReflection } from 'src/sections/about-me/actions/about-me-reflection';
 import { listSubscriptions } from 'src/sections/subscription/actions/subscription-actions';
-import { SubscriptionDashboardCard } from 'src/sections/subscription/components/subscription-dashboard-card';
+import {
+  getLatestAssessment,
+  listAssessmentHistory,
+} from 'src/sections/plan/actions/wheel-actions';
 
 import { HubDomainCard } from '../components/hub-domain-card';
 import { getDashboardData } from '../actions/dashboard-actions';
 import { getDashboardReminders } from '../actions/dashboard-reminders';
 import { DailyReflectionCard } from '../components/daily-reflection-card';
-import { CurrentWeekPlanCard } from '../components/current-week-plan-card';
 import { DashboardRemindersCard } from '../components/dashboard-reminders-card';
 
 // ----------------------------------------------------------------------
@@ -43,6 +46,8 @@ export async function DashboardHubView() {
     subs,
     reminders,
     reflection,
+    latestAssessment,
+    wheelHistory,
   ] = await Promise.all([
     getAboutMeStats(),
     getDashboardData(),
@@ -52,6 +57,8 @@ export async function DashboardHubView() {
     listSubscriptions(),
     getDashboardReminders(),
     getDailyReflection(),
+    getLatestAssessment(),
+    listAssessmentHistory(2),
   ]);
 
   // --- Asset summary ---
@@ -65,13 +72,9 @@ export async function DashboardHubView() {
   const currentWeekPlan = currentWeekRow ? await getPlan(currentWeekRow.id) : null;
   const activePlanCount = plans.filter((p) => p.status === 'active').length;
 
-  // --- Subscription summary ---
+  // --- Subscription summary (domain card only) ---
   const subTotals = computeSubscriptionTotals(subs);
   const upcoming7d = subs.filter((s) => s.active && s.daysUntilDue >= 0 && s.daysUntilDue <= 7).length;
-  const upcomingSubs = subs
-    .filter((s) => s.active)
-    .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
-    .slice(0, 5);
 
   // --- Spending summary ---
   const netBalance = dashboardData.totalIncome - dashboardData.totalExpense;
@@ -186,10 +189,8 @@ export async function DashboardHubView() {
           ))}
         </HorizontalScrollStrip>
 
-        {/* Actionable cards — weekly plan + upcoming subs. */}
-        <CurrentWeekPlanCard plan={currentWeekPlan} />
-
-        <SubscriptionDashboardCard upcoming={upcomingSubs} totals={subTotals} />
+        {/* Wheel of Life — holistic 8-area snapshot (moved here from /about-me). */}
+        <WheelOfLifeCard initial={latestAssessment} history={wheelHistory} />
 
         {/* Cross-domain trend — chi tiêu 6 tháng for a glance, deeper drill on /dashboard/spending. */}
         <MonthlyTrendChart data={reportData.monthlyTrend} />
