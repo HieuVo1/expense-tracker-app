@@ -115,6 +115,35 @@ export function isFullYear(startDate: string | null, endDate: string | null): bo
 
 // ----------------------------------------------------------------------
 
+// Matches an auto-appended "(DD/MM – DD/MM)" / "(DD/MM/YYYY – DD/MM/YYYY)"
+// suffix so re-applying a range (e.g. on rollover) replaces instead of stacking.
+const TITLE_RANGE_SUFFIX = /\s*\(\d{2}\/\d{2}(?:\/\d{4})?\s*[–-]\s*\d{2}\/\d{2}(?:\/\d{4})?\)$/;
+
+/**
+ * Appends "(DD/MM – DD/MM)" (year shown only when the range crosses years)
+ * to the title, replacing any previously appended range suffix. Returns the
+ * bare title when dates are missing (backlog).
+ */
+export function withDateRangeInTitle(
+  title: string,
+  startDate: string | null,
+  endDate: string | null
+): string {
+  const base = title.replace(TITLE_RANGE_SUFFIX, '').trim();
+  if (!startDate || !endDate) return base;
+
+  const s = dayjs(startDate);
+  const e = dayjs(endDate);
+  const range =
+    s.year() === e.year()
+      ? `${s.format('DD/MM')} – ${e.format('DD/MM')}`
+      : `${s.format('DD/MM/YYYY')} – ${e.format('DD/MM/YYYY')}`;
+
+  return `${base} (${range})`;
+}
+
+// ----------------------------------------------------------------------
+
 /** Rollover button label adapts to scope. */
 export function rolloverLabel(scope: PlanScope): string {
   if (scope === 'yearly') return 'Cuộn sang năm sau';
