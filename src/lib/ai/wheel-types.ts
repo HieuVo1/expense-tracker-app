@@ -6,8 +6,12 @@ export type WheelScores = Record<LifeArea, number>; // 1-10
 
 export type WheelSuggestion = {
   area: LifeArea;
-  message: string; // VN, ≤ 200 chars
-  recommendedTaskTitle?: string; // optional, ≤ 120 chars
+  message: string; // VN, ≤ 250 chars — empathetic observation
+  reason?: string; // VN, ≤ 200 chars — data-backed evidence ("0 task, 1 lượt nhắc...")
+  // 2-3 task options at different depths: quick win today / weekly habit /
+  // deeper long-term action. Each pickable individually in the UI.
+  recommendedTasks?: string[];
+  recommendedTaskTitle?: string; // legacy single suggestion (old stored assessments)
 };
 
 // Compact signal payload sent to Gemini. Aggregated counts/sums + small

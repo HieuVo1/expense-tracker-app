@@ -5,8 +5,8 @@ import type { WheelSuggestion } from 'src/lib/ai/wheel-types';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -23,13 +23,26 @@ import {
 type Props = {
   suggestion: WheelSuggestion;
   score: number;
-  onCreateTask: (suggestion: WheelSuggestion) => void;
-  isCreating: boolean;
+  onCreateTask: (suggestion: WheelSuggestion, taskTitle: string) => void;
+  /** Key of the task currently being created — `${area}-${title}` */
+  creatingKey: string | null;
 };
 
-export function WheelSuggestionCard({ suggestion, score, onCreateTask, isCreating }: Props) {
+// Depth labels matching the prompt's 3-tier task structure.
+const TASK_TIER_LABELS = ['Hôm nay', 'Hằng tuần', 'Dài hạn'];
+
+export function WheelSuggestionCard({ suggestion, score, onCreateTask, creatingKey }: Props) {
   const theme = useTheme();
   const color = theme.palette[LIFE_AREA_COLOR[suggestion.area]].main;
+
+  // New assessments carry 2-3 options; old stored ones a single legacy title.
+  const taskOptions = suggestion.recommendedTasks?.length
+    ? suggestion.recommendedTasks
+    : suggestion.recommendedTaskTitle
+      ? [suggestion.recommendedTaskTitle]
+      : [];
+
+  const showTierLabels = taskOptions.length === 3;
 
   return (
     <Card
@@ -66,58 +79,71 @@ export function WheelSuggestionCard({ suggestion, score, onCreateTask, isCreatin
         </Box>
       </Stack>
 
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{
-          display: '-webkit-box',
-          WebkitLineClamp: 4,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}
-      >
+      <Typography variant="body2" color="text.secondary">
         {suggestion.message}
       </Typography>
 
-      {suggestion.recommendedTaskTitle && (
-        <Box
-          sx={{
-            mt: 'auto',
-            p: 1.25,
-            borderRadius: 1,
-            bgcolor: 'background.neutral',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-          }}
-        >
+      {suggestion.reason && (
+        <Stack direction="row" spacing={0.75} alignItems="flex-start">
           <Iconify
-            icon="solar:add-circle-bold"
-            width={16}
-            sx={{ color: 'text.secondary', flexShrink: 0 }}
+            icon="solar:chart-square-outline"
+            width={14}
+            sx={{ color: 'text.disabled', flexShrink: 0, mt: '2px' }}
           />
-          <Typography variant="caption" sx={{ flex: 1, minWidth: 0, lineHeight: 1.4 }}>
-            {suggestion.recommendedTaskTitle}
+          <Typography variant="caption" color="text.disabled" sx={{ lineHeight: 1.5 }}>
+            {suggestion.reason}
           </Typography>
-        </Box>
+        </Stack>
       )}
 
-      <Button
-        size="small"
-        variant="outlined"
-        disabled={isCreating}
-        onClick={() => onCreateTask(suggestion)}
-        startIcon={
-          isCreating ? (
-            <CircularProgress size={14} />
-          ) : (
-            <Iconify icon="solar:add-circle-bold" width={16} />
-          )
-        }
-        sx={{ alignSelf: 'flex-start', borderColor: color, color }}
-      >
-        Thêm task gợi ý
-      </Button>
+      {taskOptions.length > 0 && (
+        <Stack spacing={0.75} sx={{ mt: 'auto' }}>
+          {taskOptions.map((title, idx) => {
+            const isCreating = creatingKey === `${suggestion.area}-${title}`;
+            return (
+              <Box
+                key={title}
+                sx={{
+                  p: 0.75,
+                  pl: 1.25,
+                  borderRadius: 1,
+                  bgcolor: 'background.neutral',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  {showTierLabels && (
+                    <Typography
+                      variant="caption"
+                      sx={{ display: 'block', color, fontWeight: 600, fontSize: 10, lineHeight: 1.2 }}
+                    >
+                      {TASK_TIER_LABELS[idx]}
+                    </Typography>
+                  )}
+                  <Typography variant="caption" sx={{ lineHeight: 1.4 }}>
+                    {title}
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  aria-label="Thêm task này vào kế hoạch"
+                  disabled={creatingKey !== null}
+                  onClick={() => onCreateTask(suggestion, title)}
+                  sx={{ color, flexShrink: 0 }}
+                >
+                  {isCreating ? (
+                    <CircularProgress size={16} sx={{ color }} />
+                  ) : (
+                    <Iconify icon="solar:add-circle-bold" width={20} />
+                  )}
+                </IconButton>
+              </Box>
+            );
+          })}
+        </Stack>
+      )}
     </Card>
   );
 }

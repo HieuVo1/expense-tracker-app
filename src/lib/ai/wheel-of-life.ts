@@ -47,9 +47,15 @@ const responseSchema = {
         properties: {
           area: { type: Type.STRING, enum: AREA_KEYS },
           message: { type: Type.STRING },
-          recommendedTaskTitle: { type: Type.STRING },
+          reason: { type: Type.STRING },
+          recommendedTasks: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            minItems: 1,
+            maxItems: 3,
+          },
         },
-        required: ['area', 'message'],
+        required: ['area', 'message', 'recommendedTasks'],
       },
     },
   },
@@ -95,21 +101,25 @@ export async function requestWheelAssessment(signals: WheelSignals): Promise<{
 
   const suggestions: WheelSuggestion[] = (parsed.suggestions ?? [])
     .slice(0, 8)
-    .filter((s): s is { area: string; message: string; recommendedTaskTitle?: string } => {
-      if (typeof s !== 'object' || s === null) return false;
-      const obj = s as Record<string, unknown>;
-      return (
-        typeof obj.area === 'string' &&
-        AREA_KEYS.includes(obj.area as LifeArea) &&
-        typeof obj.message === 'string'
-      );
-    })
+    .filter(
+      (s): s is { area: string; message: string; reason?: string; recommendedTasks?: unknown[] } => {
+        if (typeof s !== 'object' || s === null) return false;
+        const obj = s as Record<string, unknown>;
+        return (
+          typeof obj.area === 'string' &&
+          AREA_KEYS.includes(obj.area as LifeArea) &&
+          typeof obj.message === 'string'
+        );
+      }
+    )
     .map((s) => ({
       area: s.area as LifeArea,
       message: s.message.slice(0, 250),
-      recommendedTaskTitle: s.recommendedTaskTitle
-        ? String(s.recommendedTaskTitle).slice(0, 120)
-        : undefined,
+      reason: typeof s.reason === 'string' ? s.reason.slice(0, 200) : undefined,
+      recommendedTasks: (s.recommendedTasks ?? [])
+        .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+        .slice(0, 3)
+        .map((t) => t.trim().slice(0, 120)),
     }));
 
   return { scores, suggestions };

@@ -16,14 +16,15 @@ const COLLAPSED_LIMIT = 4;
 type Props = {
   suggestions: WheelSuggestion[];
   scores: WheelScores;
-  creatingArea: string | null;
-  onCreateTask: (s: WheelSuggestion) => void;
+  /** `${area}-${taskTitle}` of the task being created, null when idle */
+  creatingKey: string | null;
+  onCreateTask: (s: WheelSuggestion, taskTitle: string) => void;
 };
 
 export function WheelSuggestionsGrid({
   suggestions,
   scores,
-  creatingArea,
+  creatingKey,
   onCreateTask,
 }: Props) {
   const [showAll, setShowAll] = useState(false);
@@ -49,7 +50,7 @@ export function WheelSuggestionsGrid({
             suggestion={s}
             score={scores[s.area]}
             onCreateTask={onCreateTask}
-            isCreating={creatingArea === `${s.area}-${idx}`}
+            creatingKey={creatingKey}
           />
         ))}
       </Box>

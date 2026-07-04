@@ -86,13 +86,13 @@ export function WheelOfLifeCard({ initial, history }: Props) {
     });
   };
 
-  const handleCreateTask = (s: WheelSuggestion) => {
-    // Build a stable key — area + recommended title — to scope the loader.
-    const key = `${s.area}-${s.recommendedTaskTitle ?? s.message.slice(0, 32)}`;
+  const handleCreateTask = (s: WheelSuggestion, taskTitle: string) => {
+    // Key scopes the loader to the exact task row the user clicked.
+    const key = `${s.area}-${taskTitle}`;
     setCreatingKey(key);
     startTransition(async () => {
       try {
-        const { planId } = await createTaskFromSuggestion(s);
+        const { planId } = await createTaskFromSuggestion(s, taskTitle);
         toast.success('Đã thêm task vào kế hoạch', {
           action: {
             label: 'Mở',
@@ -227,7 +227,7 @@ export function WheelOfLifeCard({ initial, history }: Props) {
                   <WheelSuggestionsGrid
                     suggestions={assessment.suggestions}
                     scores={assessment.scores}
-                    creatingArea={creatingKey}
+                    creatingKey={creatingKey}
                     onCreateTask={handleCreateTask}
                   />
                 </Box>

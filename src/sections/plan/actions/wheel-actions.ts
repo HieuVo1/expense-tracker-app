@@ -77,7 +77,8 @@ export async function runAssessment(periodDays = 30): Promise<LifeWheelAssessmen
     },
   });
 
-  revalidatePath(paths.dashboard.aboutMe);
+  // Wheel card lives on the dashboard hub.
+  revalidatePath(paths.dashboard.root);
   return mapToDto(row);
 }
 
@@ -89,7 +90,10 @@ export async function runAssessment(periodDays = 30): Promise<LifeWheelAssessmen
  * a freshly-created default backlog plan.
  */
 export async function createTaskFromSuggestion(
-  suggestion: WheelSuggestion
+  suggestion: WheelSuggestion,
+  // Which of suggestion.recommendedTasks the user picked; falls back to the
+  // legacy single title, then to the message.
+  taskTitle?: string
 ): Promise<{ planId: string; taskId: string }> {
   const user = await requireUser();
 
@@ -124,7 +128,10 @@ export async function createTaskFromSuggestion(
   });
 
   const title =
-    suggestion.recommendedTaskTitle ?? suggestion.message.slice(0, 80);
+    taskTitle?.trim() ||
+    suggestion.recommendedTasks?.[0] ||
+    suggestion.recommendedTaskTitle ||
+    suggestion.message.slice(0, 80);
 
   const created = await prisma.planTask.create({
     data: {

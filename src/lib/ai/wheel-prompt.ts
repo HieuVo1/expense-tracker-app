@@ -49,8 +49,13 @@ YÊU CẦU OUTPUT:
 - scores: 8 keys (HEALTH, CAREER, FINANCE, GROWTH, FAMILY, SOCIAL, RECREATION, SPIRITUALITY), mỗi key là số nguyên 1-10.
 - suggestions: 2-5 mục cho các khía cạnh có điểm ≤ 5 (sắp xếp ưu tiên khía cạnh yếu nhất trước). Mỗi mục:
   - area: tên khía cạnh viết hoa.
-  - message: 1 câu tiếng Việt ngắn, cụ thể, đồng cảm, KHÔNG dạy đời. Tối đa ~150 ký tự.
-  - recommendedTaskTitle: 1 task hành động cụ thể (mệnh lệnh ngắn), VD "Đi bộ 20 phút mỗi tối", "Gọi điện cho mẹ cuối tuần". Tối đa ~80 ký tự.
-- Toàn bộ message + recommendedTaskTitle bằng tiếng Việt tự nhiên.
+  - message: 1-2 câu tiếng Việt đồng cảm, cụ thể, KHÔNG dạy đời. Tối đa ~200 ký tự.
+  - reason: 1 câu dẫn chứng TỪ CHÍNH DỮ LIỆU ở trên (số task, lượt nhắc trong note/biết ơn, chi tiêu...). VD: "30 ngày qua chưa có task Gia đình nào và chỉ 1 lượt nhắc trong nhật ký." Tối đa ~150 ký tự.
+  - recommendedTasks: ĐÚNG 3 gợi ý task đa dạng theo 3 mức độ, theo thứ tự:
+    1. Việc nhỏ làm ngay hôm nay, dưới 15 phút. VD "Nhắn tin hỏi thăm mẹ".
+    2. Thói quen lặp lại hằng tuần. VD "Đi bộ 20 phút mỗi tối thứ 2-4-6".
+    3. Hành động sâu / dài hạn hơn. VD "Lên kế hoạch về thăm nhà cuối tháng".
+    Mỗi task là mệnh lệnh ngắn, cụ thể, đo được, tối đa ~80 ký tự, KHÔNG trùng ý nhau, cá nhân hoá theo dữ liệu người dùng (tên danh mục chi tiêu, chủ đề note...) thay vì gợi ý chung chung.
+- Toàn bộ message + reason + recommendedTasks bằng tiếng Việt tự nhiên.
 - Chỉ trả JSON đúng schema, không thêm văn bản khác.`;
 }
