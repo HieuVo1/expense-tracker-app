@@ -1,6 +1,6 @@
 'use server';
 
-import type { LifeArea, TimeSlot, TaskPriority } from '@prisma/client';
+import type { LifeArea, TaskPriority } from '@prisma/client';
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
@@ -144,43 +144,6 @@ export async function deleteTask(id: string): Promise<void> {
   await prisma.planTask.delete({ where: { id } });
 
   revalidatePath(paths.dashboard.planDetail(task.planId));
-}
-
-// ----------------------------------------------------------------------
-
-/**
- * Schedule a task to a specific day + slot on the weekly calendar.
- * Pass `null` for date OR slot to unschedule that field. To fully unschedule,
- * call with both nulls (use `unscheduleTask` for clarity).
- */
-export async function scheduleTask(
-  taskId: string,
-  scheduledDate: string | null,
-  scheduledSlot: TimeSlot | null
-): Promise<void> {
-  const user = await requireUser();
-
-  const task = await prisma.planTask.findFirst({
-    where: { id: taskId, plan: { userId: user.id } },
-  });
-  if (!task) throw new Error('NOT_FOUND');
-
-  await prisma.planTask.update({
-    where: { id: taskId },
-    data: {
-      scheduledDate: scheduledDate ? new Date(`${scheduledDate}T00:00:00.000Z`) : null,
-      scheduledSlot,
-    },
-  });
-
-  revalidatePath(paths.dashboard.planDetail(task.planId));
-  revalidatePath(paths.dashboard.plans);
-}
-
-// ----------------------------------------------------------------------
-
-export async function unscheduleTask(taskId: string): Promise<void> {
-  return scheduleTask(taskId, null, null);
 }
 
 // ----------------------------------------------------------------------

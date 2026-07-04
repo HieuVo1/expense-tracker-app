@@ -1,8 +1,8 @@
 'use server';
 
-import type { PlanScope, PlanStatus } from '@prisma/client';
+import type { PlanStatus } from '@prisma/client';
 import type { PlanFormValues } from '../schemas';
-import type { PlanRow, PlanDetail, PlanTaskRow, PlanMoveTarget } from '../types';
+import type { PlanRow, PlanDetail, PlanMoveTarget } from '../types';
 
 import dayjs from 'dayjs';
 import { revalidatePath } from 'next/cache';
@@ -13,7 +13,7 @@ import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
 import { planFormSchema } from '../schemas';
-import { nextRange, isPlanCurrent } from '../utils/plan-dates';
+import { nextRange, isPlanCurrent, withDateRangeInTitle } from '../utils/plan-dates';
 
 // ----------------------------------------------------------------------
 
@@ -98,7 +98,9 @@ export async function createPlan(input: PlanFormValues): Promise<{ id: string }>
     data: {
       userId: user.id,
       scope: data.scope,
-      title: data.title,
+      title: isBacklog
+        ? data.title
+        : withDateRangeInTitle(data.title, data.startDate!, data.endDate!),
       description: data.description?.trim() || null,
       startDate: isBacklog ? null : toDateOnlyUtc(data.startDate!),
       endDate: isBacklog ? null : toDateOnlyUtc(data.endDate!),
@@ -153,8 +155,6 @@ export async function getPlan(id: string): Promise<PlanDetail | null> {
       priority: t.priority,
       lifeArea: t.lifeArea,
       dueDate: t.dueDate ? toDateString(t.dueDate) : null,
-      scheduledDate: t.scheduledDate ? toDateString(t.scheduledDate) : null,
-      scheduledSlot: t.scheduledSlot,
       order: t.order,
       createdAt: t.createdAt.toISOString(),
     })),
@@ -175,7 +175,9 @@ export async function updatePlan(id: string, input: PlanFormValues): Promise<voi
     where: { id },
     data: {
       scope: data.scope,
-      title: data.title,
+      title: isBacklog
+        ? withDateRangeInTitle(data.title, null, null)
+        : withDateRangeInTitle(data.title, data.startDate!, data.endDate!),
       description: data.description?.trim() || null,
       startDate: isBacklog ? null : toDateOnlyUtc(data.startDate!),
       endDate: isBacklog ? null : toDateOnlyUtc(data.endDate!),
@@ -247,7 +249,7 @@ export async function rolloverPlan(id: string): Promise<{ id: string }> {
       data: {
         userId: user.id,
         scope: source.scope,
-        title: source.title,
+        title: withDateRangeInTitle(source.title, range.startDate, range.endDate),
         description: source.description,
         startDate: new Date(range.startDate),
         endDate: new Date(range.endDate),
@@ -277,80 +279,6 @@ export async function rolloverPlan(id: string): Promise<{ id: string }> {
   revalidatePath(paths.dashboard.planDetail(newPlan.id));
 
   return { id: newPlan.id };
-}
-
-// ----------------------------------------------------------------------
-
-/**
- * Returns current ISO week + all schedulable tasks (undone, from any active
- * plan — weekly/monthly/yearly/backlog). Calendar tab uses this so the user
- * sees ALL pending work, not just the weekly plan.
- *
- * Each task carries its source planId + planTitle for context.
- */
-export type SchedulableTaskRow = PlanTaskRow & {
-  planId: string;
-  planTitle: string;
-  planScope: PlanScope;
-};
-
-export type WeekSchedulingContext = {
-  weekStart: string; // YYYY-MM-DD (Monday)
-  weekEnd: string; // YYYY-MM-DD (Sunday)
-  weekDays: string[]; // 7 entries
-  tasks: SchedulableTaskRow[];
-};
-
-export async function getWeekSchedulingContext(): Promise<WeekSchedulingContext> {
-  const user = await requireUser();
-
-  // Use ISO week (Mon-Sun) — same convention as suggestRange('weekly').
-  const today = dayjs();
-  const weekStart = today.startOf('isoWeek');
-  const weekEnd = today.endOf('isoWeek');
-  const weekDays: string[] = [];
-  for (let i = 0; i < 7; i += 1) {
-    weekDays.push(weekStart.add(i, 'day').format('YYYY-MM-DD'));
-  }
-
-  // All active plans (any scope). Eagerly pull undone tasks.
-  const plans = await prisma.plan.findMany({
-    where: { userId: user.id, status: 'active' },
-    select: {
-      id: true,
-      title: true,
-      scope: true,
-      tasks: {
-        where: { isDone: false },
-        orderBy: [{ priority: 'asc' }, { order: 'asc' }, { createdAt: 'asc' }],
-      },
-    },
-  });
-
-  const tasks = plans.flatMap((p) =>
-    p.tasks.map((t) => ({
-      id: t.id,
-      title: t.title,
-      isDone: t.isDone,
-      priority: t.priority,
-      lifeArea: t.lifeArea,
-      dueDate: t.dueDate ? toDateString(t.dueDate) : null,
-      scheduledDate: t.scheduledDate ? toDateString(t.scheduledDate) : null,
-      scheduledSlot: t.scheduledSlot,
-      order: t.order,
-      createdAt: t.createdAt.toISOString(),
-      planId: p.id,
-      planTitle: p.title,
-      planScope: p.scope,
-    }))
-  );
-
-  return {
-    weekStart: weekStart.format('YYYY-MM-DD'),
-    weekEnd: weekEnd.format('YYYY-MM-DD'),
-    weekDays,
-    tasks,
-  };
 }
 
 // ----------------------------------------------------------------------

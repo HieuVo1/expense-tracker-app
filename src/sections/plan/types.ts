@@ -1,4 +1,4 @@
-import type { LifeArea, TimeSlot, PlanScope, PlanStatus, TaskPriority } from '@prisma/client';
+import type { LifeArea, PlanScope, PlanStatus, TaskPriority } from '@prisma/client';
 
 // ----------------------------------------------------------------------
 
@@ -29,8 +29,6 @@ export type PlanTaskRow = {
   priority: TaskPriority;
   lifeArea: LifeArea | null;
   dueDate: string | null; // YYYY-MM-DD
-  scheduledDate: string | null; // YYYY-MM-DD
-  scheduledSlot: TimeSlot | null;
   order: number;
   createdAt: string; // ISO
 };

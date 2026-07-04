@@ -2,8 +2,6 @@
 
 import type { PlanScope } from '@prisma/client';
 import type { PlanRow } from '../types';
-import type { PlanView } from '../components/plan-tabs';
-import type { WeekSchedulingContext } from '../actions/plan-actions';
 
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -18,27 +16,21 @@ import { Iconify } from 'src/components/iconify';
 import { PlanTabs } from '../components/plan-tabs';
 import { PlanList } from '../components/plan-list';
 import { PlanBacklogList } from '../components/plan-backlog-list';
-import { PlanCalendarView } from '../components/plan-calendar-view';
 import { PlanCreateDialog } from '../components/plan-create-dialog';
 
 // ----------------------------------------------------------------------
 
 type PlanListClientProps = {
   initial: PlanRow[];
-  weekContext: WeekSchedulingContext;
 };
 
-export function PlanListClient({ initial, weekContext }: PlanListClientProps) {
-  const [activeView, setActiveView] = useState<PlanView>('calendar');
+export function PlanListClient({ initial }: PlanListClientProps) {
+  const [activeScope, setActiveScope] = useState<PlanScope>('weekly');
   const [createOpen, setCreateOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  // Only compute scope-tab data when a scope is active (not calendar).
-  const isScopeView = activeView !== 'calendar';
-  const scopeTab = isScopeView ? (activeView as PlanScope) : null;
-
   const { current, upcoming, past, archived, backlogItems } = useMemo(() => {
-    const tabRows = scopeTab ? initial.filter((r) => r.scope === scopeTab) : [];
+    const tabRows = initial.filter((r) => r.scope === activeScope);
     const today = dayjs().format('YYYY-MM-DD');
 
     return {
@@ -60,17 +52,14 @@ export function PlanListClient({ initial, weekContext }: PlanListClientProps) {
       archived: tabRows.filter((r) => r.status === 'archived'),
       backlogItems: initial.filter((r) => r.scope === 'backlog'),
     };
-  }, [initial, scopeTab]);
+  }, [initial, activeScope]);
 
-  const handleTabChange = (v: PlanView) => {
-    setActiveView(v);
+  const handleTabChange = (scope: PlanScope) => {
+    setActiveScope(scope);
     setShowArchived(false);
   };
 
-  const isBacklog = activeView === 'backlog';
-  const isCalendar = activeView === 'calendar';
-  // Default scope for the create dialog when triggered from a non-scope view.
-  const createDefaultScope: PlanScope = isCalendar ? 'weekly' : (activeView as PlanScope);
+  const isBacklog = activeScope === 'backlog';
 
   return (
     <Stack spacing={3}>
@@ -89,20 +78,13 @@ export function PlanListClient({ initial, weekContext }: PlanListClientProps) {
 
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 720 }}>
           Mỗi <strong>kế hoạch</strong> là một mục tiêu cho tuần, tháng hoặc năm. Bên trong, bạn liệt kê các{' '}
-          <strong>việc cần làm</strong> và phân loại theo mức độ <em>khẩn cấp / quan trọng</em>. Backlog là kho ý tưởng — chưa có thời hạn. Tab <strong>Lịch tuần</strong> để AI tự xếp lịch theo ma trận Eisenhower.
+          <strong>việc cần làm</strong> và phân loại theo mức độ <em>khẩn cấp / quan trọng</em>. Backlog là kho ý tưởng — chưa có thời hạn.
         </Typography>
       </Box>
 
-      <PlanTabs value={activeView} onChange={handleTabChange} />
+      <PlanTabs value={activeScope} onChange={handleTabChange} />
 
-      {isCalendar ? (
-        <PlanCalendarView
-          weekStart={weekContext.weekStart}
-          weekEnd={weekContext.weekEnd}
-          weekDays={weekContext.weekDays}
-          tasks={weekContext.tasks}
-        />
-      ) : isBacklog ? (
+      {isBacklog ? (
         <PlanBacklogList items={backlogItems} onCreate={() => setCreateOpen(true)} />
       ) : (
         <PlanList
@@ -119,7 +101,7 @@ export function PlanListClient({ initial, weekContext }: PlanListClientProps) {
       <PlanCreateDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        defaultScope={createDefaultScope}
+        defaultScope={activeScope}
       />
     </Stack>
   );
