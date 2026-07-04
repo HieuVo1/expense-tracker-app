@@ -208,7 +208,7 @@ createTransactionsBulk server action
 ## Cross-cutting
 
 ### Theme
-Uses **Minimal UI Kit Pro default palette** (primary green `#00A76F`, Inter Variable). Theme tokens trong `src/theme/theme-config.ts`; component overrides trong `src/theme/theme-overrides.ts`.
+Uses **Minimal UI Kit Pro "orange" preset** cho primary (`#FDA92D`, contrastText tối `#1C252E`; các màu còn lại giữ template default; Inter Variable). Theme tokens trong `src/theme/theme-config.ts`; component overrides trong `src/theme/theme-overrides.ts`. Brand icons (`public/logo/logo-e.svg` là source, PNG/favicon/PWA icons regenerate bằng sharp) đồng bộ màu primary.
 
 ### Imports & lint
 Absolute paths từ `src/`. `eslint-plugin-perfectionist` enforces import sort order — `pnpm lint:fix` để auto-sort. `eslint-plugin-unused-imports` xoá unused imports.

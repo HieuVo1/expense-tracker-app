@@ -3,6 +3,12 @@
 > Format: ngày + scope. Mọi phase / feature / fix lớn cập nhật vào đây.
 > Không log mỗi commit — gom theo feature.
 
+## 2026-07-04 — Plans: bỏ tab Lịch tuần + auto date-range trong title; đổi bộ màu cam
+
+- remove: tab "Lịch tuần" khỏi `/dashboard/plans` + toàn bộ hạ tầng xếp lịch tuần — 5 component `plan-calendar-*`, `week-schedule-actions.ts` (AI xếp lịch), `src/lib/ai/week-schedule.ts`, `constants/time-slot.ts`, action `getWeekSchedulingContext`, `scheduleTask`/`unscheduleTask`, field `scheduledDate`/`scheduledSlot` khỏi `PlanTaskRow` (cột DB giữ nguyên, không migration). `@dnd-kit` giữ lại (Categories còn dùng)
+- feat: title kế hoạch tự gắn khoảng ngày `(DD/MM – DD/MM)` server-side qua `withDateRangeInTitle()` (`plan-dates.ts`) — áp dụng ở createPlan / updatePlan / rolloverPlan; idempotent (thay suffix cũ khi rollover/đổi ngày), gỡ suffix khi chuyển sang backlog
+- change: đổi primary palette sang Minimal "orange" preset (`#FDA92D`, contrastText `#1C252E`) trong `theme-config.ts`; regenerate logo SVG + toàn bộ PNG/favicon/PWA icons bằng sharp; `PLAN_STATUS_COLORS.active` chuyển sang success green `#22C55E` (tách khỏi brand). `favicon.ico` cũ vẫn màu xanh (fallback, PNG favicons override)
+
 ## 2026-06-28 — Gỡ bỏ module Kinh thánh (Bible Study Tracker)
 
 - remove: toàn bộ module `/dashboard/bible` — sections `src/sections/bible/`, lib `src/lib/bible/`, routes `src/app/dashboard/bible/`, `src/lib/ai/bible-theme-suggest.ts`, dashboard `DailyVerseCard`
