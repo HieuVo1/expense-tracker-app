@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
-import type { TransactionType } from '@prisma/client';
 
+import { parseTransactionType } from 'src/sections/transaction/lib/transaction-type';
 import { getTransactionsForExport } from 'src/sections/report/actions/report-actions';
 
 // Excel-compatible CSV escaping: wrap fields with quote / comma / newline in
@@ -24,12 +24,9 @@ export async function GET(req: NextRequest) {
   // Mirror every filter param the transactions page supports so the CSV
   // reflects exactly what the user has on screen.
   const sp = req.nextUrl.searchParams;
-  const typeRaw = sp.get('type');
-  const type: TransactionType | undefined =
-    typeRaw === 'expense' || typeRaw === 'income' ? (typeRaw as TransactionType) : undefined;
 
   const filter = {
-    type,
+    type: parseTransactionType(sp.get('type')),
     categoryId: sp.get('categoryId') ?? undefined,
     q: sp.get('q') ?? undefined,
     month: sp.get('month') ?? undefined,

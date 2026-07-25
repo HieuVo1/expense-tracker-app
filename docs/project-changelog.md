@@ -3,6 +3,17 @@
 > Format: ngày + scope. Mọi phase / feature / fix lớn cập nhật vào đây.
 > Không log mỗi commit — gom theo feature.
 
+## 2026-07-25 — Loại giao dịch thứ 3: Đầu tư
+
+- feat: `TransactionType` thêm giá trị `investment` (migration `20260725160000_add_investment_transaction_type`). Đầu tư là tiền ra như Chi nhưng đổi lấy tài sản, nên tách khỏi `totalExpense` để "Tổng chi" vẫn là con số tiêu dùng thuần
+- feat: module dùng chung `src/sections/transaction/lib/transaction-type.ts` — `TRANSACTION_TYPES`, label/sign/color map, `signedAmount()` (Thu cộng; Chi + Đầu tư trừ), `parseTransactionType()`. Mọi zod enum, toggle, chip lọc, tab donut đều lặp từ đây thay vì hardcode union `'expense' | 'income'`
+- feat: chart "6 tháng gần nhất" thêm series thứ 3 màu tím `#8E33FF` (= theme secondary.main; OKLab ΔE 35.1 vs Thu, 32.7 vs Chi dưới deuteranopia/protanopia). Legend bật lại (`useChart` mặc định `show: false`) vì 3 line không thể phân biệt chỉ bằng tooltip; gradient fill giảm 0.4 → 0.28 để 3 vùng không đè đục nhau
+- change: dashboard Chi tiêu 4 → 5 summary card (thêm "Tổng đầu tư", grid `lg: 2.4`). **Số dư tháng này = Thu − Chi − Đầu tư**; "Tổng giao dịch" cộng thêm đầu tư. Đổi màu "Tổng giao dịch" secondary → primary để nhường tím cho Đầu tư
+- change: donut "Phân bổ theo danh mục" 2 → 3 tab; trang Danh mục 2 → 3 section; đồng bộ cash-sync ở Tài sản trừ luôn giao dịch đầu tư
+- change: CSV export ghi "Đầu tư"; import nhận "Đầu tư" / "dau tu" / "investment"
+- DB: trigger `handle_new_user` seed thêm 4 danh mục đầu tư (Cổ phiếu, Quỹ mở, Tiết kiệm, Đầu tư khác — order 20-23). `prisma/seed-investment-categories.sql` backfill cho user đã tồn tại
+- note: OCR vẫn chỉ trả `expense | income` — ảnh sao kê không phân biệt được chuyển tiền mua cổ phiếu với chuyển tiền thường; user đổi type trong màn preview sau khi quét
+
 ## 2026-07-04 — Wheel of Life: gợi ý 3 mức + dọn dashboard
 
 - feat: gợi ý "Khía cạnh cần chú tâm" phong phú hơn — mỗi khía cạnh nay có `reason` (dẫn chứng số liệu từ signals) + `recommendedTasks` (đúng 3 task theo 3 mức: hôm nay <15' / thói quen tuần / dài hạn), mỗi task có nút thêm riêng. Prompt yêu cầu cá nhân hoá theo dữ liệu user. Schema Gemini siết `recommendedTasks` 1-3 mục; assessment cũ vẫn render qua fallback `recommendedTaskTitle`. `createTaskFromSuggestion(suggestion, taskTitle?)` nhận task được chọn

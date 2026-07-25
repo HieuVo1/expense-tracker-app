@@ -1,5 +1,7 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
+
 import { useState, useEffect, useTransition } from 'react';
 import {
   arrayMove,
@@ -27,7 +29,7 @@ import { toast } from 'src/components/snackbar';
 import { CategoryListItem } from './category-list-item';
 import { reorderCategories } from '../actions/category-actions';
 
-type Row = { id: string; name: string; icon: string; color: string; type: 'expense' | 'income' };
+type Row = { id: string; name: string; icon: string; color: string; type: TransactionType };
 
 type Props = {
   title: string;
@@ -92,10 +94,7 @@ export function SortableCategorySection({ title, rows }: Props) {
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext
-              items={items.map((c) => c.id)}
-              strategy={verticalListSortingStrategy}
-            >
+            <SortableContext items={items.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               {items.map((c) => (
                 <CategoryListItem key={c.id} category={c} sortable />
               ))}

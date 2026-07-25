@@ -9,10 +9,8 @@ import { paths } from 'src/routes/paths';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
-import {
-  buildTransactionWhere,
-  type TransactionListFilter,
-} from '../lib/transaction-filter';
+import { TRANSACTION_TYPES } from '../lib/transaction-type';
+import { buildTransactionWhere, type TransactionListFilter } from '../lib/transaction-filter';
 
 // `nullish()` = optional + nullable so OCR/DB can pass `null` directly.
 // Schema parsers normalise to undefined-or-string downstream.
@@ -24,7 +22,7 @@ const DATE_WIRE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 const createSchema = z.object({
   amount: z.number().int().min(1, 'Số tiền phải > 0'),
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
   categoryId: z.string().min(1),
   date: z.string().regex(DATE_WIRE_RE, 'Ngày không hợp lệ'),
   description: z.string().max(200).nullish(),
@@ -136,9 +134,9 @@ export async function createTransaction(input: CreateTransactionInput) {
   return transaction.id;
 }
 
-// Returns ALL categories so the form can switch between expense + income lists
-// reactively as the user toggles type. The set is small (≤ ~15 rows) so we
-// don't pay anything for fetching both types in one go.
+// Returns ALL categories so the form can switch between the expense, income and
+// investment lists reactively as the user toggles type. The set is small
+// (≤ ~20 rows) so we don't pay anything for fetching every type in one go.
 export async function listCategoriesForForm() {
   const user = await requireUser();
   return prisma.category.findMany({
@@ -213,7 +211,7 @@ export async function listTransactions(
 const updateSchema = z.object({
   id: z.string().min(1),
   amount: z.number().int().min(1, 'Số tiền phải > 0'),
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
   categoryId: z.string().min(1),
   date: z.string().regex(DATE_WIRE_RE, 'Ngày không hợp lệ'),
   description: z.string().max(200).nullish(),

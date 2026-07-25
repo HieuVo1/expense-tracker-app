@@ -1,5 +1,6 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
 import type { PreviewItem } from './transaction-scan-preview';
 
 import * as z from 'zod';
@@ -22,17 +23,18 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { TypeToggle } from './type-toggle';
 import { CategoryChipSelect } from './category-chip-select';
+import { TRANSACTION_TYPES } from '../lib/transaction-type';
 
 type Category = {
   id: string;
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
 };
 
 const schema = z.object({
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
   amount: z
     .string()
     .min(1, { error: 'Vui lòng nhập số tiền' })

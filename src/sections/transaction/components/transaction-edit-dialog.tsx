@@ -1,5 +1,7 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
+
 import * as z from 'zod';
 import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
@@ -22,6 +24,7 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { TypeToggle } from './type-toggle';
 import { CategoryChipSelect } from './category-chip-select';
+import { TRANSACTION_TYPES } from '../lib/transaction-type';
 import { updateTransaction, listCategoriesForForm } from '../actions/transaction-actions';
 
 type Category = {
@@ -29,20 +32,20 @@ type Category = {
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
 };
 
 type Transaction = {
   id: string;
   amount: number;
-  type: 'expense' | 'income';
+  type: TransactionType;
   date: string;
   description: string | null;
   category: { id: string; name: string; icon: string; color: string };
 };
 
 const schema = z.object({
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
   amount: z
     .string()
     .min(1, { error: 'Vui lòng nhập số tiền' })
@@ -87,9 +90,11 @@ export function TransactionEditDialog({ open, onClose, transaction }: Props) {
   // Fetch categories the first time the dialog opens.
   useEffect(() => {
     if (open && categories === null) {
-      listCategoriesForForm().then(setCategories).catch(() => {
-        setError('Không tải được danh mục');
-      });
+      listCategoriesForForm()
+        .then(setCategories)
+        .catch(() => {
+          setError('Không tải được danh mục');
+        });
     }
   }, [open, categories]);
 

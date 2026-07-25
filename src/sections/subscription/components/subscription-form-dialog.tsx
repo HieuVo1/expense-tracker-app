@@ -1,6 +1,6 @@
 'use client';
 
-import type { BillingCycle } from '@prisma/client';
+import type { BillingCycle, TransactionType } from '@prisma/client';
 import type { SubscriptionRow } from '../types';
 import type { SubscriptionFormValues } from '../schemas';
 
@@ -32,21 +32,15 @@ import { listCategoriesForForm } from 'src/sections/transaction/actions/transact
 import { CategoryChipSelect } from 'src/sections/transaction/components/category-chip-select';
 
 import { subscriptionFormSchema } from '../schemas';
-import {
-  BILLING_CYCLE_LABEL,
-  BILLING_CYCLE_VALUES,
-} from '../constants/billing-cycle';
-import {
-  createSubscription,
-  updateSubscription,
-} from '../actions/subscription-actions';
+import { BILLING_CYCLE_LABEL, BILLING_CYCLE_VALUES } from '../constants/billing-cycle';
+import { createSubscription, updateSubscription } from '../actions/subscription-actions';
 
 type Category = {
   id: string;
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
 };
 
 type Props = {
@@ -194,11 +188,7 @@ export function SubscriptionFormDialog({ open, onClose, editing }: Props) {
               )}
             </Box>
 
-            <Field.DatePicker
-              name="nextDueDate"
-              label="Ngày đến hạn kế tiếp"
-              format="DD/MM/YYYY"
-            />
+            <Field.DatePicker name="nextDueDate" label="Ngày đến hạn kế tiếp" format="DD/MM/YYYY" />
 
             <Field.Text
               name="notes"

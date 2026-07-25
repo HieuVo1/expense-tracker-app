@@ -117,8 +117,8 @@ Expense Tracker/
 
 ```
 User (id ↔ Supabase auth.uid, uuid)
- ├─ Category[]            (6 expense + 4 income seed; @@unique(userId, name))
- ├─ Transaction[]         (Decimal(15,0) amount; type expense|income; date TIMESTAMP(3))
+ ├─ Category[]            (6 expense + 4 income + 4 investment seed; @@unique(userId, name))
+ ├─ Transaction[]         (Decimal(15,0) amount; type expense|income|investment; date TIMESTAMP(3))
  ├─ Budget[]              (per category × month; @@unique(userId, categoryId, month))
  ├─ MerchantMemory[]      (lowercase merchant → categoryId; @@unique(userId, merchant))
  ├─ Asset[]               (6 types incl. CRYPTO; capital + currentValue + savings extras)
@@ -136,8 +136,9 @@ OcrLog (no userId FK — orphan-tolerant logs)
 - RLS: mọi bảng có `user_id` policy `auth.uid() = user_id`. Prisma queries luôn `where: { userId: user.id }` defense-in-depth.
 - VND amounts: `Decimal(15, 0)` đủ tới 999,999,999,999,999 ₫.
 - `Transaction.date` lưu wall-clock UTC (naive) — không có timezone math anywhere; UI render `DD/MM/YYYY HH:mm` qua dayjs.
-- Categories typed (`expense` | `income`) để picker chỉ show options đúng loại trong form.
-- Assets không link với Transactions — snapshot manual entry, no auto-create "Chi" khi nạp tiền.
+- Categories typed (`expense` | `income` | `investment`) để picker chỉ show options đúng loại trong form. Label/màu/dấu + helper `signedAmount()` tập trung ở `src/sections/transaction/lib/transaction-type.ts`.
+- `investment` là tiền ra (dấu −) như `expense` nhưng không tính vào "Tổng chi" — Chi là tiêu dùng, Đầu tư đổi lấy tài sản. Số dư tháng = Thu − Chi − Đầu tư. Muốn ghi nhận lãi/bán ra thì log bằng loại Thu.
+- Assets không link với Transactions — snapshot manual entry, no auto-create "Chi" khi nạp tiền. Cash-sync banner trừ cả giao dịch đầu tư khỏi số dư tiền mặt.
 - Note.images: array of Storage paths (bucket `note-images`, prefixed `<userId>/<uuid>.<ext>`). Signed URLs (8h TTL) generated on read. Orphan cleanup (best-effort) on update/delete.
 - GratitudeEntry: 1 per user per day. `items` array (min 1, soft target 5). Unique index prevents duplicates. Re-date action: can update today's entry date to earlier day if that date unoccupied. Dashboard reminder: gratitudePending until day reaches target.
 - Note.images + AboutMeImages: shared `NoteImagesField` uploader. Gallery aggregates all Note images newest-first (excluding gratitude).
@@ -148,7 +149,7 @@ OcrLog (no userId FK — orphan-tolerant logs)
 ## Auth flow
 
 1. **Sign-up** (`/auth/sign-up`): email + password → Supabase tạo user → email verify link → user click → `/auth/verify` confirm
-2. **First sign-in:** DB trigger `on_auth_user_created` seed 10 categories cho user (6 expense + 4 income)
+2. **First sign-in:** DB trigger `on_auth_user_created` seed 14 categories cho user (6 expense + 4 income + 4 investment)
 3. **Session:** Supabase set httpOnly cookies; `middleware.ts` refresh trên mỗi request đụng cookie
 4. **Guard:** `PROTECTED_PREFIXES = ['/dashboard']` redirect → sign-in nếu chưa auth; `GUEST_ONLY_PREFIXES = ['/auth/sign-in', '/auth/sign-up']` redirect → `/dashboard` nếu đã auth
 5. **Server-side:** `requireUser()` trong `src/lib/auth-helpers.ts` — gọi từ server components / actions / route handlers

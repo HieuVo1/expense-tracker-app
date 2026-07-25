@@ -1,5 +1,3 @@
-import type { TransactionType } from '@prisma/client';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -12,6 +10,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import { parseTransactionType } from '../lib/transaction-type';
 import { ImportCsvButton } from '../components/import-csv-button';
 import { TransactionFilterBar } from '../components/transaction-filter-bar';
 import { TransactionListGrouped } from '../components/transaction-list-grouped';
@@ -41,13 +40,8 @@ function parseAmountParam(raw: string | undefined): number | undefined {
 
 export async function TransactionListView({ searchParams }: Props) {
   // Coerce searchParams to typed filter — drop unknown values silently.
-  const type =
-    searchParams.type === 'expense' || searchParams.type === 'income'
-      ? (searchParams.type as TransactionType)
-      : undefined;
-
   const filter = {
-    type,
+    type: parseTransactionType(searchParams.type),
     categoryId: searchParams.categoryId,
     q: searchParams.q,
     month: searchParams.month,
@@ -73,7 +67,7 @@ export async function TransactionListView({ searchParams }: Props) {
   // Filter signature drives the client component's `key` so it remounts (and
   // resets its appended-rows state) whenever the user changes a filter.
   const filterKey = [
-    type ?? '',
+    filter.type ?? '',
     searchParams.categoryId ?? '',
     searchParams.q ?? '',
     searchParams.month ?? '',
@@ -95,7 +89,15 @@ export async function TransactionListView({ searchParams }: Props) {
   return (
     <DashboardContent>
       <Stack spacing={3}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 2,
+            flexWrap: 'wrap',
+          }}
+        >
           <Box>
             <Typography variant="h4" sx={{ mb: 0.5 }}>
               Giao dịch

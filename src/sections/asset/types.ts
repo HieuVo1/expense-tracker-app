@@ -33,11 +33,13 @@ export type AssetPL = {
   plPercent: number | null;
 };
 
-// Cash sync model — assumes "expense vào tiền mặt" (income/expense affect
+// Cash sync model — assumes "expense vào tiền mặt" (every transaction affects
 // the user's cash bucket). Anchor = latest updatedAt among CASH assets;
-// delta = net (income − expense) for transactions logged after that anchor.
+// delta = net (income − expense − investment) for transactions logged after
+// that anchor. Investment subtracts because the cash really did leave the
+// wallet; the asset it bought is tracked as its own row.
 export type CashDelta = {
-  delta: number;     // VND, signed (negative = net spend) — suggested default
+  delta: number; // VND, signed (negative = net spend) — suggested default
   count: number;
-  sinceISO: string;  // ISO datetime of anchor (latest CASH updatedAt)
+  sinceISO: string; // ISO datetime of anchor (latest CASH updatedAt)
 };

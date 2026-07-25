@@ -25,7 +25,15 @@ export type VnCategory = (typeof VN_CATEGORIES)[number];
 export type TransactionExtract = {
   /** VND amount as integer (no decimal places), always positive. Sign lives in `type`. */
   amount: number;
-  /** Chi (tiền ra) hoặc Thu (tiền vào). Detected from "+/-" sign or app convention. */
+  /**
+   * Chi (tiền ra) hoặc Thu (tiền vào). Detected from "+/-" sign or app convention.
+   *
+   * Deliberately narrower than the app's TransactionType: a bank screenshot
+   * can't distinguish "chuyển tiền mua cổ phiếu" from any other outgoing
+   * transfer, so asking the model to guess `investment` would only add
+   * misclassifications. Scanned rows come in as Chi and the user re-types them
+   * to Đầu tư in the preview list when that's what they were.
+   */
   type: 'expense' | 'income';
   /**
    * Wire format for the form layer: `YYYY-MM-DDTHH:mm` — naive (no timezone).

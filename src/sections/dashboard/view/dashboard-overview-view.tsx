@@ -69,13 +69,15 @@ export async function DashboardOverviewView({ searchParams }: Props) {
           </Box>
         </Box>
 
-        {/* 4 gradient summary cards — distinct color per metric (no two greens). */}
+        {/* 5 gradient summary cards — distinct color per metric (no two greens).
+            Đầu tư takes secondary/violet so it matches its line on the trend
+            chart and its tab in the donut. */}
         <Grid container spacing={3}>
           {[
             {
               title: 'Tổng giao dịch',
-              total: data.totalExpense + data.totalIncome,
-              color: 'secondary' as const,
+              total: data.totalExpense + data.totalIncome + data.totalInvestment,
+              color: 'primary' as const,
               icon: <Iconify icon="solar:card-bold" width={48} />,
             },
             {
@@ -92,13 +94,23 @@ export async function DashboardOverviewView({ searchParams }: Props) {
               icon: <Iconify icon="solar:hand-money-bold" width={48} />,
             },
             {
-              title: 'Số dư tháng này',
-              total: data.totalIncome - data.totalExpense,
-              color: 'info' as const,
+              // Negative for the same reason as Chi: the cash has left the
+              // wallet, it just bought an asset instead of being consumed.
+              title: `Tổng đầu tư tháng ${data.monthLabel}`,
+              total: -data.totalInvestment,
+              color: 'secondary' as const,
               icon: <Iconify icon="solar:graph-up-bold" width={48} />,
             },
+            {
+              // Cash left over: Thu − Chi − Đầu tư.
+              title: 'Số dư tháng này',
+              total: data.totalIncome - data.totalExpense - data.totalInvestment,
+              color: 'info' as const,
+              icon: <Iconify icon="solar:banknote-bold" width={48} />,
+            },
           ].map((card) => (
-            <Grid key={card.title} size={{ xs: 12, sm: 6, md: 3 }}>
+            // lg 2.4 = 12/5 so the five cards share one row on wide screens.
+            <Grid key={card.title} size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
               <SummaryCard
                 title={card.title}
                 total={card.total}
@@ -114,7 +126,11 @@ export async function DashboardOverviewView({ searchParams }: Props) {
 
         <MonthlyTrendChart data={reportData.monthlyTrend} />
 
-        <CategoryDonut expenseData={data.byCategory} incomeData={data.incomeByCategory} />
+        <CategoryDonut
+          expenseData={data.byCategory}
+          incomeData={data.incomeByCategory}
+          investmentData={data.investmentByCategory}
+        />
 
         <BudgetProgress rows={data.byCategory} />
 

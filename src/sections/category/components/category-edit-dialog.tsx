@@ -1,5 +1,7 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
+
 import * as z from 'zod';
 import { useState, useTransition } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -20,6 +22,7 @@ import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
 import { TypeToggle } from 'src/sections/transaction/components/type-toggle';
+import { TRANSACTION_TYPES } from 'src/sections/transaction/lib/transaction-type';
 
 import { ICON_GROUPS, DEFAULT_CATEGORY_ICON } from './category-icon-groups';
 import { createCategory, updateCategory } from '../actions/category-actions';
@@ -27,16 +30,25 @@ import { createCategory, updateCategory } from '../actions/category-actions';
 // Paired warm/earthy/muted hues so user-created categories don't clash with
 // the seeded six.
 const COLORS = [
-  '#4a7c59', '#a3593e', '#3d5a80', '#8b5a8c',
-  '#7a7445', '#747878', '#2e7d32', '#f57c00',
-  '#0288d1', '#6a6a6a', '#c2410c', '#9333ea',
+  '#4a7c59',
+  '#a3593e',
+  '#3d5a80',
+  '#8b5a8c',
+  '#7a7445',
+  '#747878',
+  '#2e7d32',
+  '#f57c00',
+  '#0288d1',
+  '#6a6a6a',
+  '#c2410c',
+  '#9333ea',
 ];
 
 const schema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên').max(50, 'Tối đa 50 ký tự'),
   icon: z.string().min(1, 'Chọn icon'),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Mã màu không hợp lệ'),
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -46,7 +58,7 @@ type Category = {
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
 };
 
 type Props = {
@@ -79,7 +91,12 @@ export function CategoryEditDialog({ open, onClose, category }: Props) {
     startTransition(async () => {
       try {
         if (isEdit) {
-          await updateCategory({ id: category!.id, name: data.name, icon: data.icon, color: data.color });
+          await updateCategory({
+            id: category!.id,
+            name: data.name,
+            icon: data.icon,
+            color: data.color,
+          });
           toast.success('Đã cập nhật danh mục');
         } else {
           await createCategory(data);
@@ -121,11 +138,7 @@ export function CategoryEditDialog({ open, onClose, category }: Props) {
             />
 
             <Box>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mb: 1, display: 'block' }}
-              >
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                 Icon
               </Typography>
               <Controller
@@ -188,11 +201,7 @@ export function CategoryEditDialog({ open, onClose, category }: Props) {
             </Box>
 
             <Box>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mb: 1, display: 'block' }}
-              >
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                 Màu
               </Typography>
               <Controller

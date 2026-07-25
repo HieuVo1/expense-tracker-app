@@ -4,17 +4,25 @@ import { Controller, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 
+import {
+  TRANSACTION_TYPES,
+  TRANSACTION_TYPE_SIGN,
+  TRANSACTION_TYPE_LABEL,
+} from '../lib/transaction-type';
+
 type Props = {
   name: string;
 };
 
-const OPTIONS: { value: 'expense' | 'income'; label: string; sign: string }[] = [
-  { value: 'expense', label: 'Chi', sign: '−' },
-  { value: 'income', label: 'Thu', sign: '+' },
-];
+const OPTIONS = TRANSACTION_TYPES.map((value) => ({
+  value,
+  label: TRANSACTION_TYPE_LABEL[value],
+  sign: TRANSACTION_TYPE_SIGN[value],
+}));
 
-// Two-state toggle for transaction type. Rendered as two adjacent chips so it
-// reads as a binary choice (Chi / Thu) rather than a generic select.
+// Toggle for transaction type. Rendered as adjacent chips so it reads as a
+// small fixed set (Chi / Thu / Đầu tư) rather than a generic select. Wraps on
+// narrow screens so the third chip never overflows the dialog.
 export function TypeToggle({ name }: Props) {
   const { control } = useFormContext();
 
@@ -23,7 +31,7 @@ export function TypeToggle({ name }: Props) {
       name={name}
       control={control}
       render={({ field }) => (
-        <Box sx={{ display: 'inline-flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {OPTIONS.map((opt) => {
             const selected = field.value === opt.value;
             return (

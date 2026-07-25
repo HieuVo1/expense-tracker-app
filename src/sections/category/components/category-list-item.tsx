@@ -1,5 +1,6 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
 import type { IconifyName } from 'src/components/iconify';
 
 import { CSS } from '@dnd-kit/utilities';
@@ -18,7 +19,7 @@ import { CategoryEditDialog } from './category-edit-dialog';
 import { deleteCategory } from '../actions/category-actions';
 
 type Props = {
-  category: { id: string; name: string; icon: string; color: string; type: 'expense' | 'income' };
+  category: { id: string; name: string; icon: string; color: string; type: TransactionType };
   // When true the row is wired into a parent SortableContext and shows a drag
   // handle. False (or omitted) renders a plain row — useful for read-only lists.
   sortable?: boolean;
@@ -29,14 +30,10 @@ export function CategoryListItem({ category, sortable = false }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id, disabled: !sortable });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: category.id,
+    disabled: !sortable,
+  });
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -119,11 +116,7 @@ export function CategoryListItem({ category, sortable = false }: Props) {
         </IconButton>
       </Box>
 
-      <CategoryEditDialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        category={category}
-      />
+      <CategoryEditDialog open={editOpen} onClose={() => setEditOpen(false)} category={category} />
 
       <ConfirmDialog
         open={confirmOpen}

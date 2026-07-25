@@ -1,5 +1,6 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
 import type { IconifyName } from 'src/components/iconify';
 
 import { useState, useTransition } from 'react';
@@ -14,14 +15,23 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
+import { TRANSACTION_TYPE_SIGN } from '../lib/transaction-type';
 import { TransactionEditDialog } from './transaction-edit-dialog';
 import { deleteTransaction } from '../actions/transaction-actions';
+
+// Theme tokens rather than the raw chart hex — these are text, and the `.dark`
+// steps clear WCAG contrast on the card surface where `.main` wouldn't.
+const AMOUNT_COLOR: Record<TransactionType, string> = {
+  expense: 'text.primary',
+  income: 'success.dark',
+  investment: 'secondary.dark',
+};
 
 type Props = {
   transaction: {
     id: string;
     amount: number;
-    type: 'expense' | 'income';
+    type: TransactionType;
     date: string;
     description: string | null;
     category: { id: string; name: string; icon: string; color: string };
@@ -45,8 +55,10 @@ export function TransactionListItem({ transaction }: Props) {
     });
   };
 
-  const sign = transaction.type === 'expense' ? '−' : '+';
-  const amountColor = transaction.type === 'expense' ? 'text.primary' : 'success.dark';
+  const sign = TRANSACTION_TYPE_SIGN[transaction.type];
+  // Chi stays neutral (it's the common case, colouring every row would be
+  // noise); Thu is green and Đầu tư violet so the two exceptions stand out.
+  const amountColor = AMOUNT_COLOR[transaction.type];
 
   return (
     <>
@@ -104,11 +116,7 @@ export function TransactionListItem({ transaction }: Props) {
           <Iconify icon="solar:pen-bold" width={18} />
         </IconButton>
 
-        <IconButton
-          size="small"
-          onClick={() => setConfirmOpen(true)}
-          aria-label="Xoá"
-        >
+        <IconButton size="small" onClick={() => setConfirmOpen(true)} aria-label="Xoá">
           <Iconify icon="solar:trash-bin-trash-bold" width={18} />
         </IconButton>
       </Box>

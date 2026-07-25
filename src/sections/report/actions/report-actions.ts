@@ -1,5 +1,7 @@
 'use server';
 
+import type { TransactionType } from '@prisma/client';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { Prisma } from '@prisma/client';
@@ -10,6 +12,7 @@ import { paths } from 'src/routes/paths';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
+import { TRANSACTION_TYPE_LABEL } from 'src/sections/transaction/lib/transaction-type';
 import {
   buildTransactionWhere,
   type TransactionListFilter,
@@ -26,7 +29,13 @@ function firstOfMonth(d: dayjs.Dayjs) {
 
 export type ReportData = {
   // Last 6 months including current — oldest first so the chart reads left → right.
-  monthlyTrend: Array<{ monthKey: string; label: string; expense: number; income: number }>;
+  monthlyTrend: Array<{
+    monthKey: string;
+    label: string;
+    expense: number;
+    income: number;
+    investment: number;
+  }>;
   topTransactions: Array<{
     id: string;
     amount: number;
@@ -88,25 +97,24 @@ export async function getReportData(monthParam?: string): Promise<ReportData> {
     }),
   ]);
 
-  // ─── monthlyTrend: bucket by YYYY-MM ────────────────────────────────
-  const buckets = new Map<string, { expense: number; income: number }>();
+  // ─── monthlyTrend: bucket by YYYY-MM, one running total per type ─────
+  const buckets = new Map<string, Record<TransactionType, number>>();
   for (let i = 0; i < 6; i++) {
     const m = now.subtract(5 - i, 'month');
-    buckets.set(m.format('YYYY-MM'), { expense: 0, income: 0 });
+    buckets.set(m.format('YYYY-MM'), { expense: 0, income: 0, investment: 0 });
   }
   for (const r of windowRows) {
     const key = dayjs(r.date).format('YYYY-MM');
     const b = buckets.get(key);
     if (!b) continue;
-    const amt = Number(r.amount);
-    if (r.type === 'expense') b.expense += amt;
-    else b.income += amt;
+    b[r.type] += Number(r.amount);
   }
   const monthlyTrend = Array.from(buckets.entries()).map(([monthKey, v]) => ({
     monthKey,
     label: dayjs(monthKey + '-01').format('MM/YYYY'),
     expense: v.expense,
     income: v.income,
+    investment: v.investment,
   }));
 
   // ─── topMerchants: rank by total spend over 6 months ─────────────────
@@ -195,7 +203,7 @@ export async function getTransactionsForExport(
   // for now. A future migration could store merchant text on each row.
   return rows.map((r) => ({
     date: r.date.toISOString().slice(0, 10),
-    type: r.type === 'expense' ? 'Chi' : 'Thu',
+    type: TRANSACTION_TYPE_LABEL[r.type],
     amount: new Prisma.Decimal(r.amount).toString(),
     category: r.category.name,
     description: r.description ?? '',
@@ -275,10 +283,13 @@ function parseImportDate(raw: string): Date | null {
   return parsed && parsed.isValid() ? parsed.toDate() : null;
 }
 
-function parseImportType(raw: string): 'expense' | 'income' | null {
+// Accepts the Vietnamese labels this app exports, their unaccented forms (some
+// spreadsheets strip diacritics on save), and the raw enum values.
+function parseImportType(raw: string): TransactionType | null {
   const s = raw.trim().toLowerCase();
   if (s === 'chi' || s === 'expense') return 'expense';
   if (s === 'thu' || s === 'income') return 'income';
+  if (s === 'đầu tư' || s === 'dau tu' || s === 'investment') return 'investment';
   return null;
 }
 
@@ -295,7 +306,11 @@ export async function importTransactionsCsv(csvText: string): Promise<ImportResu
 
   const parsed = parseCsv(csvText);
   if (parsed.length < 2) {
-    return { imported: 0, skipped: 0, errors: [{ row: 0, reason: 'File trống hoặc thiếu header' }] };
+    return {
+      imported: 0,
+      skipped: 0,
+      errors: [{ row: 0, reason: 'File trống hoặc thiếu header' }],
+    };
   }
   if (parsed.length - 1 > IMPORT_MAX_ROWS) {
     return {
@@ -315,9 +330,7 @@ export async function importTransactionsCsv(csvText: string): Promise<ImportResu
     description: headers.findIndex((h) => h === 'mô tả' || h === 'description'),
     merchant: headers.findIndex((h) => h === 'cửa hàng' || h === 'merchant'),
   };
-  const missing = (['date', 'type', 'amount', 'category'] as const).filter(
-    (k) => idx[k] < 0,
-  );
+  const missing = (['date', 'type', 'amount', 'category'] as const).filter((k) => idx[k] < 0);
   if (missing.length > 0) {
     return {
       imported: 0,
@@ -332,15 +345,13 @@ export async function importTransactionsCsv(csvText: string): Promise<ImportResu
     where: { userId: user.id },
     select: { id: true, name: true, type: true },
   });
-  const categoryByName = new Map(
-    categories.map((c) => [c.name.trim().toLowerCase(), c]),
-  );
+  const categoryByName = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c]));
 
   type ValidRow = {
     userId: string;
     categoryId: string;
     amount: Prisma.Decimal;
-    type: 'expense' | 'income';
+    type: TransactionType;
     date: Date;
     description: string | null;
   };
@@ -358,7 +369,7 @@ export async function importTransactionsCsv(csvText: string): Promise<ImportResu
     }
     const type = parseImportType(cells[idx.type] ?? '');
     if (!type) {
-      errors.push({ row: rowNum, reason: 'Loại phải là "Chi" hoặc "Thu"' });
+      errors.push({ row: rowNum, reason: 'Loại phải là "Chi", "Thu" hoặc "Đầu tư"' });
       return;
     }
     const amount = parseImportAmount(cells[idx.amount] ?? '');
@@ -375,13 +386,12 @@ export async function importTransactionsCsv(csvText: string): Promise<ImportResu
     if (cat.type !== type) {
       errors.push({
         row: rowNum,
-        reason: `Danh mục "${cat.name}" không khớp loại ${type === 'expense' ? 'Chi' : 'Thu'}`,
+        reason: `Danh mục "${cat.name}" không khớp loại ${TRANSACTION_TYPE_LABEL[type]}`,
       });
       return;
     }
 
-    const description =
-      idx.description >= 0 ? (cells[idx.description] ?? '').trim() || null : null;
+    const description = idx.description >= 0 ? (cells[idx.description] ?? '').trim() || null : null;
 
     valid.push({
       userId: user.id,

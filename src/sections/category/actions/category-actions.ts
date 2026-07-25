@@ -8,6 +8,8 @@ import { paths } from 'src/routes/paths';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
+import { TRANSACTION_TYPES } from 'src/sections/transaction/lib/transaction-type';
+
 const nameSchema = z.string().min(1, 'Tên không được trống').max(50, 'Tên tối đa 50 ký tự');
 const iconSchema = z.string().min(1, 'Chưa chọn icon').max(80);
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Mã màu không hợp lệ');
@@ -16,7 +18,7 @@ const createSchema = z.object({
   name: nameSchema,
   icon: iconSchema,
   color: colorSchema,
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
 });
 
 const updateSchema = z.object({

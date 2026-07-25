@@ -1,5 +1,7 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
+
 import dayjs, { type Dayjs } from 'dayjs';
 import { useState, useEffect, useTransition } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -18,6 +20,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { Iconify } from 'src/components/iconify';
 import { HorizontalScrollStrip } from 'src/components/horizontal-scroll-strip';
+
+import {
+  TRANSACTION_TYPES,
+  parseTransactionType,
+  TRANSACTION_TYPE_SIGN,
+  TRANSACTION_TYPE_LABEL,
+} from '../lib/transaction-type';
 
 type Category = { id: string; name: string };
 
@@ -61,11 +70,9 @@ export function TransactionFilterBar({ categories }: Props) {
   const currentDay = params.get('day') ?? '';
   const currentMin = params.get('min') ?? '';
   const currentMax = params.get('max') ?? '';
-  // Server-side filter validates this against {expense|income} and drops
-  // anything else; mirroring those values keeps the UI in sync.
-  const currentTypeRaw = params.get('type') ?? '';
-  const currentType: '' | 'expense' | 'income' =
-    currentTypeRaw === 'expense' || currentTypeRaw === 'income' ? currentTypeRaw : '';
+  // Server-side filter validates this against the TransactionType enum and
+  // drops anything else; reusing the same parser keeps the UI in sync.
+  const currentType = parseTransactionType(params.get('type')) ?? '';
 
   const [q, setQ] = useState(currentQ);
   // Local state for amount inputs so the user can type freely; committed to
@@ -135,15 +142,21 @@ export function TransactionFilterBar({ categories }: Props) {
   const onPickMonth = (value: string) => {
     // Picking a month clears any specific day (mutually exclusive — day is
     // the more specific filter; clearing avoids a confusing "both set" state).
-    setParams([['month', value], ['day', '']]);
+    setParams([
+      ['month', value],
+      ['day', ''],
+    ]);
   };
 
   const onPickDay = (value: string) => {
     // Picking a day clears the month for the same reason.
-    setParams([['day', value], ['month', '']]);
+    setParams([
+      ['day', value],
+      ['month', ''],
+    ]);
   };
 
-  const setType = (value: '' | 'expense' | 'income') => {
+  const setType = (value: '' | TransactionType) => {
     setParams([['type', value]]);
   };
 
@@ -210,9 +223,7 @@ export function TransactionFilterBar({ categories }: Props) {
             startIcon={<Iconify icon="ic:round-filter-list" width={18} />}
             endIcon={
               <Iconify
-                icon={
-                  advancedOpen ? 'eva:arrow-ios-upward-fill' : 'eva:arrow-ios-downward-fill'
-                }
+                icon={advancedOpen ? 'eva:arrow-ios-upward-fill' : 'eva:arrow-ios-downward-fill'}
                 width={18}
               />
             }
@@ -232,7 +243,7 @@ export function TransactionFilterBar({ categories }: Props) {
         )}
       </Box>
 
-      {/* Advanced filters: type (Chi/Thu) + month/day/amount. Collapses to
+      {/* Advanced filters: type (Chi/Thu/Đầu tư) + month/day/amount. Collapses to
           keep the bar compact; auto-opens if any of these is active so the
           user always sees what's filtering the list. */}
       <Collapse in={advancedOpen} unmountOnExit>
@@ -241,21 +252,15 @@ export function TransactionFilterBar({ categories }: Props) {
             <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
               Loại
             </Typography>
-            <FilterChip
-              label="Tất cả"
-              selected={!currentType}
-              onClick={() => setType('')}
-            />
-            <FilterChip
-              label="− Chi"
-              selected={currentType === 'expense'}
-              onClick={() => setType('expense')}
-            />
-            <FilterChip
-              label="+ Thu"
-              selected={currentType === 'income'}
-              onClick={() => setType('income')}
-            />
+            <FilterChip label="Tất cả" selected={!currentType} onClick={() => setType('')} />
+            {TRANSACTION_TYPES.map((t) => (
+              <FilterChip
+                key={t}
+                label={`${TRANSACTION_TYPE_SIGN[t]} ${TRANSACTION_TYPE_LABEL[t]}`}
+                selected={currentType === t}
+                onClick={() => setType(t)}
+              />
+            ))}
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -319,11 +324,7 @@ export function TransactionFilterBar({ categories }: Props) {
           parent flex/stack. Desktop gets arrow buttons; touch + wheel both work. */}
       <Box sx={{ width: '100%', minWidth: 0 }}>
         <HorizontalScrollStrip scrollSx={{ gap: 1, overflowY: 'hidden', pb: 0.5 }}>
-          <FilterChip
-            label="Tất cả"
-            selected={!currentCategory}
-            onClick={() => setCategory('')}
-          />
+          <FilterChip label="Tất cả" selected={!currentCategory} onClick={() => setCategory('')} />
           {categories.map((c) => (
             <FilterChip
               key={c.id}

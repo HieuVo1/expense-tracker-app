@@ -32,9 +32,13 @@ model User {
   @@map("users")
 }
 
+// `investment` is money leaving the wallet like `expense`, but it buys an asset
+// rather than being consumed — kept separate so "Tổng chi" stays a true
+// consumption figure while the cash-out still shows up in the balance.
 enum TransactionType {
   expense
   income
+  investment
 }
 
 model Category {
@@ -44,8 +48,8 @@ model Category {
   icon   String
   color  String
   order  Int             @default(0)
-  // Categories are typed: expense vs income shown in different pickers so the
-  // user doesn't see "Lương" while logging a coffee receipt.
+  // Categories are typed: expense / income / investment shown in different
+  // pickers so the user doesn't see "Lương" while logging a coffee receipt.
   type   TransactionType @default(expense)
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -17,7 +17,7 @@ begin
   values (new.id, new.email, now())
   on conflict (id) do nothing;
 
-  -- Seed default categories — 6 expense + 4 income.
+  -- Seed default categories — 6 expense + 4 income + 4 investment.
   -- ID format: UUID-as-text (Prisma reads either cuid or uuid strings from @id).
   insert into public.categories (id, user_id, name, icon, color, "order", type)
   values
@@ -32,7 +32,12 @@ begin
     (gen_random_uuid()::text, new.id, 'Lương',          'solar:wad-of-money-bold',        '#2e7d32', 10, 'income'),
     (gen_random_uuid()::text, new.id, 'Thưởng',         'solar:cup-star-bold',            '#f57c00', 11, 'income'),
     (gen_random_uuid()::text, new.id, 'Lãi tiền gửi',   'solar:download-bold',            '#0288d1', 12, 'income'),
-    (gen_random_uuid()::text, new.id, 'Thu nhập khác',  'solar:tag-horizontal-bold-duotone', '#6a6a6a', 13, 'income')
+    (gen_random_uuid()::text, new.id, 'Thu nhập khác',  'solar:tag-horizontal-bold-duotone', '#6a6a6a', 13, 'income'),
+    -- ── Investment (order 20-23) ──
+    (gen_random_uuid()::text, new.id, 'Cổ phiếu',       'solar:graph-up-bold',            '#9333ea', 20, 'investment'),
+    (gen_random_uuid()::text, new.id, 'Quỹ mở',         'solar:money-bag-bold',           '#3d5a80', 21, 'investment'),
+    (gen_random_uuid()::text, new.id, 'Tiết kiệm',      'solar:safe-2-bold',              '#0288d1', 22, 'investment'),
+    (gen_random_uuid()::text, new.id, 'Đầu tư khác',    'solar:banknote-bold',            '#6a6a6a', 23, 'investment')
   on conflict (user_id, name) do nothing;
 
   return new;

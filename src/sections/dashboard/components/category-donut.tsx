@@ -1,5 +1,7 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
+
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -11,6 +13,11 @@ import Typography from '@mui/material/Typography';
 import { fCurrency } from 'src/utils/format-number';
 
 import { Chart, useChart } from 'src/components/chart';
+
+import {
+  TRANSACTION_TYPES,
+  TRANSACTION_TYPE_LABEL,
+} from 'src/sections/transaction/lib/transaction-type';
 
 type ExpenseSlice = {
   categoryId: string;
@@ -26,35 +33,63 @@ type IncomeSlice = {
   earned: number;
 };
 
+type InvestmentSlice = {
+  categoryId: string;
+  name: string;
+  color: string;
+  invested: number;
+};
+
 type Props = {
   expenseData: ExpenseSlice[];
   incomeData: IncomeSlice[];
+  investmentData: InvestmentSlice[];
 };
 
-type TabValue = 'expense' | 'income';
+const EMPTY_MESSAGE: Record<TransactionType, string> = {
+  expense: 'Chưa có chi tháng này.',
+  income: 'Chưa có thu tháng này.',
+  investment: 'Chưa có đầu tư tháng này.',
+};
 
-// Donut breakdown with Chi/Thu tab toggle. Internally we collapse both data
-// shapes to {name, color, amount} so the render path is identical regardless
-// of which tab is active.
-export function CategoryDonut({ expenseData, incomeData }: Props) {
-  const [tab, setTab] = useState<TabValue>('expense');
+// Donut breakdown with a Chi/Thu/Đầu tư tab toggle. Internally we collapse the
+// three data shapes to {name, color, amount} so the render path is identical
+// regardless of which tab is active.
+export function CategoryDonut({ expenseData, incomeData, investmentData }: Props) {
+  const [tab, setTab] = useState<TransactionType>('expense');
+
+  // Each tab's rows normalised to a common {id, name, color, amount} shape.
+  const byTab: Record<
+    TransactionType,
+    Array<{ id: string; name: string; color: string; amount: number }>
+  > = {
+    expense: expenseData.map((d) => ({
+      id: d.categoryId,
+      name: d.name,
+      color: d.color,
+      amount: d.spent,
+    })),
+    income: incomeData.map((d) => ({
+      id: d.categoryId,
+      name: d.name,
+      color: d.color,
+      amount: d.earned,
+    })),
+    investment: investmentData.map((d) => ({
+      id: d.categoryId,
+      name: d.name,
+      color: d.color,
+      amount: d.invested,
+    })),
+  };
 
   // Sort by amount desc so the biggest categories appear at the top of the
   // legend list and own the largest slice clockwise from 12 o'clock — quick
   // read for "where did most of the money go?".
-  const slices = (
-    tab === 'expense'
-      ? expenseData
-          .filter((d) => d.spent > 0)
-          .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.spent }))
-      : incomeData
-          .filter((d) => d.earned > 0)
-          .map((d) => ({ id: d.categoryId, name: d.name, color: d.color, amount: d.earned }))
-  ).sort((a, b) => b.amount - a.amount);
+  const slices = byTab[tab].filter((d) => d.amount > 0).sort((a, b) => b.amount - a.amount);
 
   const total = slices.reduce((s, d) => s + d.amount, 0);
-  const emptyMessage =
-    tab === 'expense' ? 'Chưa có chi tháng này.' : 'Chưa có thu tháng này.';
+  const emptyMessage = EMPTY_MESSAGE[tab];
 
   const chartOptions = useChart({
     chart: { sparkline: { enabled: true } },
@@ -105,11 +140,12 @@ export function CategoryDonut({ expenseData, incomeData }: Props) {
         <Typography variant="subtitle1">Phân bổ theo danh mục</Typography>
         <Tabs
           value={tab}
-          onChange={(_, v: TabValue) => setTab(v)}
+          onChange={(_, v: TransactionType) => setTab(v)}
           sx={{ minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0.5, px: 2 } }}
         >
-          <Tab value="expense" label="Chi" />
-          <Tab value="income" label="Thu" />
+          {TRANSACTION_TYPES.map((t) => (
+            <Tab key={t} value={t} label={TRANSACTION_TYPE_LABEL[t]} />
+          ))}
         </Tabs>
       </Box>
 

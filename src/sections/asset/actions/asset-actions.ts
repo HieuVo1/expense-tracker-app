@@ -10,6 +10,8 @@ import { paths } from 'src/routes/paths';
 import { prisma } from 'src/lib/prisma';
 import { requireUser } from 'src/lib/auth-helpers';
 
+import { signedAmount } from 'src/sections/transaction/lib/transaction-type';
+
 import { assetFormSchema, type AssetFormValues } from '../schemas';
 
 // Suggested delta for the banner — fetch the latest CASH updatedAt + sum of
@@ -36,9 +38,10 @@ async function computeCashDelta(userId: string): Promise<CashDelta | null> {
   });
   if (txns.length === 0) return null;
 
+  // Thu adds to cash; Chi and Đầu tư both take from it.
   const delta = txns.reduce(
-    (s, t) => s + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)),
-    0,
+    (s, t) => s + signedAmount({ type: t.type, amount: Number(t.amount) }),
+    0
   );
 
   return { delta, count: txns.length, sinceISO: latestCash.updatedAt.toISOString() };
@@ -96,9 +99,7 @@ export async function createAsset(input: AssetFormValues): Promise<{ id: string 
   return { id: created.id };
 }
 
-export async function updateAsset(
-  input: { id: string } & AssetFormValues,
-): Promise<void> {
+export async function updateAsset(input: { id: string } & AssetFormValues): Promise<void> {
   const user = await requireUser();
   const { id, ...rest } = input;
   const parsed = assetFormSchema.parse(rest);

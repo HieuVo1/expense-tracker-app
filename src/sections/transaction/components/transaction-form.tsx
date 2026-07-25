@@ -1,5 +1,7 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
+
 import * as z from 'zod';
 import dayjs from 'dayjs';
 import { useForm } from 'react-hook-form';
@@ -22,6 +24,7 @@ import { Form, Field } from 'src/components/hook-form';
 
 import { TypeToggle } from './type-toggle';
 import { CategoryChipSelect } from './category-chip-select';
+import { TRANSACTION_TYPES } from '../lib/transaction-type';
 import { createTransaction } from '../actions/transaction-actions';
 
 type Category = {
@@ -29,11 +32,11 @@ type Category = {
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
 };
 
 const schema = z.object({
-  type: z.enum(['expense', 'income']),
+  type: z.enum(TRANSACTION_TYPES),
   amount: z
     .string()
     .min(1, { error: 'Vui lòng nhập số tiền' })
@@ -80,8 +83,8 @@ export function TransactionForm({ categories, initialValues }: Props) {
     },
   });
 
-  // Reactively narrow category list to the current type. When the user toggles
-  // Chi/Thu, the selected categoryId is reset if it no longer belongs to the
+  // Reactively narrow category list to the current type. When the user switches
+  // Chi/Thu/Đầu tư, the selected categoryId is reset if it no longer belongs to the
   // active list — prevents saving a "Lương" entry under "expense". Cleared in
   // an effect to avoid setState-during-render warnings on the Controller.
   const currentType = methods.watch('type');

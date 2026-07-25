@@ -4,14 +4,22 @@ import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import {
+  TRANSACTION_TYPES,
+  TRANSACTION_TYPE_LABEL,
+} from 'src/sections/transaction/lib/transaction-type';
+
 import { listCategories } from '../actions/category-actions';
 import { CategoryActions } from '../components/category-actions-bar';
 import { SortableCategorySection } from '../components/sortable-category-section';
 
 export async function CategoryListView() {
   const categories = await listCategories();
-  const expense = categories.filter((c) => c.type === 'expense');
-  const income = categories.filter((c) => c.type === 'income');
+  const byType = TRANSACTION_TYPES.map((type) => ({
+    type,
+    title: TRANSACTION_TYPE_LABEL[type],
+    rows: categories.filter((c) => c.type === type),
+  }));
 
   return (
     <DashboardContent>
@@ -36,8 +44,9 @@ export async function CategoryListView() {
           <CategoryActions />
         </Box>
 
-        <SortableCategorySection title="Chi" rows={expense} />
-        <SortableCategorySection title="Thu" rows={income} />
+        {byType.map((group) => (
+          <SortableCategorySection key={group.type} title={group.title} rows={group.rows} />
+        ))}
       </Stack>
     </DashboardContent>
   );

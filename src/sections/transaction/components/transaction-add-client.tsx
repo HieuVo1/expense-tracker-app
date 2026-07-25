@@ -1,5 +1,6 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
 import type { PreviewItem } from './transaction-scan-preview';
 
 import dayjs from 'dayjs';
@@ -24,7 +25,16 @@ type Category = {
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
+};
+
+// Catch-all bucket per type, used when the AI's suggested category name doesn't
+// match any of the user's. Investment rows never come out of OCR today, but the
+// map stays exhaustive so a future OCR change can't silently fall through.
+const FALLBACK_CATEGORY_NAME: Record<TransactionType, string> = {
+  expense: 'Khác',
+  income: 'Thu nhập khác',
+  investment: 'Đầu tư khác',
 };
 
 type Mode = 'manual' | 'preview';
@@ -56,12 +66,7 @@ function normalizeMerchant(s: string | null | undefined) {
 // day with identical amount but different recipients. Diacritic-stripping
 // handles OCR variants of the same name. When merchant is missing on both
 // rows, the key still dedupes them via empty-string match.
-function dedupKey(t: {
-  date: string;
-  type: string;
-  amount: number;
-  merchant?: string | null;
-}) {
+function dedupKey(t: { date: string; type: string; amount: number; merchant?: string | null }) {
   return `${t.date.slice(0, 10)}|${t.type}|${t.amount}|${normalizeMerchant(t.merchant)}`;
 }
 
@@ -90,7 +95,7 @@ export function TransactionAddClient({ categories }: Props) {
   // Falls back to the type's "Khác" / "Thu nhập khác" when name doesn't match.
   const resolveCategoryId = (
     suggestedName: string,
-    txnType: 'expense' | 'income',
+    txnType: TransactionType,
     merchantHit?: string
   ) => {
     if (merchantHit) {
@@ -101,7 +106,7 @@ export function TransactionAddClient({ categories }: Props) {
     const exact = sameType.find((c) => c.name === suggestedName);
     if (exact) return exact.id;
     // Fallback to the catch-all bucket of the right type.
-    const fallbackName = txnType === 'income' ? 'Thu nhập khác' : 'Khác';
+    const fallbackName = FALLBACK_CATEGORY_NAME[txnType];
     return sameType.find((c) => c.name === fallbackName)?.id ?? sameType[0]?.id ?? '';
   };
 
@@ -154,8 +159,7 @@ export function TransactionAddClient({ categories }: Props) {
       // (helps Merchant Memory next time).
       const merged = new Map<string, ScanItem>();
       let dropped = 0;
-      const score = (t: ScanItem) =>
-        (t.description?.length ?? 0) + (t.merchant ? 50 : 0);
+      const score = (t: ScanItem) => (t.description?.length ?? 0) + (t.merchant ? 50 : 0);
       for (const t of aggregated) {
         const k = dedupKey(t);
         const prev = merged.get(k);

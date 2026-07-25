@@ -13,6 +13,7 @@ import { fCurrency } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
 
+import { signedAmount } from '../lib/transaction-type';
 import { TransactionListItem } from './transaction-list-item';
 import { listTransactions } from '../actions/transaction-actions';
 import { type TransactionListFilter } from '../lib/transaction-filter';
@@ -36,8 +37,9 @@ function formatGroupLabel(dateIso: string) {
   return d.format('DD [thg] M YYYY');
 }
 
+// Net cash movement for the day: Thu adds, Chi and Đầu tư both subtract.
 function dayNet(rows: Tx[]) {
-  return rows.reduce((s, t) => s + (t.type === 'income' ? t.amount : -t.amount), 0);
+  return rows.reduce((s, t) => s + signedAmount(t), 0);
 }
 
 // Owns the appended-rows state. Server view passes the first page; subsequent

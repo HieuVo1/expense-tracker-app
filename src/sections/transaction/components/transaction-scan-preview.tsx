@@ -1,5 +1,6 @@
 'use client';
 
+import type { TransactionType } from '@prisma/client';
 import type { IconifyName } from 'src/components/iconify';
 
 import dayjs from 'dayjs';
@@ -24,20 +25,29 @@ import { Iconify } from 'src/components/iconify';
 
 import { createTransactionsBatch } from '../actions/transaction-actions';
 import { TransactionScanEditDialog } from './transaction-scan-edit-dialog';
+import { signedAmount, TRANSACTION_TYPE_SIGN } from '../lib/transaction-type';
+
+// Mirrors AMOUNT_COLOR in transaction-list-item so a scanned row and a saved
+// row read identically.
+const AMOUNT_COLOR: Record<TransactionType, string> = {
+  expense: 'text.primary',
+  income: 'success.dark',
+  investment: 'secondary.dark',
+};
 
 type Category = {
   id: string;
   name: string;
   icon: string;
   color: string;
-  type: 'expense' | 'income';
+  type: TransactionType;
 };
 
 export type PreviewItem = {
   // Stable client-side key — index isn't enough since rows can be deleted.
   uid: string;
   amount: number;
-  type: 'expense' | 'income';
+  type: TransactionType;
   date: string;
   description: string;
   merchant?: string;
@@ -62,7 +72,7 @@ function formatGroupLabel(dateIso: string) {
 }
 
 function dayNet(rows: PreviewItem[]) {
-  return rows.reduce((s, t) => s + (t.type === 'income' ? t.amount : -t.amount), 0);
+  return rows.reduce((s, t) => s + signedAmount(t), 0);
 }
 
 export function TransactionScanPreview({ items: initialItems, categories, onCancel }: Props) {
@@ -72,7 +82,7 @@ export function TransactionScanPreview({ items: initialItems, categories, onCanc
   const [editingUid, setEditingUid] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const editingItem = editingUid ? items.find((i) => i.uid === editingUid) ?? null : null;
+  const editingItem = editingUid ? (items.find((i) => i.uid === editingUid) ?? null) : null;
 
   const updateItem = (updated: PreviewItem) => {
     setItems((prev) => prev.map((i) => (i.uid === updated.uid ? updated : i)));
@@ -215,8 +225,8 @@ type RowProps = {
 
 function ScanRow({ item, categories, onEdit, onDelete }: RowProps) {
   const category = categories.find((c) => c.id === item.categoryId);
-  const sign = item.type === 'expense' ? '−' : '+';
-  const amountColor = item.type === 'expense' ? 'text.primary' : 'success.dark';
+  const sign = TRANSACTION_TYPE_SIGN[item.type];
+  const amountColor = AMOUNT_COLOR[item.type];
   const caption = [category?.name ?? '—', item.date.slice(11, 16), item.merchant]
     .filter(Boolean)
     .join(' · ');
