@@ -84,16 +84,13 @@ export function PlanList({
             size="small"
             color="inherit"
             onClick={onToggleArchived}
-            startIcon={
-              <Iconify icon={showArchived ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-            }
+            startIcon={<Iconify icon={showArchived ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />}
             sx={{ alignSelf: 'flex-start', color: 'text.secondary' }}
           >
             {showArchived ? 'Ẩn kế hoạch lưu trữ' : `Hiện kế hoạch lưu trữ (${archived.length})`}
           </Button>
 
-          {showArchived &&
-            archived.map((p) => <PlanListItem key={p.id} plan={p} />)}
+          {showArchived && archived.map((p) => <PlanListItem key={p.id} plan={p} />)}
         </Stack>
       )}
     </Stack>

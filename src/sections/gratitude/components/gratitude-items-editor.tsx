@@ -58,7 +58,9 @@ export function GratitudeItemsEditor({ label = 'Hôm nay bạn biết ơn điề
           label={`${filledCount}/${GRATITUDE_TARGET}`}
           color={reached ? 'success' : 'default'}
           variant={reached ? 'filled' : 'outlined'}
-          icon={<Iconify icon={reached ? 'solar:check-circle-bold' : 'solar:pen-bold'} width={16} />}
+          icon={
+            <Iconify icon={reached ? 'solar:check-circle-bold' : 'solar:pen-bold'} width={16} />
+          }
         />
       </Stack>
 

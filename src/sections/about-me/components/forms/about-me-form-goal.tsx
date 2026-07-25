@@ -44,12 +44,7 @@ export function AboutMeFormGoal() {
         required
       />
 
-      <Field.RadioGroup
-        name="metadata.kind"
-        label="Loại mục tiêu"
-        options={KIND_OPTIONS}
-        row
-      />
+      <Field.RadioGroup name="metadata.kind" label="Loại mục tiêu" options={KIND_OPTIONS} row />
 
       <Field.DatePicker
         name="metadata.targetDate"

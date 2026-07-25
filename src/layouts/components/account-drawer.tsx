@@ -31,8 +31,16 @@ export type AccountDrawerProps = IconButtonProps;
 // and sign-out at the bottom.
 const NAV_LINKS: Array<{ icon: string; label: string; href: string }> = [
   { icon: 'solar:home-angle-bold-duotone', label: 'Tổng quan', href: paths.dashboard.root },
-  { icon: 'solar:transfer-horizontal-bold-duotone', label: 'Giao dịch', href: paths.dashboard.transactions },
-  { icon: 'solar:add-circle-bold-duotone', label: 'Thêm giao dịch', href: paths.dashboard.addTransaction },
+  {
+    icon: 'solar:transfer-horizontal-bold-duotone',
+    label: 'Giao dịch',
+    href: paths.dashboard.transactions,
+  },
+  {
+    icon: 'solar:add-circle-bold-duotone',
+    label: 'Thêm giao dịch',
+    href: paths.dashboard.addTransaction,
+  },
   { icon: 'solar:bill-list-bold-duotone', label: 'Ngân sách', href: paths.dashboard.budgets },
   { icon: 'solar:add-folder-bold', label: 'Danh mục', href: paths.dashboard.categories },
   { icon: 'solar:settings-bold-duotone', label: 'Cài đặt', href: paths.dashboard.settings },
@@ -73,7 +81,11 @@ export function AccountDrawer({ sx, ...other }: AccountDrawerProps) {
         <Scrollbar>
           {/* Identity header */}
           <Box sx={{ pt: 7, pb: 3, px: 2.5, textAlign: 'center' }}>
-            <Avatar src={photoURL} alt={displayName} sx={{ width: 72, height: 72, mx: 'auto', mb: 2 }}>
+            <Avatar
+              src={photoURL}
+              alt={displayName}
+              sx={{ width: 72, height: 72, mx: 'auto', mb: 2 }}
+            >
               {displayName?.charAt(0).toUpperCase()}
             </Avatar>
             <Typography variant="subtitle1" noWrap>

@@ -193,7 +193,12 @@ export function SubscriptionListItem({ row, onEdit }: Props) {
       </Stack>
 
       <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-        <MenuItem onClick={() => { closeMenu(); onEdit(row); }}>
+        <MenuItem
+          onClick={() => {
+            closeMenu();
+            onEdit(row);
+          }}
+        >
           <Iconify icon="solar:pen-bold" width={18} sx={{ mr: 1 }} />
           Sửa
         </MenuItem>
@@ -225,16 +230,12 @@ export function SubscriptionListItem({ row, onEdit }: Props) {
           <>
             Sẽ tạo giao dịch <strong>chi {fCurrency(row.amount)}</strong> ({row.categoryName}) ngày{' '}
             {fDate(row.nextDueDate, 'DD/MM/YYYY')} và đẩy ngày đến hạn kế tiếp sang{' '}
-            <strong>{fDate(nextDue, 'DD/MM/YYYY')}</strong> (sau 1 {BILLING_CYCLE_SHORT[row.cycle]}).
+            <strong>{fDate(nextDue, 'DD/MM/YYYY')}</strong> (sau 1 {BILLING_CYCLE_SHORT[row.cycle]}
+            ).
           </>
         }
         action={
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={isPending}
-            onClick={confirmPaid}
-          >
+          <Button variant="contained" color="primary" disabled={isPending} onClick={confirmPaid}>
             Xác nhận
           </Button>
         }

@@ -65,13 +65,7 @@ export function ImportCsvButton() {
 
   return (
     <>
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".csv,text/csv"
-        hidden
-        onChange={handleChange}
-      />
+      <input ref={inputRef} type="file" accept=".csv,text/csv" hidden onChange={handleChange} />
       <Button
         variant="outlined"
         onClick={handlePick}

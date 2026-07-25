@@ -39,7 +39,11 @@ type PlanCreateDialogProps = {
   defaultScope?: PlanScope;
 };
 
-export function PlanCreateDialog({ open, onClose, defaultScope = 'weekly' }: PlanCreateDialogProps) {
+export function PlanCreateDialog({
+  open,
+  onClose,
+  defaultScope = 'weekly',
+}: PlanCreateDialogProps) {
   const router = useRouter();
 
   const defaultRange = suggestRange(defaultScope);
@@ -143,18 +147,15 @@ export function PlanCreateDialog({ open, onClose, defaultScope = 'weekly' }: Pla
             {/* Date range — hidden for backlog */}
             {scope !== 'backlog' && (
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Field.DatePicker
-                  name="startDate"
-                  label="Ngày bắt đầu"
-                  format="DD/MM/YYYY"
-                />
+                <Field.DatePicker name="startDate" label="Ngày bắt đầu" format="DD/MM/YYYY" />
                 <Field.DatePicker name="endDate" label="Ngày kết thúc" format="DD/MM/YYYY" />
               </Stack>
             )}
 
             {scope === 'backlog' && (
               <Typography variant="caption" color="text.secondary">
-                Backlog không có thời hạn. Bạn có thể chuyển task sang kế hoạch tuần / tháng / năm sau.
+                Backlog không có thời hạn. Bạn có thể chuyển task sang kế hoạch tuần / tháng / năm
+                sau.
               </Typography>
             )}
           </Stack>

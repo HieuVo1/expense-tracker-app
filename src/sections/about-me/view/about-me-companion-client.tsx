@@ -123,7 +123,8 @@ export function AboutMeCompanionClient() {
         <Card sx={{ p: { xs: 2.5, sm: 3 } }}>
           {!result.hasCorpus && (
             <Alert severity="info" sx={{ mb: 2 }}>
-              Bạn chưa có ghi chép nào ở mục “Về tôi”. Gợi ý dưới đây dựa trên cảm xúc bạn vừa chia sẻ.
+              Bạn chưa có ghi chép nào ở mục “Về tôi”. Gợi ý dưới đây dựa trên cảm xúc bạn vừa chia
+              sẻ.
             </Alert>
           )}
 

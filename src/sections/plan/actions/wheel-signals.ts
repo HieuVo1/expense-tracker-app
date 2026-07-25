@@ -15,8 +15,14 @@ import { countLifeAreaKeywords, categoryNameToLifeArea } from './wheel-text-sign
 // are returned for AI consumption.
 
 const AREA_KEYS: LifeArea[] = [
-  'HEALTH', 'CAREER', 'FINANCE', 'GROWTH',
-  'FAMILY', 'SOCIAL', 'RECREATION', 'SPIRITUALITY',
+  'HEALTH',
+  'CAREER',
+  'FINANCE',
+  'GROWTH',
+  'FAMILY',
+  'SOCIAL',
+  'RECREATION',
+  'SPIRITUALITY',
 ];
 
 function pruneZeroAreas(hits: Record<LifeArea, number>): Partial<Record<LifeArea, number>> {

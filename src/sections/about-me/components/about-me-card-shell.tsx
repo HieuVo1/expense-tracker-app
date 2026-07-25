@@ -51,7 +51,8 @@ export function AboutMeCardShell({
         flexDirection: 'column',
         minHeight: 240,
         // Soft elevation by default, lift on hover for clear card boundaries.
-        boxShadow: '0 4px 12px -2px rgba(145, 158, 171, 0.16), 0 2px 4px -2px rgba(145, 158, 171, 0.08)',
+        boxShadow:
+          '0 4px 12px -2px rgba(145, 158, 171, 0.16), 0 2px 4px -2px rgba(145, 158, 171, 0.08)',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         '&:hover': {
           transform: 'translateY(-2px)',
@@ -91,7 +92,12 @@ export function AboutMeCardShell({
           <Chip
             label={countLabel ?? count}
             size="small"
-            sx={{ fontSize: 11, fontWeight: 600, bgcolor: 'background.neutral', color: 'text.secondary' }}
+            sx={{
+              fontSize: 11,
+              fontWeight: 600,
+              bgcolor: 'background.neutral',
+              color: 'text.secondary',
+            }}
           />
         )}
       </Stack>

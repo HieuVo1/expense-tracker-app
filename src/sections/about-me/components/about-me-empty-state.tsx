@@ -47,12 +47,7 @@ export function AboutMeEmptyState({ icon, label, ctaLabel, onCta }: Props) {
       </Typography>
 
       {ctaLabel && onCta && (
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={onCta}
-          aria-label={ctaLabel}
-        >
+        <Button variant="outlined" size="small" onClick={onCta} aria-label={ctaLabel}>
           {ctaLabel}
         </Button>
       )}

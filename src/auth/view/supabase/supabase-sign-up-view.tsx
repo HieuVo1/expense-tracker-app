@@ -87,16 +87,8 @@ export function SupabaseSignUpView() {
       <Box
         sx={{ display: 'flex', gap: { xs: 3, sm: 2 }, flexDirection: { xs: 'column', sm: 'row' } }}
       >
-        <Field.Text
-          name="lastName"
-          label="Họ"
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-        <Field.Text
-          name="firstName"
-          label="Tên"
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
+        <Field.Text name="lastName" label="Họ" slotProps={{ inputLabel: { shrink: true } }} />
+        <Field.Text name="firstName" label="Tên" slotProps={{ inputLabel: { shrink: true } }} />
       </Box>
 
       <Field.Text name="email" label="Email" slotProps={{ inputLabel: { shrink: true } }} />

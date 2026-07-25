@@ -1,7 +1,13 @@
 // About-me UI copy — empty states, source labels, status labels, GOAL kind/status.
 // All strings Vietnamese. Exceptions documented inline.
 
-import type { AboutMeType , GoalMetadata, TraitMetadata, LessonMetadata, ActionMetadata } from '../types';
+import type {
+  AboutMeType,
+  GoalMetadata,
+  TraitMetadata,
+  LessonMetadata,
+  ActionMetadata,
+} from '../types';
 
 // ----------------------------------------------------------------------
 // Empty-state strings shown when a type has zero entries
@@ -60,10 +66,7 @@ export const GOAL_STATUS_LABELS: Record<GoalMetadata['status'], string> = {
 // NOTE: 'dream' uses purple (#6A1B9A / #F3E5F5) which is hard-coded because
 // the MUI theme has no purple token. Review when theme is extended.
 
-export const GOAL_KIND_CHIP: Record<
-  GoalMetadata['kind'],
-  { bg: string; fg: string }
-> = {
+export const GOAL_KIND_CHIP: Record<GoalMetadata['kind'], { bg: string; fg: string }> = {
   short: { bg: 'info.lighter', fg: '#006C9C' },
   long: { bg: 'primary.lighter', fg: 'primary.dark' },
   // Exception: purple hard-coded — no theme token available (see note above).

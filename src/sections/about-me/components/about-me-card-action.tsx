@@ -1,6 +1,6 @@
 'use client';
 
-import type { AboutMeRow , ActionMetadata } from '../types';
+import type { AboutMeRow, ActionMetadata } from '../types';
 
 import { useTransition } from 'react';
 

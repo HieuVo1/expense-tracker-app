@@ -44,9 +44,7 @@ export async function requestCompanionSuggestion(
 
   const response = await client.models.generateContent({
     model: MODEL,
-    contents: [
-      { role: 'user', parts: [{ text: buildCompanionPrompt(problem, entries) }] },
-    ],
+    contents: [{ role: 'user', parts: [{ text: buildCompanionPrompt(problem, entries) }] }],
     config: {
       responseMimeType: 'application/json',
       responseSchema,
@@ -73,8 +71,6 @@ export async function requestCompanionSuggestion(
     acknowledgment: parsed.acknowledgment ?? '',
     insight: parsed.insight ?? '',
     suggestion: parsed.suggestion ?? '',
-    relatedEntryIds: (parsed.relatedEntryIds ?? [])
-      .filter((id) => validIds.has(id))
-      .slice(0, 3),
+    relatedEntryIds: (parsed.relatedEntryIds ?? []).filter((id) => validIds.has(id)).slice(0, 3),
   };
 }

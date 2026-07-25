@@ -1,9 +1,6 @@
 'use client';
 
-import type {
-  WheelSuggestion,
-  LifeWheelAssessmentDto,
-} from 'src/lib/ai/wheel-types';
+import type { WheelSuggestion, LifeWheelAssessmentDto } from 'src/lib/ai/wheel-types';
 
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
@@ -109,12 +106,9 @@ export function WheelOfLifeCard({ initial, history }: Props) {
   };
 
   // Stale = no assessment OR > 7 days old
-  const isStale =
-    !assessment ||
-    dayjs().diff(dayjs(assessment.computedAt), 'day') > STALE_DAYS;
+  const isStale = !assessment || dayjs().diff(dayjs(assessment.computedAt), 'day') > STALE_DAYS;
 
-  const prevScores =
-    historyState.length >= 2 ? historyState[1].scores : undefined;
+  const prevScores = historyState.length >= 2 ? historyState[1].scores : undefined;
 
   return (
     <Card sx={{ overflow: 'hidden' }}>
@@ -144,12 +138,7 @@ export function WheelOfLifeCard({ initial, history }: Props) {
         </Box>
 
         {assessment && isStale && (
-          <Chip
-            label="Đã cũ"
-            color="warning"
-            size="small"
-            sx={{ flexShrink: 0 }}
-          />
+          <Chip label="Đã cũ" color="warning" size="small" sx={{ flexShrink: 0 }} />
         )}
 
         <IconButton size="small" onClick={toggleCollapse}>
@@ -174,7 +163,11 @@ export function WheelOfLifeCard({ initial, history }: Props) {
             sx={{ mb: 2 }}
           >
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mb: 0.5 }}
+              >
                 Khoảng thời gian phân tích
               </Typography>
               <ToggleButtonGroup
@@ -210,7 +203,8 @@ export function WheelOfLifeCard({ initial, history }: Props) {
                 Chưa có đánh giá
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto' }}>
-                Bấm <strong>Bắt đầu đánh giá</strong> để AI chấm 8 khía cạnh cuộc sống của bạn dựa trên task, nhật ký, biết ơn, tài chính và các dữ liệu khác trong hệ thống.
+                Bấm <strong>Bắt đầu đánh giá</strong> để AI chấm 8 khía cạnh cuộc sống của bạn dựa
+                trên task, nhật ký, biết ơn, tài chính và các dữ liệu khác trong hệ thống.
               </Typography>
             </Box>
           ) : (
@@ -256,8 +250,8 @@ export function WheelOfLifeCard({ initial, history }: Props) {
                   (s, v) => s + (v ?? 0),
                   0
                 )}{' '}
-                lượt nhắc khía cạnh trong note,{' '}
-                {assessment.inputSummary.gratitudeStats.entryCount} ngày biết ơn.
+                lượt nhắc khía cạnh trong note, {assessment.inputSummary.gratitudeStats.entryCount}{' '}
+                ngày biết ơn.
               </Typography>
             </Box>
           )}

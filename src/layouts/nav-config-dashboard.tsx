@@ -41,16 +41,19 @@ const icon = (
 export const navData: NavSectionProps['data'] = [
   {
     subheader: 'Tổng quan',
-    items: [
-      { title: 'Tổng quan', path: paths.dashboard.root, icon: icon('home') },
-    ],
+    items: [{ title: 'Tổng quan', path: paths.dashboard.root, icon: icon('home') }],
   },
   {
     subheader: 'Tài chính',
     items: [
       { title: 'Chi tiêu', path: paths.dashboard.spending, icon: icon('spending') },
       // deepMatch so /dashboard/transactions/new still highlights "Giao dịch".
-      { title: 'Giao dịch', path: paths.dashboard.transactions, icon: icon('wallet'), deepMatch: true },
+      {
+        title: 'Giao dịch',
+        path: paths.dashboard.transactions,
+        icon: icon('wallet'),
+        deepMatch: true,
+      },
       { title: 'Tài sản', path: paths.dashboard.assets, icon: icon('assets') },
       { title: 'Ngân sách', path: paths.dashboard.budgets, icon: icon('target') },
       { title: 'Hoá đơn định kỳ', path: paths.dashboard.subscriptions, icon: icon('invoice') },
@@ -70,8 +73,6 @@ export const navData: NavSectionProps['data'] = [
   },
   {
     subheader: 'Hệ thống',
-    items: [
-      { title: 'Cài đặt', path: paths.dashboard.settings, icon: icon('settings') },
-    ],
+    items: [{ title: 'Cài đặt', path: paths.dashboard.settings, icon: icon('settings') }],
   },
 ];

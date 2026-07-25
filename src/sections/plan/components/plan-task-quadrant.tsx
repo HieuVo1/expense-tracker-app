@@ -42,8 +42,7 @@ export function PlanTaskQuadrant({
 }: Props) {
   const theme = useTheme();
   const colorKey = TASK_PRIORITY_COLOR[priority];
-  const color =
-    colorKey === 'default' ? theme.palette.text.disabled : theme.palette[colorKey].main;
+  const color = colorKey === 'default' ? theme.palette.text.disabled : theme.palette[colorKey].main;
 
   return (
     <Box

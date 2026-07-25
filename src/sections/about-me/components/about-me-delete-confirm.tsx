@@ -50,8 +50,7 @@ export function AboutMeDeleteConfirm({ open, row, onClose, onDeleted }: Props) {
       <Divider />
       <DialogContent sx={{ pt: 2 }}>
         <Typography variant="body2">
-          Bạn có chắc muốn xoá{' '}
-          <strong>{ABOUT_ME_TYPE_LABELS[row.type]}</strong>:{' '}
+          Bạn có chắc muốn xoá <strong>{ABOUT_ME_TYPE_LABELS[row.type]}</strong>:{' '}
           <em>&ldquo;{row.title}&rdquo;</em>? Hành động này không thể hoàn tác.
         </Typography>
       </DialogContent>

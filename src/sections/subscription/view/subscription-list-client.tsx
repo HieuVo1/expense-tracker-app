@@ -154,8 +154,8 @@ function Header({ onCreate }: { onCreate: () => void }) {
         </Button>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 720 }}>
-        Theo dõi các <strong>subscription</strong> và hoá đơn lặp lại (cloud, AI, streaming...).
-        Số tiền theo chu kỳ năm/quý sẽ được quy đổi sang <strong>chi phí tháng</strong> để bạn biết rõ
+        Theo dõi các <strong>subscription</strong> và hoá đơn lặp lại (cloud, AI, streaming...). Số
+        tiền theo chu kỳ năm/quý sẽ được quy đổi sang <strong>chi phí tháng</strong> để bạn biết rõ
         mức chi cố định mỗi tháng.
       </Typography>
     </Box>

@@ -46,8 +46,8 @@ export function CashSyncBanner({ cashDelta, onPickerOpen }: Props) {
           <strong className="tabular">
             {sign}
             {fCurrency(Math.abs(delta))}
-          </strong>
-          {' '}— có thể đã trừ vào ví tiền mặt
+          </strong>{' '}
+          — có thể đã trừ vào ví tiền mặt
         </Box>
         <Button
           size="small"

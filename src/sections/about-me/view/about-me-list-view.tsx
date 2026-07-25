@@ -43,9 +43,7 @@ export async function AboutMeListView({ type }: Props) {
       </Typography>
 
       {/* SIGNAL: pattern board above entry list */}
-      {type === 'SIGNAL' && patterns && (
-        <AboutMePatternBoard patterns={patterns} sx={{ mb: 3 }} />
-      )}
+      {type === 'SIGNAL' && patterns && <AboutMePatternBoard patterns={patterns} sx={{ mb: 3 }} />}
 
       <AboutMeListClient rows={rows} type={type} />
     </DashboardContent>

@@ -74,7 +74,9 @@ export async function DashboardHubView() {
 
   // --- Subscription summary (domain card only) ---
   const subTotals = computeSubscriptionTotals(subs);
-  const upcoming7d = subs.filter((s) => s.active && s.daysUntilDue >= 0 && s.daysUntilDue <= 7).length;
+  const upcoming7d = subs.filter(
+    (s) => s.active && s.daysUntilDue >= 0 && s.daysUntilDue <= 7
+  ).length;
 
   // --- Spending summary ---
   const netBalance = dashboardData.totalIncome - dashboardData.totalExpense;

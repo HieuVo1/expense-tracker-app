@@ -37,17 +37,10 @@ export function PlanListClient({ initial }: PlanListClientProps) {
       current: tabRows.filter((r) => r.isCurrent),
       upcoming: tabRows.filter(
         (r) =>
-          !r.isCurrent &&
-          r.status !== 'archived' &&
-          r.startDate !== null &&
-          r.startDate > today
+          !r.isCurrent && r.status !== 'archived' && r.startDate !== null && r.startDate > today
       ),
       past: tabRows.filter(
-        (r) =>
-          !r.isCurrent &&
-          r.status !== 'archived' &&
-          r.endDate !== null &&
-          r.endDate < today
+        (r) => !r.isCurrent && r.status !== 'archived' && r.endDate !== null && r.endDate < today
       ),
       archived: tabRows.filter((r) => r.status === 'archived'),
       backlogItems: initial.filter((r) => r.scope === 'backlog'),
@@ -77,8 +70,9 @@ export function PlanListClient({ initial }: PlanListClientProps) {
         </Box>
 
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 720 }}>
-          Mỗi <strong>kế hoạch</strong> là một mục tiêu cho tuần, tháng hoặc năm. Bên trong, bạn liệt kê các{' '}
-          <strong>việc cần làm</strong> và phân loại theo mức độ <em>khẩn cấp / quan trọng</em>. Backlog là kho ý tưởng — chưa có thời hạn.
+          Mỗi <strong>kế hoạch</strong> là một mục tiêu cho tuần, tháng hoặc năm. Bên trong, bạn
+          liệt kê các <strong>việc cần làm</strong> và phân loại theo mức độ{' '}
+          <em>khẩn cấp / quan trọng</em>. Backlog là kho ý tưởng — chưa có thời hạn.
         </Typography>
       </Box>
 

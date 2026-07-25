@@ -13,7 +13,12 @@ import DialogContent from '@mui/material/DialogContent';
 
 import { Iconify } from 'src/components/iconify';
 
-import { ABOUT_ME_TYPE_ICONS, ABOUT_ME_TYPE_VALUES, ABOUT_ME_TYPE_COLORS, ABOUT_ME_TYPE_LABELS } from '../constants/about-me-types';
+import {
+  ABOUT_ME_TYPE_ICONS,
+  ABOUT_ME_TYPE_VALUES,
+  ABOUT_ME_TYPE_COLORS,
+  ABOUT_ME_TYPE_LABELS,
+} from '../constants/about-me-types';
 
 // ----------------------------------------------------------------------
 

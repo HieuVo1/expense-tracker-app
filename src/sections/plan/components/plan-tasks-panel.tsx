@@ -14,12 +14,7 @@ import { PlanTaskList } from './plan-task-list';
 import { PlanTaskAddInput } from './plan-task-add-input';
 import { PlanTaskMatrixView } from './plan-task-matrix-view';
 import { PlanTaskMoveDialog } from './plan-task-move-dialog';
-import {
-  toggleTask,
-  updateTask,
-  deleteTask,
-  moveTaskToPlan,
-} from '../actions/plan-task-actions';
+import { toggleTask, updateTask, deleteTask, moveTaskToPlan } from '../actions/plan-task-actions';
 
 // ----------------------------------------------------------------------
 

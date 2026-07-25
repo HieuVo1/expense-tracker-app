@@ -127,7 +127,9 @@ export function BudgetForm({ month, initial }: Props) {
                 placeholder="0"
                 inputMode="numeric"
                 sx={{ width: 160 }}
-                slotProps={{ input: { endAdornment: <Typography variant="caption">₫</Typography> } }}
+                slotProps={{
+                  input: { endAdornment: <Typography variant="caption">₫</Typography> },
+                }}
               />
             </Box>
           ))}

@@ -79,4 +79,3 @@ export function AssetSummaryCards({ totals, riskProfile, onChangeRiskProfile }: 
     </Grid>
   );
 }
-

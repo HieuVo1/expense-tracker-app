@@ -35,8 +35,7 @@ export async function SettingsView() {
   ]);
   const totalSpend = Number(expenseAggregate._sum.amount ?? 0);
 
-  const displayName: string =
-    user.user_metadata?.display_name ?? user.email ?? 'Người dùng';
+  const displayName: string = user.user_metadata?.display_name ?? user.email ?? 'Người dùng';
   const photoURL: string | undefined = user.user_metadata?.avatar_url;
   const createdAt = user.created_at ? dayjs(user.created_at).format('DD/MM/YYYY') : '—';
 

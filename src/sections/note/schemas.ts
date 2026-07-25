@@ -16,11 +16,7 @@ const tagSchema = z
 
 export const noteFormSchema = z.object({
   type: z.enum(NOTE_TYPE_VALUES as [string, ...string[]]),
-  title: z
-    .string()
-    .trim()
-    .min(1, 'Tiêu đề không được trống')
-    .max(120, 'Tiêu đề tối đa 120 ký tự'),
+  title: z.string().trim().min(1, 'Tiêu đề không được trống').max(120, 'Tiêu đề tối đa 120 ký tự'),
   content: z
     .string()
     .trim()

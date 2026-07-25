@@ -89,7 +89,14 @@ const baseAboutMeFields = {
   title: z.string().trim().max(120).optional(),
   content: z.string().trim().max(10000).default(''),
   tags: z
-    .array(z.string().trim().min(1).max(32).transform((s) => s.toLowerCase()))
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(32)
+        .transform((s) => s.toLowerCase())
+    )
     .max(12)
     .default([]),
   // Storage paths of attached images ("<uid>/<uuid>.<ext>"). Uploaded client-side

@@ -105,10 +105,7 @@ export function DailyReflectionCard({ reflection }: Props) {
             </Typography>
           </Stack>
 
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, mb: 0.5, pr: { xs: 4, sm: 6 } }}
-          >
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5, pr: { xs: 4, sm: 6 } }}>
             {reflection.title}
           </Typography>
 

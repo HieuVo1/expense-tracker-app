@@ -27,7 +27,9 @@ export function AboutMeRowSignal({ row, onClick }: Props) {
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onClick();
+      }}
       aria-label={`Xem chi tiết tín hiệu: ${row.title}`}
       sx={{
         p: 2,
@@ -79,12 +81,23 @@ export function AboutMeRowSignal({ row, onClick }: Props) {
               <Chip
                 label={meta.emotion}
                 size="small"
-                sx={{ mt: 0.5, height: 18, fontSize: 10, bgcolor: isNeg ? 'error.light' : 'success.light', color: 'common.white' }}
+                sx={{
+                  mt: 0.5,
+                  height: 18,
+                  fontSize: 10,
+                  bgcolor: isNeg ? 'error.light' : 'success.light',
+                  color: 'common.white',
+                }}
               />
             )}
           </Box>
         </Stack>
-        <Typography variant="caption" color="text.disabled" sx={{ flexShrink: 0, pt: 0.25 }} className="tabular">
+        <Typography
+          variant="caption"
+          color="text.disabled"
+          sx={{ flexShrink: 0, pt: 0.25 }}
+          className="tabular"
+        >
           {fDate(row.updatedAt)}
         </Typography>
       </Stack>

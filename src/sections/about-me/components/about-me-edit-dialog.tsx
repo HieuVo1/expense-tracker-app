@@ -34,7 +34,7 @@ import { AboutMeFormAction } from './forms/about-me-form-action';
 import { AboutMeDeleteConfirm } from './about-me-delete-confirm';
 import { AboutMeFormThought } from './forms/about-me-form-thought';
 import { AboutMeFormPrinciple } from './forms/about-me-form-principle';
-import { listAboutMe , createAboutMe, updateAboutMe } from '../actions/about-me-actions';
+import { listAboutMe, createAboutMe, updateAboutMe } from '../actions/about-me-actions';
 import { ABOUT_ME_TYPE_LABELS, ABOUT_ME_TYPE_COLORS } from '../constants/about-me-types';
 
 // ----------------------------------------------------------------------
@@ -57,8 +57,13 @@ function buildDefaults(type: AboutMeType, row?: AboutMeRow): FormValues {
         type,
         ...base,
         metadata: {
-          kind: (meta as Record<string, unknown>).kind as 'short' | 'long' | 'dream' ?? 'short',
-          status: (meta as Record<string, unknown>).status as 'active' | 'achieved' | 'paused' | 'abandoned' ?? 'active',
+          kind: ((meta as Record<string, unknown>).kind as 'short' | 'long' | 'dream') ?? 'short',
+          status:
+            ((meta as Record<string, unknown>).status as
+              | 'active'
+              | 'achieved'
+              | 'paused'
+              | 'abandoned') ?? 'active',
           targetDate: (meta as Record<string, unknown>).targetDate as string | undefined,
           progress: (meta as Record<string, unknown>).progress as number | undefined,
         },
@@ -69,16 +74,23 @@ function buildDefaults(type: AboutMeType, row?: AboutMeRow): FormValues {
       return {
         type,
         ...base,
-        metadata: { source: (meta as Record<string, unknown>).source as 'course' | 'experience' | 'book' | 'reflection' ?? 'experience' },
+        metadata: {
+          source:
+            ((meta as Record<string, unknown>).source as
+              | 'course'
+              | 'experience'
+              | 'book'
+              | 'reflection') ?? 'experience',
+        },
       };
     case 'SIGNAL':
       return {
         type,
         ...base,
         metadata: {
-          kind: (meta as Record<string, unknown>).kind as 'positive' | 'negative' ?? 'positive',
-          trigger: (meta as Record<string, unknown>).trigger as string ?? '',
-          emotion: (meta as Record<string, unknown>).emotion as string ?? '',
+          kind: ((meta as Record<string, unknown>).kind as 'positive' | 'negative') ?? 'positive',
+          trigger: ((meta as Record<string, unknown>).trigger as string) ?? '',
+          emotion: ((meta as Record<string, unknown>).emotion as string) ?? '',
           meaning: (meta as Record<string, unknown>).meaning as string | undefined,
           action: (meta as Record<string, unknown>).action as string | undefined,
         },
@@ -90,7 +102,7 @@ function buildDefaults(type: AboutMeType, row?: AboutMeRow): FormValues {
         type,
         ...base,
         metadata: {
-          kind: (meta as Record<string, unknown>).kind as 'strength' | 'weakness' ?? 'strength',
+          kind: ((meta as Record<string, unknown>).kind as 'strength' | 'weakness') ?? 'strength',
           context: (meta as Record<string, unknown>).context as string | undefined,
         },
       };
@@ -99,7 +111,12 @@ function buildDefaults(type: AboutMeType, row?: AboutMeRow): FormValues {
         type,
         ...base,
         metadata: {
-          status: (meta as Record<string, unknown>).status as 'planned' | 'doing' | 'done' | 'skipped' ?? 'planned',
+          status:
+            ((meta as Record<string, unknown>).status as
+              | 'planned'
+              | 'doing'
+              | 'done'
+              | 'skipped') ?? 'planned',
           dueDate: (meta as Record<string, unknown>).dueDate as string | undefined,
         },
       };
@@ -124,12 +141,15 @@ export function AboutMeEditDialog({ open, type, row, onClose }: Props) {
   const [lessonRows, setLessonRows] = useState<AboutMeRow[]>([]);
 
   const methods = useForm<FormValues>({
-     
     resolver: zodResolver(aboutMeFormSchema) as any,
     defaultValues: buildDefaults(type, row),
   });
 
-  const { handleSubmit, reset, formState: { isSubmitting } } = methods;
+  const {
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = methods;
 
   // Sync form when dialog opens or row/type changes
   useEffect(() => {
@@ -141,7 +161,9 @@ export function AboutMeEditDialog({ open, type, row, onClose }: Props) {
   // Prefetch LESSON rows for PRINCIPLE form autocomplete
   useEffect(() => {
     if (open && type === 'PRINCIPLE') {
-      listAboutMe('LESSON').then(setLessonRows).catch(() => {});
+      listAboutMe('LESSON')
+        .then(setLessonRows)
+        .catch(() => {});
     }
   }, [open, type]);
 
@@ -248,7 +270,9 @@ export function AboutMeEditDialog({ open, type, row, onClose }: Props) {
             },
           }}
         >
-          <Box sx={{ width: 40, height: 4, bgcolor: 'divider', borderRadius: 2, mx: 'auto', mb: 2 }} />
+          <Box
+            sx={{ width: 40, height: 4, bgcolor: 'divider', borderRadius: 2, mx: 'auto', mb: 2 }}
+          />
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             {isEdit ? 'Chỉnh sửa' : 'Tạo mới'} — {ABOUT_ME_TYPE_LABELS[type]}
           </Typography>
@@ -275,9 +299,7 @@ export function AboutMeEditDialog({ open, type, row, onClose }: Props) {
           {isEdit ? 'Chỉnh sửa' : 'Tạo mới'} — {ABOUT_ME_TYPE_LABELS[type]}
         </DialogTitle>
         <Divider />
-        <DialogContent sx={{ px: 3, py: 2.5 }}>
-          {formContent}
-        </DialogContent>
+        <DialogContent sx={{ px: 3, py: 2.5 }}>{formContent}</DialogContent>
       </Dialog>
 
       {row && (

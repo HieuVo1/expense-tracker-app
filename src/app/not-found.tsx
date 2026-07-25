@@ -16,9 +16,7 @@ export default function Page() {
       <Typography variant="h3" sx={{ mb: 2 }}>
         404
       </Typography>
-      <Typography sx={{ color: 'text.secondary', mb: 3 }}>
-        Trang bạn tìm không tồn tại.
-      </Typography>
+      <Typography sx={{ color: 'text.secondary', mb: 3 }}>Trang bạn tìm không tồn tại.</Typography>
       <Button href={paths.dashboard.root} variant="contained">
         Về trang chủ
       </Button>

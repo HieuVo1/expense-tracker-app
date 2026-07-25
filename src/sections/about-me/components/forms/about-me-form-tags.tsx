@@ -30,11 +30,7 @@ export function AboutMeFormTags() {
           value={field.value ?? []}
           onChange={(_, raw) => {
             const next = Array.from(
-              new Set(
-                (raw as string[])
-                  .map((v) => v.trim().toLowerCase())
-                  .filter(Boolean)
-              )
+              new Set((raw as string[]).map((v) => v.trim().toLowerCase()).filter(Boolean))
             ).slice(0, MAX_TAGS);
             field.onChange(next);
           }}
@@ -56,17 +52,10 @@ export function AboutMeFormTags() {
             <TextField
               {...params}
               label="Tags"
-              placeholder={
-                (field.value?.length ?? 0) === 0
-                  ? 'Thêm tag rồi nhấn Enter'
-                  : ''
-              }
+              placeholder={(field.value?.length ?? 0) === 0 ? 'Thêm tag rồi nhấn Enter' : ''}
               size="small"
               error={!!fieldState.error}
-              helperText={
-                fieldState.error?.message ??
-                `Tối đa ${MAX_TAGS} tag · mỗi tag ≤32 ký tự`
-              }
+              helperText={fieldState.error?.message ?? `Tối đa ${MAX_TAGS} tag · mỗi tag ≤32 ký tự`}
             />
           )}
           sx={{ mt: 2 }}

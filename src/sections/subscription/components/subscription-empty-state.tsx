@@ -21,11 +21,7 @@ export function SubscriptionEmptyState({ onCreate }: Props) {
       }}
     >
       <Stack spacing={2} alignItems="center">
-        <Iconify
-          icon="solar:bill-list-bold-duotone"
-          width={56}
-          sx={{ color: 'text.disabled' }}
-        />
+        <Iconify icon="solar:bill-list-bold-duotone" width={56} sx={{ color: 'text.disabled' }} />
         <Box>
           <Typography variant="h6">Chưa có hoá đơn định kỳ</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>

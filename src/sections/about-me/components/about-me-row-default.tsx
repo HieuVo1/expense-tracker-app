@@ -37,7 +37,9 @@ export function AboutMeRowDefault({ row, onClick }: Props) {
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onClick();
+      }}
       sx={{
         p: 2,
         borderRadius: 2,

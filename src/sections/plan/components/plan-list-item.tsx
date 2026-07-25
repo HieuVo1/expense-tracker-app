@@ -43,7 +43,14 @@ export function PlanListItem({ plan }: PlanListItemProps) {
     <Card>
       <CardActionArea component={NextLink} href={paths.dashboard.planDetail(id)} sx={{ p: 2 }}>
         <Stack spacing={1.5}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 1,
+            }}
+          >
             <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.4 }}>
               {title}
             </Typography>
@@ -63,11 +70,7 @@ export function PlanListItem({ plan }: PlanListItemProps) {
             {renderDateText(scope, startDate, endDate)}
           </Typography>
 
-          <PlanProgressBar
-            doneCount={doneCount}
-            totalCount={totalCount}
-            progress={progress}
-          />
+          <PlanProgressBar doneCount={doneCount} totalCount={totalCount} progress={progress} />
         </Stack>
       </CardActionArea>
     </Card>

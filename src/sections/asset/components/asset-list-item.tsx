@@ -94,12 +94,7 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
           <span className="tabular">{fCurrency(asset.capital)}</span>
         </Typography>
         {showSavingsLine && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            noWrap
-            sx={{ display: 'block' }}
-          >
+          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
             {asset.interestRate !== null && (
               <span className="tabular">{asset.interestRate}%/năm</span>
             )}
@@ -136,7 +131,11 @@ export function AssetListItem({ asset, onEdit, onDelete }: Props) {
           {plSign}
           {fCurrency(Math.abs(pl))}
           {plPercent !== null && (
-            <> ({plSign}{Math.abs(plPercent).toFixed(1)}%)</>
+            <>
+              {' '}
+              ({plSign}
+              {Math.abs(plPercent).toFixed(1)}%)
+            </>
           )}
         </Typography>
       </Box>

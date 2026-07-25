@@ -28,10 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing file' }, { status: 400 });
   }
   if (files.length > MAX_FILES) {
-    return NextResponse.json(
-      { error: `Tối đa ${MAX_FILES} ảnh / lần quét` },
-      { status: 413 }
-    );
+    return NextResponse.json({ error: `Tối đa ${MAX_FILES} ảnh / lần quét` }, { status: 413 });
   }
   for (const f of files) {
     if (f.size > MAX_FILE_BYTES) {

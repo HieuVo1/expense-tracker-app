@@ -66,9 +66,7 @@ export async function listSubscriptions(): Promise<SubscriptionRow[]> {
   });
 }
 
-export async function createSubscription(
-  input: SubscriptionFormValues,
-): Promise<{ id: string }> {
+export async function createSubscription(input: SubscriptionFormValues): Promise<{ id: string }> {
   const user = await requireUser();
   const data = subscriptionFormSchema.parse(input);
   await assertCategoryOwned(user.id, data.categoryId);
@@ -91,10 +89,7 @@ export async function createSubscription(
   return { id: created.id };
 }
 
-export async function updateSubscription(
-  id: string,
-  input: SubscriptionFormValues,
-): Promise<void> {
+export async function updateSubscription(id: string, input: SubscriptionFormValues): Promise<void> {
   const user = await requireUser();
   const data = subscriptionFormSchema.parse(input);
   await assertCategoryOwned(user.id, data.categoryId);

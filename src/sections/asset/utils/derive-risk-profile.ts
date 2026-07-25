@@ -1,11 +1,7 @@
 import type { AssetType } from '@prisma/client';
 
 import { ASSET_TYPE_VALUES } from '../constants/asset-types';
-import {
-  RISK_TARGETS,
-  type RiskProfile,
-  RISK_PROFILE_VALUES,
-} from '../constants/risk-profiles';
+import { RISK_TARGETS, type RiskProfile, RISK_PROFILE_VALUES } from '../constants/risk-profiles';
 
 export type Allocation = Record<AssetType, number>; // ratios, sum to 1
 
@@ -23,22 +19,17 @@ export function calcAllocation(byType: Record<AssetType, number>): Allocation | 
 // Euclidean distance over the 5 asset-type dimensions. Used to suggest the
 // closest profile to the user's actual mix.
 function distance(a: Allocation, b: Record<AssetType, number>): number {
-  return Math.sqrt(
-    ASSET_TYPE_VALUES.reduce((s, k) => s + ((a[k] ?? 0) - (b[k] ?? 0)) ** 2, 0),
-  );
+  return Math.sqrt(ASSET_TYPE_VALUES.reduce((s, k) => s + ((a[k] ?? 0) - (b[k] ?? 0)) ** 2, 0));
 }
 
 export function suggestProfile(actual: Allocation): RiskProfile {
   return RISK_PROFILE_VALUES.reduce((best, p) =>
-    distance(actual, RISK_TARGETS[p]) < distance(actual, RISK_TARGETS[best]) ? p : best,
+    distance(actual, RISK_TARGETS[p]) < distance(actual, RISK_TARGETS[best]) ? p : best
   );
 }
 
 // Per-type drift = actual - target. Positive = over-allocated, negative = under.
-export function calcDrift(
-  actual: Allocation,
-  profile: RiskProfile,
-): Record<AssetType, number> {
+export function calcDrift(actual: Allocation, profile: RiskProfile): Record<AssetType, number> {
   const target = RISK_TARGETS[profile];
   const drift = {} as Record<AssetType, number>;
   for (const t of ASSET_TYPE_VALUES) {
@@ -58,10 +49,7 @@ const ASSET_TYPE_LABEL_HINTS: Record<AssetType, string> = {
   OTHER: 'Khoản khác',
 };
 
-export function rebalanceHints(
-  drift: Record<AssetType, number>,
-  threshold: number,
-): string[] {
+export function rebalanceHints(drift: Record<AssetType, number>, threshold: number): string[] {
   const hints: string[] = [];
   for (const t of ASSET_TYPE_VALUES) {
     const d = drift[t];

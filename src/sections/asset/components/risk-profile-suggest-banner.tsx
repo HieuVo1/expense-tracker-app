@@ -34,15 +34,11 @@ export function RiskProfileSuggestBanner({ suggested, onOpenPicker }: Props) {
   if (dismissed) return null;
 
   return (
-    <Alert
-      severity="info"
-      onClose={() => setDismissed(true)}
-      sx={{ alignItems: 'center' }}
-    >
+    <Alert severity="info" onClose={() => setDismissed(true)} sx={{ alignItems: 'center' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Box sx={{ flex: 1, minWidth: 200 }}>
-          Tỷ trọng tài sản của bạn giống hồ sơ{' '}
-          <strong>{RISK_PROFILE_LABELS[suggested]}</strong> — chọn hồ sơ này?
+          Tỷ trọng tài sản của bạn giống hồ sơ <strong>{RISK_PROFILE_LABELS[suggested]}</strong> —
+          chọn hồ sơ này?
         </Box>
         <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
           <Button size="small" variant="outlined" onClick={onOpenPicker}>

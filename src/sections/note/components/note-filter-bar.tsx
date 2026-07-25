@@ -56,7 +56,11 @@ export function NoteFilterBar({
       {allTags.length > 0 && (
         <Stack spacing={1}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Iconify icon="solar:tag-horizontal-bold-duotone" width={16} sx={{ color: 'text.secondary' }} />
+            <Iconify
+              icon="solar:tag-horizontal-bold-duotone"
+              width={16}
+              sx={{ color: 'text.secondary' }}
+            />
             <Typography variant="caption" color="text.secondary">
               Thẻ
             </Typography>

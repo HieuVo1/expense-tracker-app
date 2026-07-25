@@ -1,6 +1,6 @@
 'use client';
 
-import type { AboutMeRow , LessonMetadata } from '../types';
+import type { AboutMeRow, LessonMetadata } from '../types';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';

@@ -84,9 +84,7 @@ export function DashboardLayout({
           )}
         </>
       ),
-      rightArea: (
-        <></>
-      ),
+      rightArea: <></>,
     };
 
     return (

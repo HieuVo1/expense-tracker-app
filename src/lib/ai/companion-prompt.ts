@@ -4,10 +4,7 @@ import type { CompanionCorpusEntry } from './types';
 
 // VN-tuned prompt. The model only SELECTS entry ids — it must not invent
 // entries. Output shape is enforced separately via responseSchema.
-export function buildCompanionPrompt(
-  problem: string,
-  entries: CompanionCorpusEntry[]
-): string {
+export function buildCompanionPrompt(problem: string, entries: CompanionCorpusEntry[]): string {
   const corpus = entries
     .map((e) => {
       const meta = e.meta ? ` · ${e.meta}` : '';

@@ -1,6 +1,6 @@
 'use client';
 
-import type { AboutMeRow , GoalMetadata } from '../types';
+import type { AboutMeRow, GoalMetadata } from '../types';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';

@@ -50,13 +50,13 @@ export const ABOUT_ME_TYPE_ICONS: Record<AboutMeType, IconifyName> = {
 // Each color is the icon-background tint (light), not the full card background.
 
 export const ABOUT_ME_TYPE_COLORS: Record<AboutMeType, string> = {
-  GOAL: '#FFD180',       // warm amber — north-star warmth
-  THOUGHT: '#B3E5FC',    // sky blue — open thought
-  LESSON: '#C8E6C9',     // sage green — growth
-  SIGNAL: '#FFCDD2',     // soft red — emotional signal
-  PRINCIPLE: '#E8EAF6',  // indigo tint — conviction
-  TRAIT: '#FFF9C4',      // pale yellow — self-awareness
-  ACTION: '#F3E5F5',     // lavender — commitment
+  GOAL: '#FFD180', // warm amber — north-star warmth
+  THOUGHT: '#B3E5FC', // sky blue — open thought
+  LESSON: '#C8E6C9', // sage green — growth
+  SIGNAL: '#FFCDD2', // soft red — emotional signal
+  PRINCIPLE: '#E8EAF6', // indigo tint — conviction
+  TRAIT: '#FFF9C4', // pale yellow — self-awareness
+  ACTION: '#F3E5F5', // lavender — commitment
 };
 
 /**

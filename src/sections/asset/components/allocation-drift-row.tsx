@@ -6,11 +6,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import { Iconify } from 'src/components/iconify';
 
-import {
-  ASSET_TYPE_HEX,
-  ASSET_TYPE_ICONS,
-  ASSET_TYPE_LABELS,
-} from '../constants/asset-types';
+import { ASSET_TYPE_HEX, ASSET_TYPE_ICONS, ASSET_TYPE_LABELS } from '../constants/asset-types';
 
 type Props = {
   type: AssetType;
@@ -22,11 +18,7 @@ type Props = {
 export function AllocationDriftRow({ type, actualRatio, targetRatio, driftWarn }: Props) {
   const drift = actualRatio - targetRatio;
   const driftSign = drift > 0 ? '+' : drift < 0 ? '−' : '';
-  const driftColor = !driftWarn
-    ? 'text.secondary'
-    : drift > 0
-      ? 'error.main'
-      : 'warning.main';
+  const driftColor = !driftWarn ? 'text.secondary' : drift > 0 ? 'error.main' : 'warning.main';
 
   const color = ASSET_TYPE_HEX[type];
 

@@ -171,7 +171,9 @@ export function GratitudeEditDialog({ entry, open, onClose }: Props) {
           },
         }}
       >
-        <Box sx={{ width: 40, height: 4, bgcolor: 'divider', borderRadius: 2, mx: 'auto', mb: 2 }} />
+        <Box
+          sx={{ width: 40, height: 4, bgcolor: 'divider', borderRadius: 2, mx: 'auto', mb: 2 }}
+        />
         <Typography variant="h6" sx={{ mb: 2 }}>
           Sửa lòng biết ơn
         </Typography>

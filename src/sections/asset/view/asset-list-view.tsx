@@ -15,11 +15,7 @@ export async function AssetListView() {
 
   return (
     <DashboardContent>
-      <AssetListClient
-        assets={assets}
-        initialRiskProfile={riskProfile}
-        cashDelta={cashDelta}
-      />
+      <AssetListClient assets={assets} initialRiskProfile={riskProfile} cashDelta={cashDelta} />
     </DashboardContent>
   );
 }

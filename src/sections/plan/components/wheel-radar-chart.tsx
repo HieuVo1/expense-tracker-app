@@ -26,9 +26,7 @@ export function WheelRadarChart({ current, prev, height = 480 }: Props) {
       name: 'Hiện tại',
       data: LIFE_AREA_ORDER.map((a) => current[a]),
     },
-    ...(prev
-      ? [{ name: 'Lần trước', data: LIFE_AREA_ORDER.map((a) => prev[a]) }]
-      : []),
+    ...(prev ? [{ name: 'Lần trước', data: LIFE_AREA_ORDER.map((a) => prev[a]) }] : []),
   ];
 
   const colors = prev
@@ -69,7 +67,5 @@ export function WheelRadarChart({ current, prev, height = 480 }: Props) {
     },
   });
 
-  return (
-    <Chart type="radar" series={series} options={options} sx={{ width: '100%', height }} />
-  );
+  return <Chart type="radar" series={series} options={options} sx={{ width: '100%', height }} />;
 }

@@ -21,12 +21,7 @@ type Props = {
   onCreateTask: (s: WheelSuggestion, taskTitle: string) => void;
 };
 
-export function WheelSuggestionsGrid({
-  suggestions,
-  scores,
-  creatingKey,
-  onCreateTask,
-}: Props) {
+export function WheelSuggestionsGrid({ suggestions, scores, creatingKey, onCreateTask }: Props) {
   const [showAll, setShowAll] = useState(false);
 
   // Filter weak areas + sort ascending by score

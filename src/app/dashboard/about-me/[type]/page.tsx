@@ -6,7 +6,10 @@ import { notFound } from 'next/navigation';
 import { CONFIG } from 'src/global-config';
 
 import { AboutMeListView } from 'src/sections/about-me/view/about-me-list-view';
-import { ABOUT_ME_TYPE_VALUES, ABOUT_ME_TYPE_LABELS } from 'src/sections/about-me/constants/about-me-types';
+import {
+  ABOUT_ME_TYPE_VALUES,
+  ABOUT_ME_TYPE_LABELS,
+} from 'src/sections/about-me/constants/about-me-types';
 
 // ----------------------------------------------------------------------
 

@@ -20,7 +20,15 @@ import { aboutMeFormSchema, aboutMeUpdateSchema } from '../schemas';
 // NoteType now only has 'daily' plus the 7 UPPERCASE About-me types.
 // The 4 old lowercase variants (insight/strength/weakness/idea) were
 // migrated to their UPPERCASE equivalents in migration 20260510084453.
-type NoteTypeUnion = 'GOAL' | 'THOUGHT' | 'LESSON' | 'SIGNAL' | 'PRINCIPLE' | 'TRAIT' | 'ACTION' | 'daily';
+type NoteTypeUnion =
+  | 'GOAL'
+  | 'THOUGHT'
+  | 'LESSON'
+  | 'SIGNAL'
+  | 'PRINCIPLE'
+  | 'TRAIT'
+  | 'ACTION'
+  | 'daily';
 
 function mapRow(
   r: {
@@ -89,9 +97,7 @@ export async function listAboutMe(type?: AboutMeType): Promise<AboutMeRow[]> {
       userId: user.id,
       // Scope strictly to about-me UPPERCASE types — prevents Notes module rows
       // (lowercase types) from leaking into about-me views.
-      type: type
-        ? { equals: type }
-        : { in: ABOUT_ME_TYPE_VALUES as NoteTypeUnion[] },
+      type: type ? { equals: type } : { in: ABOUT_ME_TYPE_VALUES as NoteTypeUnion[] },
     },
     orderBy: { updatedAt: 'desc' },
   });

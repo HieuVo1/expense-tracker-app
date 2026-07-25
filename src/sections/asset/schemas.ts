@@ -14,16 +14,10 @@ export const assetFormSchema = z.object({
   currentValue: z
     .string()
     .min(1, 'Vui lòng nhập giá trị hiện tại')
-    .refine(
-      (v) => /^\d+$/.test(v) && Number(v) >= 0,
-      'Giá trị hiện tại phải là số nguyên ≥ 0',
-    ),
+    .refine((v) => /^\d+$/.test(v) && Number(v) >= 0, 'Giá trị hiện tại phải là số nguyên ≥ 0'),
   // Optional, only meaningful for SAVINGS. Empty string → null on server side.
   interestRate: z
-    .union([
-      z.literal(''),
-      z.string().regex(/^\d+(\.\d+)?$/, 'Lãi suất không hợp lệ'),
-    ])
+    .union([z.literal(''), z.string().regex(/^\d+(\.\d+)?$/, 'Lãi suất không hợp lệ')])
     .optional(),
   maturityDate: z.union([z.literal(''), z.iso.date()]).optional(),
   notes: z.string().max(500).optional(),

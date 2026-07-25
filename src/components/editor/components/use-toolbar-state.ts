@@ -40,12 +40,10 @@ export function useToolbarState(editor: Editor): UseToolbarStateReturn {
     selector: (ctx) => {
       const canRun = ctx.editor.can().chain().focus();
 
-      const textAlign =
-        ALIGN_VALUES.find((v) => ctx.editor.isActive({ textAlign: v })) ?? null;
+      const textAlign = ALIGN_VALUES.find((v) => ctx.editor.isActive({ textAlign: v })) ?? null;
       const textTransform =
-        TRANSFORM_VALUES.find((v) =>
-          ctx.editor.isActive('textTransform', { textTransform: v })
-        ) ?? null;
+        TRANSFORM_VALUES.find((v) => ctx.editor.isActive('textTransform', { textTransform: v })) ??
+        null;
       const headingLevel: TextHeadingLevel =
         HEADING_LEVELS.find((lvl) => ctx.editor.isActive('heading', { level: lvl })) ?? null;
 

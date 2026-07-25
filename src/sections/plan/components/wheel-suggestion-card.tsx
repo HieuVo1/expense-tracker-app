@@ -12,11 +12,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { Iconify } from 'src/components/iconify';
 
-import {
-  LIFE_AREA_ICON,
-  LIFE_AREA_LABEL,
-  LIFE_AREA_COLOR,
-} from '../constants/life-area';
+import { LIFE_AREA_ICON, LIFE_AREA_LABEL, LIFE_AREA_COLOR } from '../constants/life-area';
 
 // ----------------------------------------------------------------------
 
@@ -117,7 +113,13 @@ export function WheelSuggestionCard({ suggestion, score, onCreateTask, creatingK
                   {showTierLabels && (
                     <Typography
                       variant="caption"
-                      sx={{ display: 'block', color, fontWeight: 600, fontSize: 10, lineHeight: 1.2 }}
+                      sx={{
+                        display: 'block',
+                        color,
+                        fontWeight: 600,
+                        fontSize: 10,
+                        lineHeight: 1.2,
+                      }}
                     >
                       {TASK_TIER_LABELS[idx]}
                     </Typography>

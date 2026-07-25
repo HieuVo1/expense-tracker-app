@@ -18,12 +18,7 @@ const KIND_OPTIONS = [
 export function AboutMeFormTrait() {
   return (
     <Stack spacing={2.5}>
-      <Field.RadioGroup
-        name="metadata.kind"
-        label="Loại"
-        options={KIND_OPTIONS}
-        row
-      />
+      <Field.RadioGroup name="metadata.kind" label="Loại" options={KIND_OPTIONS} row />
 
       <Field.Text
         name="title"

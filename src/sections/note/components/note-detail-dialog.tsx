@@ -27,17 +27,14 @@ import { NOTE_TYPE_ICONS, NOTE_TYPE_LABELS, NOTE_TYPE_COLORS } from '../constant
 // ----------------------------------------------------------------------
 
 // Lazy-load Editor so the 150KB bundle only loads when dialog opens
-const Editor = dynamic(
-  () => import('src/components/editor').then((m) => ({ default: m.Editor })),
-  {
-    ssr: false,
-    loading: () => (
-      <Stack alignItems="center" justifyContent="center" sx={{ minHeight: 200 }}>
-        <CircularProgress size={32} />
-      </Stack>
-    ),
-  }
-);
+const Editor = dynamic(() => import('src/components/editor').then((m) => ({ default: m.Editor })), {
+  ssr: false,
+  loading: () => (
+    <Stack alignItems="center" justifyContent="center" sx={{ minHeight: 200 }}>
+      <CircularProgress size={32} />
+    </Stack>
+  ),
+});
 
 // ----------------------------------------------------------------------
 
@@ -97,108 +94,108 @@ export function NoteDetailDialog({
 
   return (
     <>
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="md"
-      scroll="paper"
-      slotProps={{ transition: { onExited } }}
-    >
-      <DialogTitle sx={{ pb: 1 }}>
-        <Stack spacing={1}>
-          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-            <Chip
-              size="small"
-              icon={<Iconify icon={typeIcon} width={14} />}
-              label={typeLabel}
-              sx={{
-                backgroundColor: typeColor,
-                color: '#fff',
-                '& .MuiChip-icon': { color: '#fff' },
-              }}
-            />
-            <Typography variant="caption" color="text.disabled">
-              Cập nhật: {fDate(view.updatedAt)}
-            </Typography>
-          </Stack>
-          <Typography variant="h6">{view.title}</Typography>
-          {view.tags.length > 0 && (
-            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-              {view.tags.map((tag) => (
-                <Chip
-                  key={tag}
-                  size="small"
-                  label={`#${tag}`}
-                  variant="outlined"
-                  sx={{ height: 22 }}
-                />
-              ))}
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="md"
+        scroll="paper"
+        slotProps={{ transition: { onExited } }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack spacing={1}>
+            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+              <Chip
+                size="small"
+                icon={<Iconify icon={typeIcon} width={14} />}
+                label={typeLabel}
+                sx={{
+                  backgroundColor: typeColor,
+                  color: '#fff',
+                  '& .MuiChip-icon': { color: '#fff' },
+                }}
+              />
+              <Typography variant="caption" color="text.disabled">
+                Cập nhật: {fDate(view.updatedAt)}
+              </Typography>
             </Stack>
-          )}
-        </Stack>
-      </DialogTitle>
-
-      <Divider />
-
-      <DialogContent sx={{ pt: 2 }}>
-        <Editor value={view.content} editable={false} />
-
-        {/* Attached images — private, shown via signed URLs. Tap to preview. */}
-        {view.imageUrls.some((u) => u) && (
-          <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
-            {view.imageUrls.map((url, i) =>
-              url ? (
-                <Box
-                  key={i}
-                  onClick={() => lightbox.onOpen(url)}
-                  sx={{
-                    cursor: 'pointer',
-                    width: 96,
-                    height: 96,
-                    borderRadius: 1,
-                    overflow: 'hidden',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: (t) => t.transitions.create('opacity'),
-                    '&:hover': { opacity: 0.85 },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={url}
-                    alt=""
-                    sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            <Typography variant="h6">{view.title}</Typography>
+            {view.tags.length > 0 && (
+              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                {view.tags.map((tag) => (
+                  <Chip
+                    key={tag}
+                    size="small"
+                    label={`#${tag}`}
+                    variant="outlined"
+                    sx={{ height: 22 }}
                   />
-                </Box>
-              ) : null
+                ))}
+              </Stack>
             )}
           </Stack>
-        )}
-      </DialogContent>
+        </DialogTitle>
 
-      <Divider />
+        <Divider />
 
-      <DialogActions>
-        <Button onClick={onClose} color="inherit">
-          Đóng
-        </Button>
-        <Button
-          onClick={handleDelete}
-          color="error"
-          startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-        >
-          Xoá
-        </Button>
-        <Button
-          onClick={handleEdit}
-          variant="contained"
-          startIcon={<Iconify icon="solar:pen-bold" />}
-        >
-          Sửa
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <DialogContent sx={{ pt: 2 }}>
+          <Editor value={view.content} editable={false} />
+
+          {/* Attached images — private, shown via signed URLs. Tap to preview. */}
+          {view.imageUrls.some((u) => u) && (
+            <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
+              {view.imageUrls.map((url, i) =>
+                url ? (
+                  <Box
+                    key={i}
+                    onClick={() => lightbox.onOpen(url)}
+                    sx={{
+                      cursor: 'pointer',
+                      width: 96,
+                      height: 96,
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      transition: (t) => t.transitions.create('opacity'),
+                      '&:hover': { opacity: 0.85 },
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={url}
+                      alt=""
+                      sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  </Box>
+                ) : null
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+
+        <Divider />
+
+        <DialogActions>
+          <Button onClick={onClose} color="inherit">
+            Đóng
+          </Button>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+          >
+            Xoá
+          </Button>
+          <Button
+            onClick={handleEdit}
+            variant="contained"
+            startIcon={<Iconify icon="solar:pen-bold" />}
+          >
+            Sửa
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Lightbox
         open={lightbox.open}

@@ -29,7 +29,10 @@ export function AboutMeFormPrinciple({ lessonOptions }: Props) {
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Nội dung chi tiết
         </Typography>
-        <Field.Editor name="content" placeholder="Giải thích nguyên tắc này và lý do bạn tin vào nó..." />
+        <Field.Editor
+          name="content"
+          placeholder="Giải thích nguyên tắc này và lý do bạn tin vào nó..."
+        />
       </Box>
 
       <Field.Autocomplete

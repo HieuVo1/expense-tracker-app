@@ -102,7 +102,9 @@ export async function requestWheelAssessment(signals: WheelSignals): Promise<{
   const suggestions: WheelSuggestion[] = (parsed.suggestions ?? [])
     .slice(0, 8)
     .filter(
-      (s): s is { area: string; message: string; reason?: string; recommendedTasks?: unknown[] } => {
+      (
+        s
+      ): s is { area: string; message: string; reason?: string; recommendedTasks?: unknown[] } => {
         if (typeof s !== 'object' || s === null) return false;
         const obj = s as Record<string, unknown>;
         return (

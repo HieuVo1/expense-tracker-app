@@ -9,7 +9,6 @@ import { requireUser } from 'src/lib/auth-helpers';
 
 import { GRATITUDE_TARGET } from 'src/sections/gratitude/constants/gratitude';
 
-
 // ----------------------------------------------------------------------
 
 export type ReminderTask = {
@@ -124,9 +123,6 @@ export async function getDashboardReminders(): Promise<DashboardReminders> {
     expiredPlans,
     gratitudePending,
     totalCount:
-      todayTasks.length +
-      overdueTasks.length +
-      expiredPlans.length +
-      (gratitudePending ? 1 : 0),
+      todayTasks.length + overdueTasks.length + expiredPlans.length + (gratitudePending ? 1 : 0),
   };
 }

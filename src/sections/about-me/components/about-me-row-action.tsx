@@ -74,7 +74,9 @@ export function AboutMeRowAction({ row, onClick }: Props) {
           role="button"
           tabIndex={0}
           onClick={onClick}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onClick();
+          }}
           aria-label={`Xem chi tiết: ${row.title}`}
         >
           <Typography

@@ -41,7 +41,11 @@ export function GratitudeHistoryList({ entries }: Props) {
         {entries.map((entry) => (
           <Card key={entry.id} sx={{ p: { xs: 2, sm: 2.5 } }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-              <Iconify icon="solar:calendar-date-bold" width={18} sx={{ color: GRATITUDE_ACCENT }} />
+              <Iconify
+                icon="solar:calendar-date-bold"
+                width={18}
+                sx={{ color: GRATITUDE_ACCENT }}
+              />
               <Typography variant="subtitle2">{fDate(entry.date, 'DD/MM/YYYY')}</Typography>
               <Chip
                 size="small"
@@ -79,11 +83,7 @@ export function GratitudeHistoryList({ entries }: Props) {
         ))}
       </Stack>
 
-      <GratitudeEditDialog
-        entry={editing}
-        open={!!editing}
-        onClose={() => setEditing(null)}
-      />
+      <GratitudeEditDialog entry={editing} open={!!editing} onClose={() => setEditing(null)} />
     </>
   );
 }

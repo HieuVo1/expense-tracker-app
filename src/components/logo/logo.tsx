@@ -49,13 +49,7 @@ export function Logo({
       ]}
       {...other}
     >
-      <img
-        alt="Logo"
-        src={src}
-        width="100%"
-        height="100%"
-        style={{ objectFit: 'contain' }}
-      />
+      <img alt="Logo" src={src} width="100%" height="100%" style={{ objectFit: 'contain' }} />
     </LogoRoot>
   );
 }

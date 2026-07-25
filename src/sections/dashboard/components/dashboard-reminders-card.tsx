@@ -123,17 +123,10 @@ function TaskSection({
 
 // ----------------------------------------------------------------------
 
-function TaskRow({
-  task,
-  showRelativeDate,
-}: {
-  task: ReminderTask;
-  showRelativeDate: boolean;
-}) {
+function TaskRow({ task, showRelativeDate }: { task: ReminderTask; showRelativeDate: boolean }) {
   const theme = useTheme();
   const colorKey = TASK_PRIORITY_COLOR[task.priority];
-  const tint =
-    colorKey === 'default' ? theme.palette.text.disabled : theme.palette[colorKey].main;
+  const tint = colorKey === 'default' ? theme.palette.text.disabled : theme.palette[colorKey].main;
 
   return (
     <Box
@@ -174,11 +167,7 @@ function ExpiredPlansSection({ plans }: { plans: ReminderExpiredPlan[] }) {
   return (
     <Box>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        <Iconify
-          icon="solar:calendar-date-bold"
-          width={18}
-          sx={{ color: 'info.main' }}
-        />
+        <Iconify icon="solar:calendar-date-bold" width={18} sx={{ color: 'info.main' }} />
         <Typography variant="subtitle2" sx={{ color: 'info.main' }}>
           Kế hoạch quá hạn
         </Typography>

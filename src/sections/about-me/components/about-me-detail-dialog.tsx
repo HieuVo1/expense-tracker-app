@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import type { AboutMeRow , GoalMetadata } from '../types';
+import type { AboutMeRow, GoalMetadata } from '../types';
 
 import { useMemo, useState } from 'react';
 
@@ -74,7 +74,9 @@ function renderGoalMeta(row: AboutMeRow): ReactNode {
 function renderLessonMeta(row: AboutMeRow): ReactNode {
   const source = (row.metadata as Record<string, unknown> | null)?.source;
   if (typeof source !== 'string') return null;
-  return <MetaRow label="Nguồn" value={SOURCE_LABELS[source as keyof typeof SOURCE_LABELS] ?? source} />;
+  return (
+    <MetaRow label="Nguồn" value={SOURCE_LABELS[source as keyof typeof SOURCE_LABELS] ?? source} />
+  );
 }
 
 function renderSignalMeta(row: AboutMeRow): ReactNode {
@@ -87,7 +89,9 @@ function renderSignalMeta(row: AboutMeRow): ReactNode {
   const action = typeof meta.action === 'string' ? meta.action : null;
   return (
     <Stack spacing={0.75}>
-      {kind && <MetaRow label="Loại" value={SIGNAL_KIND_LABELS[kind as 'positive' | 'negative'] ?? kind} />}
+      {kind && (
+        <MetaRow label="Loại" value={SIGNAL_KIND_LABELS[kind as 'positive' | 'negative'] ?? kind} />
+      )}
       {trigger && <MetaRow label="Trigger" value={trigger} />}
       {emotion && <MetaRow label="Cảm xúc" value={emotion} />}
       {meaning && <MetaRow label="Ý nghĩa" value={meaning} />}
@@ -104,7 +108,10 @@ function renderActionMeta(row: AboutMeRow): ReactNode {
   return (
     <Stack spacing={0.75}>
       {status && (
-        <MetaRow label="Trạng thái" value={ACTION_STATUS_LABELS[status as keyof typeof ACTION_STATUS_LABELS] ?? status} />
+        <MetaRow
+          label="Trạng thái"
+          value={ACTION_STATUS_LABELS[status as keyof typeof ACTION_STATUS_LABELS] ?? status}
+        />
       )}
       {dueDate && <MetaRow label="Hạn" value={fDate(dueDate)} />}
     </Stack>
@@ -114,7 +121,9 @@ function renderActionMeta(row: AboutMeRow): ReactNode {
 function renderTraitMeta(row: AboutMeRow): ReactNode {
   const kind = (row.metadata as Record<string, unknown> | null)?.kind;
   if (typeof kind !== 'string') return null;
-  return <MetaRow label="Loại" value={TRAIT_KIND_LABELS[kind as 'strength' | 'weakness'] ?? kind} />;
+  return (
+    <MetaRow label="Loại" value={TRAIT_KIND_LABELS[kind as 'strength' | 'weakness'] ?? kind} />
+  );
 }
 
 // ----------------------------------------------------------------------

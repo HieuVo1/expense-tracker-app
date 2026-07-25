@@ -29,8 +29,8 @@ export const TASK_PRIORITY_COLOR: Record<
 
 // Registered Solar icon names — verified against icon-sets.ts
 export const TASK_PRIORITY_ICON: Record<TaskPriority, IconifyName> = {
-  do_first: 'solar:danger-bold',           // Q1: urgent + important (red alert icon)
-  schedule: 'solar:calendar-date-bold',    // Q2: important, schedule it
-  delegate: 'solar:bolt-bold',             // Q3: urgent but delegate
+  do_first: 'solar:danger-bold', // Q1: urgent + important (red alert icon)
+  schedule: 'solar:calendar-date-bold', // Q2: important, schedule it
+  delegate: 'solar:bolt-bold', // Q3: urgent but delegate
   eliminate: 'solar:forbidden-circle-bold', // Q4: neither — eliminate
 };

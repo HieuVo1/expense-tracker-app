@@ -32,7 +32,11 @@ const addTaskSchema = z.object({
 const updateTaskSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   priority: z.enum(['do_first', 'schedule', 'delegate', 'eliminate']).optional(),
-  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  dueDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
   // undefined = no change, null = clear tag, value = set tag
   lifeArea: LIFE_AREA_ENUM.nullable().optional(),
 });

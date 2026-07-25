@@ -23,11 +23,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { PlanTaskPriorityMenu } from './plan-task-priority-menu';
 import { PlanTaskLifeAreaMenu } from './plan-task-life-area-menu';
-import {
-  LIFE_AREA_ICON,
-  LIFE_AREA_LABEL,
-  LIFE_AREA_COLOR,
-} from '../constants/life-area';
+import { LIFE_AREA_ICON, LIFE_AREA_LABEL, LIFE_AREA_COLOR } from '../constants/life-area';
 import {
   TASK_PRIORITY_ICON,
   TASK_PRIORITY_LABEL,
@@ -154,11 +150,7 @@ export function PlanTaskItem({
       {task.lifeArea && areaColor && (
         <Chip
           icon={
-            <Iconify
-              icon={LIFE_AREA_ICON[task.lifeArea]}
-              width={14}
-              sx={{ color: areaColor }}
-            />
+            <Iconify icon={LIFE_AREA_ICON[task.lifeArea]} width={14} sx={{ color: areaColor }} />
           }
           label={LIFE_AREA_LABEL[task.lifeArea]}
           size="small"
@@ -179,11 +171,7 @@ export function PlanTaskItem({
       {/* Priority chip */}
       <Chip
         icon={
-          <Iconify
-            icon={TASK_PRIORITY_ICON[task.priority]}
-            width={14}
-            sx={{ color: chipColor }}
-          />
+          <Iconify icon={TASK_PRIORITY_ICON[task.priority]} width={14} sx={{ color: chipColor }} />
         }
         label={TASK_PRIORITY_LABEL[task.priority]}
         size="small"

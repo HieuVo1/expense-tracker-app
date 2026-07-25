@@ -95,17 +95,13 @@ export function HorizontalScrollStrip({
         direction="left"
         visible={canLeft}
         showAt={showButtonsAt}
-        onClick={() =>
-          scrollBy(-Math.round((ref.current?.clientWidth ?? 320) * scrollFraction))
-        }
+        onClick={() => scrollBy(-Math.round((ref.current?.clientWidth ?? 320) * scrollFraction))}
       />
       <ArrowBtn
         direction="right"
         visible={canRight}
         showAt={showButtonsAt}
-        onClick={() =>
-          scrollBy(Math.round((ref.current?.clientWidth ?? 320) * scrollFraction))
-        }
+        onClick={() => scrollBy(Math.round((ref.current?.clientWidth ?? 320) * scrollFraction))}
       />
     </Box>
   );

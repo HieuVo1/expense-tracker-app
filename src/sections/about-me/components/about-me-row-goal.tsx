@@ -2,7 +2,7 @@
 
 import type { AboutMeRow, GoalMetadata } from '../types';
 
-import { useState , useTransition } from 'react';
+import { useState, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
@@ -98,7 +98,9 @@ export function AboutMeRowGoal({ row, onClick }: Props) {
           onClick={onClick}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') onClick();
+          }}
           aria-label={`Xem chi tiết: ${row.title}`}
         >
           <Stack direction="row" alignItems="center" gap={0.75} sx={{ mb: 0.5 }}>
@@ -143,7 +145,10 @@ export function AboutMeRowGoal({ row, onClick }: Props) {
         <IconButton
           size="small"
           aria-label="Thay đổi trạng thái mục tiêu"
-          onClick={(e) => { e.stopPropagation(); setAnchorEl(e.currentTarget); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setAnchorEl(e.currentTarget);
+          }}
           sx={{ mt: -0.5, flexShrink: 0 }}
         >
           <Iconify icon="eva:more-vertical-fill" width={16} />

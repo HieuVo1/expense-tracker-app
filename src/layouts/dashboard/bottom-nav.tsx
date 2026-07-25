@@ -19,7 +19,11 @@ import { Iconify } from 'src/components/iconify';
 // summary widgets, so a tap target there is preserved.
 const TABS = [
   { value: paths.dashboard.root, label: 'Trang chủ', icon: 'solar:home-angle-bold-duotone' },
-  { value: paths.dashboard.transactions, label: 'Giao dịch', icon: 'solar:transfer-horizontal-bold-duotone' },
+  {
+    value: paths.dashboard.transactions,
+    label: 'Giao dịch',
+    icon: 'solar:transfer-horizontal-bold-duotone',
+  },
   { value: paths.dashboard.aboutMe, label: 'Về tôi', icon: 'solar:user-rounded-bold' },
   { value: paths.dashboard.notes, label: 'Nhật ký', icon: 'solar:notebook-bold-duotone' },
   { value: paths.dashboard.plans, label: 'Kế hoạch', icon: 'solar:calendar-date-bold' },
@@ -30,10 +34,12 @@ const TABS = [
 // closest tab — e.g. /dashboard/transactions/new highlights "Lịch sử".
 function activeTab(pathname: string) {
   // Longer paths first so /transactions wins over /transactions root '/'.
-  const match = [...TABS].sort((a, b) => b.value.length - a.value.length).find((t) => {
-    if (t.value === paths.dashboard.root) return pathname === paths.dashboard.root;
-    return pathname.startsWith(t.value);
-  });
+  const match = [...TABS]
+    .sort((a, b) => b.value.length - a.value.length)
+    .find((t) => {
+      if (t.value === paths.dashboard.root) return pathname === paths.dashboard.root;
+      return pathname.startsWith(t.value);
+    });
   return match?.value ?? paths.dashboard.root;
 }
 
@@ -97,4 +103,3 @@ export function BottomNav({ hideAtBreakpoint = 'lg' }: Props) {
     </Paper>
   );
 }
-

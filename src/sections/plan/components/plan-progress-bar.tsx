@@ -21,11 +21,7 @@ export function PlanProgressBar({ doneCount, totalCount, progress }: PlanProgres
           {progress}%
         </Typography>
       </Box>
-      <LinearProgress
-        variant="determinate"
-        value={progress}
-        sx={{ height: 6, borderRadius: 3 }}
-      />
+      <LinearProgress variant="determinate" value={progress} sx={{ height: 6, borderRadius: 3 }} />
     </Box>
   );
 }

@@ -73,7 +73,10 @@ function metaHint(type: NoteType, metadata: unknown): string | undefined {
 
   switch (type) {
     case 'SIGNAL': {
-      const parts = [str(m.trigger) && `bối cảnh: ${m.trigger}`, str(m.emotion) && `cảm xúc: ${m.emotion}`];
+      const parts = [
+        str(m.trigger) && `bối cảnh: ${m.trigger}`,
+        str(m.emotion) && `cảm xúc: ${m.emotion}`,
+      ];
       return parts.filter(Boolean).join(' · ') || undefined;
     }
     case 'LESSON':
@@ -120,8 +123,7 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
   if (rows.length === 0 && gratitudeRows.length === 0) {
     return {
       hasCorpus: false,
-      acknowledgment:
-        'Mình hiểu cảm giác của bạn lúc này. Cảm xúc đó hoàn toàn có lý.',
+      acknowledgment: 'Mình hiểu cảm giác của bạn lúc này. Cảm xúc đó hoàn toàn có lý.',
       insight:
         'Bạn chưa có ghi chép nào về bản thân để mình soi lại. Khi bạn ghi lại các bài học, suy nghĩ hay tín hiệu cảm xúc ở mục "Về tôi", mình sẽ có thể nhắc bạn những điều bạn từng vượt qua.',
       suggestion:
@@ -145,10 +147,7 @@ export async function getCompanionSuggestion(problem: string): Promise<Companion
     content: clamp(g.items.map((it) => `• ${it}`).join('\n')),
   }));
 
-  const result = await requestCompanionSuggestion(safeProblem, [
-    ...noteCorpus,
-    ...gratitudeCorpus,
-  ]);
+  const result = await requestCompanionSuggestion(safeProblem, [...noteCorpus, ...gratitudeCorpus]);
 
   const noteById = new Map(rows.map((r) => [r.id, r]));
   const gratitudeById = new Map(gratitudeRows.map((g) => [g.id, g]));

@@ -1,6 +1,12 @@
 'use client';
 
-import type { AboutMeRow, AboutMeType, GoalMetadata, TraitMetadata, ActionMetadata } from '../types';
+import type {
+  AboutMeRow,
+  AboutMeType,
+  GoalMetadata,
+  TraitMetadata,
+  ActionMetadata,
+} from '../types';
 
 import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
@@ -57,10 +63,17 @@ const ACTION_STATUS_SECTION_LABELS: Record<string, string> = {
 function SectionHeader({ label, count }: { label: string; count: number }) {
   return (
     <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1, mt: 2 }}>
-      <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 10 }}>
+      <Typography
+        variant="overline"
+        sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 10 }}
+      >
         {label}
       </Typography>
-      <Chip label={count} size="small" sx={{ height: 18, fontSize: 10, fontWeight: 600, bgcolor: 'background.neutral' }} />
+      <Chip
+        label={count}
+        size="small"
+        sx={{ height: 18, fontSize: 10, fontWeight: 600, bgcolor: 'background.neutral' }}
+      />
     </Stack>
   );
 }
@@ -101,11 +114,11 @@ export function AboutMeListClient({ rows, type }: Props) {
     const q = search.trim().toLowerCase();
     let result = q
       ? rows.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.content.toLowerCase().includes(q) ||
-          r.tags.some((t) => t.includes(q))
-      )
+          (r) =>
+            r.title.toLowerCase().includes(q) ||
+            r.content.toLowerCase().includes(q) ||
+            r.tags.some((t) => t.includes(q))
+        )
       : rows;
 
     if (type === 'GOAL' && goalStatusFilter !== 'all') {
@@ -133,7 +146,6 @@ export function AboutMeListClient({ rows, type }: Props) {
     if (!openId) return;
     const row = rows.find((r) => r.id === openId);
     if (row) openDetail(row);
-     
   }, [searchParams, rows]);
 
   // ---- GOAL grouped render ----
@@ -222,7 +234,10 @@ export function AboutMeListClient({ rows, type }: Props) {
           grouped.map(({ status, rows: statusRows }) =>
             statusRows.length === 0 ? null : (
               <Box key={status}>
-                <SectionHeader label={ACTION_STATUS_SECTION_LABELS[status]} count={statusRows.length} />
+                <SectionHeader
+                  label={ACTION_STATUS_SECTION_LABELS[status]}
+                  count={statusRows.length}
+                />
                 <Stack spacing={1}>
                   {statusRows.map((r) => (
                     <AboutMeRowAction key={r.id} row={r} onClick={() => openDetail(r)} />
@@ -421,7 +436,12 @@ function ListHeader({
 }: ListHeaderProps) {
   return (
     <Box sx={{ mb: 2 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} gap={1.5} alignItems={{ sm: 'center' }} sx={{ mb: 1.5 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        gap={1.5}
+        alignItems={{ sm: 'center' }}
+        sx={{ mb: 1.5 }}
+      >
         <TextField
           size="small"
           placeholder={`Tìm trong ${ABOUT_ME_TYPE_LABELS[type]}...`}
@@ -467,14 +487,12 @@ function ListHeader({
 
       {/* Tag filter — single-select chip row, only shown when tags exist */}
       {tagOptions.length > 0 && (
-        <Stack
-          direction="row"
-          gap={0.75}
-          flexWrap="wrap"
-          alignItems="center"
-          sx={{ pt: 0.5 }}
-        >
-          <Iconify icon="solar:tag-horizontal-bold-duotone" width={14} sx={{ color: 'text.disabled' }} />
+        <Stack direction="row" gap={0.75} flexWrap="wrap" alignItems="center" sx={{ pt: 0.5 }}>
+          <Iconify
+            icon="solar:tag-horizontal-bold-duotone"
+            width={14}
+            sx={{ color: 'text.disabled' }}
+          />
           {tagOptions.map(({ tag, count }) => {
             const active = tagFilter === tag;
             return (
@@ -515,7 +533,14 @@ type DialogsProps = {
   onAddClose: () => void;
 };
 
-function Dialogs({ type, selectedRow, detailOpen, addOpen, onDetailClose, onAddClose }: DialogsProps) {
+function Dialogs({
+  type,
+  selectedRow,
+  detailOpen,
+  addOpen,
+  onDetailClose,
+  onAddClose,
+}: DialogsProps) {
   return (
     <>
       <AboutMeDetailDialog open={detailOpen} row={selectedRow} onClose={onDetailClose} />

@@ -23,11 +23,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { addTask } from '../actions/plan-task-actions';
 import { PlanTaskLifeAreaMenu } from './plan-task-life-area-menu';
-import {
-  LIFE_AREA_ICON,
-  LIFE_AREA_LABEL,
-  LIFE_AREA_COLOR,
-} from '../constants/life-area';
+import { LIFE_AREA_ICON, LIFE_AREA_LABEL, LIFE_AREA_COLOR } from '../constants/life-area';
 import {
   TASK_PRIORITY_ICON,
   TASK_PRIORITY_ORDER,
@@ -128,7 +124,9 @@ export function PlanTaskAddInput({ planId }: Props) {
     }
   };
 
-  const areaColor = lifeArea ? theme.palette[LIFE_AREA_COLOR[lifeArea]].main : theme.palette.text.disabled;
+  const areaColor = lifeArea
+    ? theme.palette[LIFE_AREA_COLOR[lifeArea]].main
+    : theme.palette.text.disabled;
   const areaIcon = lifeArea ? LIFE_AREA_ICON[lifeArea] : 'solar:suitcase-tag-bold';
   const areaText = lifeArea ? LIFE_AREA_LABEL[lifeArea] : 'Khía cạnh (tùy chọn)';
 

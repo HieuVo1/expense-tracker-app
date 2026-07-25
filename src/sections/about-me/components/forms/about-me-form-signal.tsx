@@ -23,12 +23,7 @@ export function AboutMeFormSignal() {
         inputProps={{ maxLength: 120 }}
       />
 
-      <Field.RadioGroup
-        name="metadata.kind"
-        label="Loại tín hiệu"
-        options={KIND_OPTIONS}
-        row
-      />
+      <Field.RadioGroup name="metadata.kind" label="Loại tín hiệu" options={KIND_OPTIONS} row />
 
       <Field.Text
         name="metadata.trigger"

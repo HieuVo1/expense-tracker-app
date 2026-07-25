@@ -31,11 +31,7 @@ import { RiskProfilePicker } from '../components/risk-profile-picker';
 import { AllocationDriftRow } from '../components/allocation-drift-row';
 import { AssetAllocationDonut } from '../components/asset-allocation-donut';
 import { RiskProfileSuggestBanner } from '../components/risk-profile-suggest-banner';
-import {
-  RISK_TARGETS,
-  type RiskProfile,
-  DRIFT_WARN_THRESHOLD,
-} from '../constants/risk-profiles';
+import { RISK_TARGETS, type RiskProfile, DRIFT_WARN_THRESHOLD } from '../constants/risk-profiles';
 import {
   calcDrift,
   calcAllocation,
@@ -68,16 +64,13 @@ export function AssetListClient({ assets, initialRiskProfile, cashDelta }: Props
   const allocation = useMemo(() => calcAllocation(totals.byType), [totals.byType]);
   const suggested = useMemo(
     () => (allocation && initialRiskProfile === null ? suggestProfile(allocation) : null),
-    [allocation, initialRiskProfile],
+    [allocation, initialRiskProfile]
   );
   const drift = useMemo(
     () => (allocation && initialRiskProfile ? calcDrift(allocation, initialRiskProfile) : null),
-    [allocation, initialRiskProfile],
+    [allocation, initialRiskProfile]
   );
-  const hints = useMemo(
-    () => (drift ? rebalanceHints(drift, DRIFT_WARN_THRESHOLD) : []),
-    [drift],
-  );
+  const hints = useMemo(() => (drift ? rebalanceHints(drift, DRIFT_WARN_THRESHOLD) : []), [drift]);
 
   const openCreate = () => {
     setEditing(null);
@@ -138,10 +131,7 @@ export function AssetListClient({ assets, initialRiskProfile, cashDelta }: Props
       ) : (
         <>
           {showCashBanner && (
-            <CashSyncBanner
-              cashDelta={cashDelta}
-              onPickerOpen={() => setCashPickerOpen(true)}
-            />
+            <CashSyncBanner cashDelta={cashDelta} onPickerOpen={() => setCashPickerOpen(true)} />
           )}
 
           {suggested && (
@@ -191,7 +181,7 @@ export function AssetListClient({ assets, initialRiskProfile, cashDelta }: Props
                   type={t}
                   actualRatio={allocation[t] ?? 0}
                   targetRatio={RISK_TARGETS[initialRiskProfile][t] ?? 0}
-                  driftWarn={Math.abs((drift?.[t] ?? 0)) > DRIFT_WARN_THRESHOLD}
+                  driftWarn={Math.abs(drift?.[t] ?? 0) > DRIFT_WARN_THRESHOLD}
                 />
               ))}
             </Card>
@@ -227,9 +217,7 @@ export function AssetListClient({ assets, initialRiskProfile, cashDelta }: Props
         onClose={() => setDeleteTarget(null)}
         title="Xoá tài sản?"
         content={
-          deleteTarget
-            ? `Hành động này sẽ xoá "${deleteTarget.name}" và không thể hoàn tác.`
-            : ''
+          deleteTarget ? `Hành động này sẽ xoá "${deleteTarget.name}" và không thể hoàn tác.` : ''
         }
         action={
           <IconButton

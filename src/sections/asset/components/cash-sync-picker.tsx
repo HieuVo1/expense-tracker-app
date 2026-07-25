@@ -128,8 +128,7 @@ export function CashSyncPicker({ open, onClose, cashAssets, cashDelta }: Props) 
                       {asset.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" className="tabular">
-                      {fCurrency(asset.currentValue)} →{' '}
-                      <strong>{fCurrency(projected)}</strong>
+                      {fCurrency(asset.currentValue)} → <strong>{fCurrency(projected)}</strong>
                     </Typography>
                   </Box>
                 </Box>

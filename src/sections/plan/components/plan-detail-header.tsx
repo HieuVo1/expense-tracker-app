@@ -203,12 +203,7 @@ export function PlanDetailHeader({ plan }: Props) {
           <Button onClick={() => setDeleteOpen(false)} color="inherit" disabled={isPending}>
             Huỷ
           </Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-            disabled={isPending}
-          >
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={isPending}>
             Xoá
           </Button>
         </DialogActions>

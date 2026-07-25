@@ -61,8 +61,8 @@ export function RiskProfilePicker({ open, onClose, current }: Props) {
           {!!error && <Alert severity="error">{error}</Alert>}
 
           <Typography variant="body2" color="text.secondary">
-            Chọn hồ sơ phù hợp với mục tiêu và khẩu vị rủi ro của bạn. Mỗi hồ sơ có tỷ trọng
-            phân bổ mục tiêu cho từng loại tài sản.
+            Chọn hồ sơ phù hợp với mục tiêu và khẩu vị rủi ro của bạn. Mỗi hồ sơ có tỷ trọng phân bổ
+            mục tiêu cho từng loại tài sản.
           </Typography>
 
           <Box
@@ -109,7 +109,11 @@ export function RiskProfilePicker({ open, onClose, current }: Props) {
                     {RISK_PROFILE_DESCRIPTIONS[p]}
                   </Typography>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mb: 0.5, display: 'block' }}
+                    >
                       Phân bổ mục tiêu
                     </Typography>
                     {ASSET_TYPE_VALUES.map((t: AssetType) => {

@@ -17,8 +17,6 @@ import { getAboutMeStats } from '../actions/about-me-stats';
 import { AboutMeStatsStrip } from '../components/about-me-stats-strip';
 import { getSignalPatterns } from '../actions/about-me-signal-patterns';
 
-
-
 // ----------------------------------------------------------------------
 
 const SLICE = 3;
@@ -49,7 +47,13 @@ export async function AboutMeHubView() {
   return (
     <DashboardContent>
       {/* Header */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'flex-start' }} justifyContent="space-between" gap={2} sx={{ mb: 3 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ sm: 'flex-start' }}
+        justifyContent="space-between"
+        gap={2}
+        sx={{ mb: 3 }}
+      >
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
             Về tôi
